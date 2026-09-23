@@ -1,7 +1,10 @@
+import type { ProjectTimeEntry, ProjectTimeTick } from '../../shared/project-time'
 import type { TelemetryConsentState } from '../../shared/telemetry-consent-types'
 import type { MemorySnapshot, StatsSummary } from '../../shared/process-stats-types'
 
 export type StatsApi = {
+  getProjectTime: () => Promise<ProjectTimeEntry[]>
+  tickProjectTime: (tick: ProjectTimeTick) => Promise<void>
   getSummary: () => Promise<StatsSummary>
 }
 

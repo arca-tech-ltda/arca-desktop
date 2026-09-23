@@ -1,3 +1,4 @@
+import { useProjectTime } from './hooks/use-project-time'
 import { useCallback, useEffect } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -49,6 +50,7 @@ function App(): React.JSX.Element {
   usePersistedUIWriter()
   useDocumentAppearance()
   useWindowVisibilityEffects()
+  useProjectTime()
   useGlobalKeybindings({ layout, floatingWorkspace })
 
   // Why: the same vars are set inline on .app-layout below, but portaled surfaces

@@ -1,4 +1,15 @@
 {
+  "projectTime": {
+    "title": "Temps par projet",
+    "today": "Aujourd’hui",
+    "week": "7 derniers jours",
+    "total": "Temps actif total",
+    "error": "Impossible de charger le temps par projet.",
+    "empty": "Utilisez un espace de travail de projet pour commencer à enregistrer le temps actif.",
+    "underMinute": "< 1 min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "minutes": "{{minutes}} min"
+  },
   "arca": {
     "megamind": {
       "title": "Megamind",

@@ -1,4 +1,15 @@
 {
+  "projectTime": {
+    "title": "Time by project",
+    "today": "Today",
+    "week": "Last 7 days",
+    "total": "Total active time",
+    "error": "Could not load project time.",
+    "empty": "Use a project workspace to start tracking active time.",
+    "underMinute": "< 1 min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "minutes": "{{minutes}} min"
+  },
   "arca": {
     "megamind": {
       "title": "Megamind",

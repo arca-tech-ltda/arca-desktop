@@ -1,4 +1,15 @@
 {
+  "projectTime": {
+    "title": "各项目用时",
+    "today": "今天",
+    "week": "最近7天",
+    "total": "总活跃时间",
+    "error": "无法加载项目用时。",
+    "empty": "使用项目工作区即可开始记录活跃时间。",
+    "underMinute": "不到1分钟",
+    "hoursMinutes": "{{hours}}小时{{minutes}}分钟",
+    "minutes": "{{minutes}}分钟"
+  },
   "arca": {
     "megamind": {
       "title": "Megamind",

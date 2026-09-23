@@ -90,6 +90,8 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     linear: createRuntimeNamespaceApi('linear'),
     hooks: createHooksApi(),
     stats: {
+      getProjectTime: async () => [],
+      tickProjectTime: async () => {},
       getSummary: async () =>
         callRuntimeResult<StatsSummary>('stats.summary').catch(() => ({
           totalAgentsSpawned: 0,

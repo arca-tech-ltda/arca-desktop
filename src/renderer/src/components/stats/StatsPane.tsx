@@ -1,3 +1,4 @@
+import { ProjectTimePane } from './ProjectTimePane'
 import { useEffect, useState } from 'react'
 import { BarChart3, Bot, Check, ChevronDown, Clock, GitPullRequest } from 'lucide-react'
 import { useAppStore } from '../../store'
@@ -117,6 +118,7 @@ export function StatsPane(): React.JSX.Element {
 
   return (
     <div className="space-y-5">
+      <ProjectTimePane />
       {summary ? (
         <div className="space-y-3">
           {summary.totalAgentsSpawned === 0 && summary.totalPRsCreated === 0 ? (
