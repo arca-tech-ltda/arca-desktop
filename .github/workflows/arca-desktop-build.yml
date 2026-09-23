@@ -1,0 +1,135 @@
+name: ARCA Desktop Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [arca-desktop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arca-desktop-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+  ORCA_BACKGROUND_LAUNCH: '1'
+  CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+  ORCA_BUILD_IDENTITY: ''
+  ORCA_POSTHOG_WRITE_KEY: ''
+  ORCA_DIAGNOSTICS_TOKEN_URL: ''
+  EXPO_NO_TELEMETRY: '1'
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      # VS 2022 is supported by the native dependencies' node-gyp.
+      npm_config_msvs_version: '2022'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Reads the pinned version from packageManager, including its integrity hash.
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+
+      - name: Install dependencies and rebuild Electron native modules
+        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/install-mobile-dependencies
+
+      # Both relay hosts need patched binaries even though the desktop is x64 only.
+      - name: Build Windows relay native addons
+        run: |
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=x64
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=arm64
+
+      # Includes build:native, which compiles the CLI launcher with Framework csc.exe.
+      - name: Build app and verify native helpers
+        run: pnpm build:release
+        env:
+          ORCA_REQUIRE_RELAY_NATIVE_ADDONS: x64,arm64
+
+      - name: Package unsigned x64 NSIS installer
+        run: |
+          node config/scripts/ensure-native-runtime.mjs --runtime=electron
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --win nsis --x64 --publish never -c.win.verifyUpdateCodeSignature=false
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: arca-desktop-windows-x64
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  mac:
+    runs-on: macos-14
+    timeout-minutes: 90
+    env:
+      # Local ad-hoc helper signatures need no Apple account or certificate.
+      CSC_NAME: '-'
+      ORCA_COMPUTER_MACOS_SIGN_IDENTITY: '-'
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+
+      - name: Verify arm64 host and Swift toolchain
+        run: |
+          test "$(uname -m)" = arm64
+          swift --version
+
+      # Host-only install matches --arm64; build:mac would default to both CPUs.
+      - name: Install dependencies and rebuild Electron native modules
+        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/install-mobile-dependencies
+
+      - name: Build app and verify native helpers
+        run: pnpm build:release
+
+      # No ORCA_MAC_RELEASE/HOURLY/DAILY/ADHOC: notarization and forced signing stay off.
+      - name: Package arm64 DMG and ZIP without Apple signing
+        run: |
+          node config/scripts/ensure-native-runtime.mjs --runtime=electron
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --mac dmg zip --arm64 --publish never
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: arca-desktop-macos-arm64-dmg
+          path: dist/*.dmg
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload macOS ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: arca-desktop-macos-arm64-zip
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
