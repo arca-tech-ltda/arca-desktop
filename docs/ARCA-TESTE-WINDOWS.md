@@ -16,7 +16,7 @@ Se faltar algo, siga `~/ARCA/arca/INSTALAR.md` antes (install.ps1 e enrollment).
 
 1. Baixe o artefato `arca-desktop-windows-x64` do workflow **ARCA Desktop Build** em
    `github.com/arca-tech-ltda/arca-desktop/actions`.
-2. Descompacte e rode o instalador `ARCA-*-setup*.exe`.
+2. Descompacte e rode `arca-windows-setup.exe` (instala por usuário, sem admin).
 3. Abra **ARCA** pelo Menu Iniciar.
 
 ## 2. Pi da ARCA num projeto
@@ -41,9 +41,10 @@ Se faltar algo, siga `~/ARCA/arca/INSTALAR.md` antes (install.ps1 e enrollment).
 ## O que reportar
 
 - Versão (Help → About), prints de qualquer erro, e o resultado de cada passo (ok/falhou).
-- Logs: `%APPDATA%\ARCA\logs`.
+- Logs: `%APPDATA%\orca\logs` (a pasta de dados mantém o nome interno `orca`).
 
 ## Limitações conhecidas
 
-- Sem assinatura de código e sem atualização automática.
+- Sem assinatura de código e sem atualização automática: nova versão = baixar e instalar de novo.
+- Não rode junto com um Orca original instalado: os dois usam a mesma pasta de dados.
 - Projetos via SSH/WSL ainda gravam as extensões do app na pasta do Pi remoto; use pastas locais.
