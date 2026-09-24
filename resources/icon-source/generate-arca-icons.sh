@@ -21,15 +21,18 @@ fi
 
 # Why the canvas inset: macOS expects the rounded tile to sit inside a transparent
 # margin, and Windows/Linux crop nothing, so one 1024 master serves every target.
-BACKGROUND='#09090b'
+BACKGROUND='#ffffff'
+GLYPH_FILL='#09090b'
+BORDER='#e4e4e7'
 GLYPH_PX=520
 GLYPH_OFFSET=$(((1024 - GLYPH_PX) / 2))
 
-"$MAGICK_BIN" -background none -density 600 "$SYMBOL" -resize "${GLYPH_PX}x${GLYPH_PX}" \
+sed "s/#ffffff/$GLYPH_FILL/g" "$SYMBOL" > "$TMP_DIR/symbol.svg"
+"$MAGICK_BIN" -background none -density 600 "$TMP_DIR/symbol.svg" -resize "${GLYPH_PX}x${GLYPH_PX}" \
   "$TMP_DIR/glyph.png"
 
 "$MAGICK_BIN" -size 1024x1024 xc:none \
-  -fill "$BACKGROUND" -draw 'roundrectangle 100,100,923,923,185,185' \
+  -fill "$BACKGROUND" -stroke "$BORDER" -strokewidth 4 -draw 'roundrectangle 100,100,923,923,185,185' -stroke none \
   "$TMP_DIR/glyph.png" -geometry "+${GLYPH_OFFSET}+${GLYPH_OFFSET}" -composite \
   "$BUILD_DIR/icon.png"
 echo "  -> resources/build/icon.png (1024x1024)"
@@ -69,7 +72,8 @@ for size in 18 36; do
   if [ "$size" = 36 ]; then
     target="$RESOURCES_DIR/tray/arca-menu-barTemplate@2x.png"
   fi
-  "$MAGICK_BIN" -background none -density 600 "$SYMBOL" -resize "${size}x${size}" \
+  sed "s/#ffffff/$GLYPH_FILL/g" "$SYMBOL" > "$TMP_DIR/symbol.svg"
+"$MAGICK_BIN" -background none -density 600 "$TMP_DIR/symbol.svg" -resize "${size}x${size}" \
     -fill black -colorize 100 "$target"
   echo "  -> ${target#"$PROJECT_DIR"/}"
 done
