@@ -6,7 +6,6 @@ import {
   resetMacInstallState
 } from './updater-mac-install'
 import { compareVersions } from './updater-fallback'
-import { fetchChangelog } from './updater-changelog'
 import type { ElectronAutoUpdater } from './electron-updater-loader'
 import { recordUpdaterLifecycle } from './updater-lifecycle-diagnostics'
 import {
@@ -17,7 +16,7 @@ import {
 import { isExternallyManagedLinuxInstall } from './linux-update-package-type'
 import * as linuxPackageRecovery from './linux-package-update-recovery'
 
-const AUTO_UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
+const AUTO_UPDATE_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
 const AUTO_UPDATE_RETRY_INTERVAL_MS = 60 * 60 * 1000
 
 type UpdaterHandlerContext = {
@@ -168,10 +167,7 @@ export function registerAutoUpdaterHandlers({
     markUpdateAvailableEventPending(attemptId)
     void (async () => {
       try {
-        const changelog =
-          isLocalBuildCheck() || isPinnedBuildCheck()
-            ? null
-            : await fetchChangelog(info.version, app.getVersion()).catch(() => null)
+        const changelog = null
 
         // Why: async fetch may take seconds; bail if a newer event superseded this attempt to avoid a stale 'available' broadcast.
         if (!isActiveUpdateCheckAttempt(attemptId)) {

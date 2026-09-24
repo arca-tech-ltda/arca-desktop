@@ -20,7 +20,33 @@
       "errorDetail": "ARCA Mainframe 未响应。请检查连接后重试。",
       "unsupportedTitle": "Megamind 需要桌面应用",
       "unsupportedDetail": "此面板嵌入了仅能在桌面应用中运行的 ARCA Mainframe。",
-      "retry": "重试"
+      "retry": "重试",
+      "connectedAs": "已连接为",
+      "connect": "连接 Megamind",
+      "confirmCode": "请在 Mainframe 中确认此代码：",
+      "expired": "代码已过期。请重新连接。",
+      "connectionError": "连接失败。请检查凭据并重试。",
+      "loginRequired": "请登录 Mainframe，然后重新操作。",
+      "approve": "批准",
+      "deny": "拒绝",
+      "approvalPending": "待批准",
+      "approvalDecided": "审批已决定",
+      "requestReceived": "收到请求",
+      "requestCompleted": "请求已完成",
+      "install": "运行工作区安装程序",
+      "prerequisites": "此计算机缺少 Pi 或其 Megamind 扩展。",
+      "installerMissing": "在 ~/ARCA/arca 中找不到安装程序。请先安装 ARCA 工作区。",
+      "localInstaller": "请切换到本地环境以运行此安装程序。",
+      "settingsTitle": "ARCA Megamind",
+      "notConnected": "未连接",
+      "sharedCredential": "凭据与 Pi 共享。请在 Mainframe 中管理或撤销设备；此应用不会删除共享凭据。",
+      "manageDevices": "在 Mainframe 中管理设备",
+      "requestFailed": "请求失败"
+    },
+    "updater": {
+      "connect": "连接 Megamind 以接收更新",
+      "downloadDmg": "下载 DMG 以更新",
+      "readOnly": "无法替换此位置的应用。下载需要设备身份验证。"
     }
   },
   "app": {
@@ -1975,7 +2001,37 @@
         "jiraLinkSourceUnavailable": "无法关联此 Jira 议题。请重新连接 Jira 或选择匹配的站点，然后重试。",
         "loadPageUnreachable": "第 {{value0}} 页超出了 GitHub 搜索可返回的范围。",
         "loadPageFailed": "无法从 GitHub 加载第 {{value0}} 页。",
-        "loadPageNoMoreResults": "第 {{value0}} 页没有更多结果。"
+        "loadPageNoMoreResults": "第 {{value0}} 页没有更多结果。",
+        "statusMdTitle": "Tasks",
+        "statusMdSubtitle": "Read from each project’s STATUS.md",
+        "closeTasks": "Close",
+        "statusMdSearch": "Search tasks",
+        "statusMdProjectFilter": "Filter by project",
+        "allProjects": "All projects",
+        "statusMdOpen": "Open",
+        "statusMdAll": "All",
+        "statusMdCompleted": "Completed",
+        "hideMissingStatus": "Hide projects without STATUS.md",
+        "statusMdLoading": "Loading tasks…",
+        "statusMdEmpty": "No projects match these filters.",
+        "statusMdLoadError": "Could not read STATUS.md files.",
+        "statusMdMissing": "No STATUS.md",
+        "statusMdUnavailable": "Unavailable",
+        "statusMdAvailable": "STATUS.md",
+        "piUnavailable": "Pi is not available.",
+        "piLaunchError": "Could not start Pi for this task.",
+        "copyTask": "Copy",
+        "delegateTask": "Delegate to a partner",
+        "delegateSuccess": "Task delegated.",
+        "delegateError": "Could not delegate this task.",
+        "statusMdOpenCount": "open",
+        "statusMdCompletedCount": "done",
+        "statusMdUnsectioned": "Unsectioned",
+        "openStatusLine": "Open in STATUS.md",
+        "workWithPi": "Work with Pi",
+        "statusMdMissingDescription": "This project has no STATUS.md file.",
+        "statusMdUnavailableDescription": "This project is on a remote host and cannot be read here.",
+        "statusMdNoMatches": "No tasks match these filters."
       },
       "Terminal": {
         "73768427cf": "关闭",
@@ -7454,7 +7510,9 @@
           "integrationsHint": "所有提供商的凭据也可在此管理：",
           "integrationsLink": "集成",
           "skillHint": "。连接 Linear 后，可在设置 → Linear 中查看使用示例。",
-          "incompleteBannerBodyWithLinear": "隐藏不使用的提供商，或展开卡片并完成其中的步骤。Linear 需要 API 访问权限、智能体技能以及在任务中显示。"
+          "incompleteBannerBodyWithLinear": "隐藏不使用的提供商，或展开卡片并完成其中的步骤。Linear 需要 API 访问权限、智能体技能以及在任务中显示。",
+          "statusMdTitle": "Tasks from STATUS.md",
+          "statusMdDescription": "Tasks are read-only and come from each project’s STATUS.md file."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "窗格分隔线的厚度。",
@@ -14998,6 +15056,32 @@
         "copySessionId": "复制会话 ID",
         "copySessionIdSuccess": "已复制会话 ID",
         "copySessionIdError": "复制会话 ID 失败"
+      }
+    },
+    "arcaProjects": {
+      "ghRequired": "GitHub CLI 不可用或尚未认证。请安装 gh，运行“gh auth login”，然后重试。",
+      "registering": "正在注册…",
+      "cloning": "正在克隆…",
+      "loading": "正在加载 ARCA 项目…",
+      "retry": "重试",
+      "select": "选择 {{value0}}",
+      "catalogued": "已编入目录",
+      "destination": "{{value0}} 的目标路径",
+      "addSelected": "添加所选项目",
+      "added": "已添加",
+      "onDisk": "已在磁盘上",
+      "ready": "可克隆",
+      "title": "ARCA 项目"
+    },
+    "onboarding": {
+      "arcaProjects": {
+        "title": "ARCA 项目",
+        "subtitle": "选择要添加到此计算机的组织仓库。"
+      },
+      "flow": {
+        "stepTooltip": {
+          "arcaProjects": "ARCA 项目"
+        }
       }
     }
   },

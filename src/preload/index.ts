@@ -62,6 +62,7 @@ import { remoteWorkspaceApi } from './api/remote-workspace-bridge'
 import { updaterApi } from './api/updater-bridge'
 import { docPreviewApi } from './api/doc-preview-bridge'
 import { arcaMainframeApi } from './api/arca-mainframe-bridge'
+import { arcaMegamindApi } from './api/arca-megamind-bridge'
 import { notebookApi } from './api/notebook-bridge'
 import { fsApi } from './api/fs-bridge'
 import { gitApi } from './api/git-bridge'
@@ -85,6 +86,7 @@ import { e2eApi } from './api/e2e-bridge'
 import { mobileApi } from './api/mobile-bridge'
 import { agentStatusApi } from './api/agent-status-bridge'
 import { speechApi } from './api/speech-bridge'
+import { statusMdTasksApi } from './api/status-md-tasks-bridge'
 
 installNativeFileDropHandlers()
 installBrowserFindListener()
@@ -162,6 +164,7 @@ const api = {
   updater: updaterApi,
   docPreview: docPreviewApi,
   arcaMainframe: arcaMainframeApi,
+  arcaMegamind: arcaMegamindApi,
   notebook: notebookApi,
   fs: fsApi,
   git: gitApi,
@@ -184,7 +187,8 @@ const api = {
   e2e: e2eApi,
   mobile: mobileApi,
   agentStatus: agentStatusApi,
-  speech: speechApi
+  speech: speechApi,
+  statusMdTasks: statusMdTasksApi
 } satisfies PreloadApi
 
 if (process.contextIsolated) {

@@ -186,9 +186,13 @@ export function usePersistCurrentStep({
         }
         return { ok: true }
       }
+      if (currentStepId === 'arca_projects') {
+        onOnboardingChange(await persistStep(2))
+        return { ok: true }
+      }
       if (currentStepId === 'theme') {
         await updateSettings({ theme })
-        onOnboardingChange(await persistStep(2))
+        onOnboardingChange(await persistStep(3))
         return { ok: true }
       }
       if (currentStepId === 'notifications') {
@@ -202,7 +206,7 @@ export function usePersistCurrentStep({
       if (currentStepId === 'windows_terminal') {
         // Why: the Windows terminal controls persist on selection. Continuing
         // only marks the preference page complete for resume/telemetry state.
-        onOnboardingChange(await persistStep(4))
+        onOnboardingChange(await persistStep(5))
         return { ok: true }
       }
       if (currentStepId === 'integrations') {
@@ -210,7 +214,7 @@ export function usePersistCurrentStep({
         // store slices when the user actually wires them up. The step itself
         // is a no-op for settings/onboarding state beyond marking it
         // completed.
-        onOnboardingChange(await persistStep(3))
+        onOnboardingChange(await persistStep(4))
         return { ok: true }
       }
       return { ok: false }

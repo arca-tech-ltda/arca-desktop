@@ -14,6 +14,7 @@ import { registerRepoCloneHandlers } from './repos/repo-clone-lifecycle'
 import { registerRepoGitUsernameHandler } from './repos/repo-git-username-handler'
 import { registerBaseRefQueryHandlers } from './repos/base-ref-query-handlers'
 import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import { inspectArcaProjectDestination, listArcaOrgProjects } from '../github/arca-org-projects'
 
 export function registerRepoHandlers(
   mainWindow: BrowserWindow,
@@ -67,6 +68,15 @@ export function registerRepoHandlers(
   ipcMain.removeHandler('sparsePresets:list')
   ipcMain.removeHandler('sparsePresets:save')
   ipcMain.removeHandler('sparsePresets:remove')
+  ipcMain.removeHandler('arcaProjects:list')
+  ipcMain.removeHandler('arcaProjects:inspectDestination')
+
+  ipcMain.handle('arcaProjects:list', (_event, args?: { includeHidden?: boolean }) =>
+    listArcaOrgProjects(args?.includeHidden === true)
+  )
+  ipcMain.handle('arcaProjects:inspectDestination', (_event, args: { destination: string }) =>
+    inspectArcaProjectDestination(args.destination)
+  )
 
   registerRepoCatalogHandlers(mainWindow, store)
   registerProjectHostSetupHandlers(mainWindow, store)

@@ -28,6 +28,7 @@ import { getTasksPaneSearchKeywords } from './tasks-search'
 import { useIntegrationProviderStatusRefresh } from './use-integration-provider-status-refresh'
 import { useTaskSourceProviderReadiness } from './use-task-source-provider-readiness'
 import { translate } from '@/i18n/i18n'
+import { ARCA_TASKS_STATUS_MD_ONLY } from '../../../../shared/arca-product'
 
 type TasksPaneProps = {
   settings: GlobalSettings
@@ -92,7 +93,29 @@ const PROVIDER_META: Record<
   }
 }
 
-export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.JSX.Element {
+function StatusMdTasksPane(): React.JSX.Element {
+  return (
+    <div className="space-y-3">
+      <SettingsSubsectionHeader
+        title={translate(
+          'auto.components.settings.TasksPane.statusMdTitle',
+          'Tasks from STATUS.md'
+        )}
+        description={translate(
+          'auto.components.settings.TasksPane.statusMdDescription',
+          'Tasks are read-only and come from each project’s STATUS.md file.'
+        )}
+      />
+    </div>
+  )
+}
+
+export function TasksPane(props: TasksPaneProps): React.JSX.Element {
+  // Why: ARCA reads tasks from each repo's STATUS.md; the upstream provider setup stays in code behind one flag.
+  return ARCA_TASKS_STATUS_MD_ONLY ? <StatusMdTasksPane /> : <ProviderTasksPane {...props} />
+}
+
+function ProviderTasksPane({ settings, updateSettings }: TasksPaneProps): React.JSX.Element {
   const visibleProviders = normalizeVisibleTaskProviders(settings.visibleTaskProviders)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
@@ -108,6 +131,7 @@ export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.J
   // sync re-render before passive effects flush and collapse the open card.
   // useState (not a ref write) keeps render pure for React Doctor.
   const [previousAutoExpanded, setPreviousAutoExpanded] = useState<TaskProvider | null>(null)
+
   const autoExpandedProvider = resolveStickyAutoExpandedTaskProvider({
     providers: TASK_PROVIDERS,
     readinessByProvider,

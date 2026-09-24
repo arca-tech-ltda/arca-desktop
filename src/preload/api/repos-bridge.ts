@@ -79,6 +79,12 @@ export const reposApi = {
     hostId?: ExecutionHostId
   }): Promise<BaseRefSearchResult[]> => ipcRenderer.invoke('repos:searchBaseRefDetails', args),
 
+  listArcaProjects: (args?: { includeHidden?: boolean }) =>
+    ipcRenderer.invoke('arcaProjects:list', args),
+
+  inspectArcaProjectDestination: (args: { destination: string }) =>
+    ipcRenderer.invoke('arcaProjects:inspectDestination', args),
+
   onChanged: (callback: () => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent) => callback()
     ipcRenderer.on('repos:changed', listener)

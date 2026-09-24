@@ -10,6 +10,7 @@ import { useAppStore } from '@/store'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { ComputerUseSkillSetupPanel } from './ComputerUseSkillSetupPanel'
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
 import { translate } from '@/i18n/i18n'
 export { getComputerUsePaneSearchEntries } from './computer-use-search'
 
@@ -385,7 +386,7 @@ export function ComputerUsePane(): React.JSX.Element {
         </>
       ) : null}
 
-      <ComputerUseSkillSetupPanel />
+      {!ARCA_PI_IS_AUTHORITY ? <ComputerUseSkillSetupPanel /> : null}
     </div>
   )
 }

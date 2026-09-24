@@ -15,6 +15,7 @@ import { OnboardingFooter } from './OnboardingFooter'
 import { shouldRequestOnboardingSkipConfirmation } from './onboarding-dismiss-target'
 import logo from '../../../../../resources/logo.svg'
 import { translate } from '@/i18n/i18n'
+import { ArcaProjectsPanel } from '../arca-projects/ArcaProjectsPanel'
 
 const stepCopy = {
   agent: {
@@ -28,6 +29,17 @@ const stepCopy = {
       return translate(
         'auto.components.onboarding.OnboardingFlow.322fc50a18',
         "ARCA works with every CLI agent. Choose the one you'll reach for most. Switch any time."
+      )
+    }
+  },
+  arca_projects: {
+    get title() {
+      return translate('components.onboarding.arcaProjects.title', 'ARCA Projects')
+    },
+    get subtitle() {
+      return translate(
+        'components.onboarding.arcaProjects.subtitle',
+        'Choose the organization repositories to add to this computer.'
       )
     }
   },
@@ -93,6 +105,11 @@ const stepTooltipLabels = {
   agent: {
     get value() {
       return translate('components.onboarding.flow.stepTooltip.agent', 'Default Agent')
+    }
+  },
+  arca_projects: {
+    get value() {
+      return translate('components.onboarding.flow.stepTooltip.arcaProjects', 'ARCA Projects')
     }
   },
   theme: {
@@ -318,6 +335,7 @@ export default function OnboardingFlow({
                   onYoloPermissionsChange={flow.setYoloPermissions}
                 />
               )}
+              {currentStep.id === 'arca_projects' && <ArcaProjectsPanel />}
               {currentStep.id === 'theme' && (
                 <ThemeStep
                   theme={flow.theme}

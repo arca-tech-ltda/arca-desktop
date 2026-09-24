@@ -24,6 +24,10 @@ import type {
   ProjectUpdateArgs
 } from '../../shared/project-types'
 import type { BaseRefDefaultResult, BaseRefSearchResult, Repo } from '../../shared/repo-types'
+import type {
+  ArcaProjectDestinationInspection,
+  ArcaProjectsListResult
+} from '../../shared/arca-projects-types'
 
 export type RepositoryApi = {
   list: () => Promise<Repo[]>
@@ -120,6 +124,10 @@ export type RepositoryApi = {
     hostId?: ExecutionHostId
   }) => Promise<BaseRefSearchResult[]>
   onChanged: (callback: () => void) => () => void
+  listArcaProjects: (args?: { includeHidden?: boolean }) => Promise<ArcaProjectsListResult>
+  inspectArcaProjectDestination: (args: {
+    destination: string
+  }) => Promise<ArcaProjectDestinationInspection>
 }
 
 export type ProjectsApi = {

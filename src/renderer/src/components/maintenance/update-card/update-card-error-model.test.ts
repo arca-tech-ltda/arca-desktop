@@ -19,6 +19,27 @@ function build(status: UpdateStatus, isLocalBuild = false) {
 }
 
 describe('update card error model precedence', () => {
+  it('shows enrollment guidance without an upstream manual-download link', () => {
+    const model = build({
+      state: 'error',
+      message: 'Connect to Megamind to receive updates'
+    })
+    expect(model?.summary).toBe('Connect to Megamind to receive updates')
+    expect(model?.releaseUrl).toBeUndefined()
+  })
+
+  it('offers the authenticated DMG feed when the installed bundle is not writable', () => {
+    const url =
+      'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/arca-macos-1.5.1-arm64.dmg'
+    const model = build({
+      state: 'error',
+      message: 'Download the DMG to update',
+      manualDownloadUrl: url
+    })
+    expect(model?.releaseUrl).toBe(url)
+    expect(model?.manualLabel).toBe('Download the DMG to update')
+  })
+
   it('keeps a local build failure out of platform download recovery', () => {
     const model = build(
       {

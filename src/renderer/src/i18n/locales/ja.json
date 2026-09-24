@@ -20,7 +20,33 @@
       "errorDetail": "ARCA Mainframe が応答しませんでした。接続を確認して、もう一度お試しください。",
       "unsupportedTitle": "Megamind にはデスクトップアプリが必要です",
       "unsupportedDetail": "このパネルには、デスクトップアプリでのみ動作する ARCA Mainframe が埋め込まれています。",
-      "retry": "もう一度試す"
+      "retry": "もう一度試す",
+      "connectedAs": "接続中:",
+      "connect": "Megamind に接続",
+      "confirmCode": "Mainframe でこのコードを確認してください:",
+      "expired": "コードの有効期限が切れました。再接続してください。",
+      "connectionError": "接続に失敗しました。認証情報を確認して再試行してください。",
+      "loginRequired": "Mainframe にログインしてから、もう一度操作してください。",
+      "approve": "承認",
+      "deny": "拒否",
+      "approvalPending": "承認待ち",
+      "approvalDecided": "承認結果",
+      "requestReceived": "リクエストを受信",
+      "requestCompleted": "リクエスト完了",
+      "install": "ワークスペースのインストーラーを実行",
+      "prerequisites": "このコンピューターに Pi または Megamind 拡張機能がありません。",
+      "installerMissing": "~/ARCA/arca にインストーラーがありません。先に ARCA ワークスペースをインストールしてください。",
+      "localInstaller": "このインストーラーを実行するにはローカル環境に切り替えてください。",
+      "settingsTitle": "ARCA Megamind",
+      "notConnected": "未接続",
+      "sharedCredential": "認証情報は Pi と共有されます。デバイスの管理・失効は Mainframe で行ってください。このアプリは共有認証情報を削除しません。",
+      "manageDevices": "Mainframe でデバイスを管理",
+      "requestFailed": "リクエスト失敗"
+    },
+    "updater": {
+      "connect": "アップデートを受け取るには Megamind に接続してください",
+      "downloadDmg": "更新するには DMG をダウンロードしてください",
+      "readOnly": "この場所ではアプリを置き換えられません。ダウンロードにはデバイス認証が必要です。"
     }
   },
   "app": {
@@ -1972,7 +1998,37 @@
         "jiraLinkSourceUnavailable": "この Jira Issue をリンクできませんでした。Jira に再接続するか該当するサイトを選択してから、もう一度お試しください。",
         "loadPageUnreachable": "ページ {{value0}} は GitHub 検索が返せる範囲を超えています。",
         "loadPageFailed": "GitHub からページ {{value0}} を読み込めませんでした。",
-        "loadPageNoMoreResults": "ページ {{value0}} にはこれ以上結果がありません。"
+        "loadPageNoMoreResults": "ページ {{value0}} にはこれ以上結果がありません。",
+        "statusMdTitle": "Tasks",
+        "statusMdSubtitle": "Read from each project’s STATUS.md",
+        "closeTasks": "Close",
+        "statusMdSearch": "Search tasks",
+        "statusMdProjectFilter": "Filter by project",
+        "allProjects": "All projects",
+        "statusMdOpen": "Open",
+        "statusMdAll": "All",
+        "statusMdCompleted": "Completed",
+        "hideMissingStatus": "Hide projects without STATUS.md",
+        "statusMdLoading": "Loading tasks…",
+        "statusMdEmpty": "No projects match these filters.",
+        "statusMdLoadError": "Could not read STATUS.md files.",
+        "statusMdMissing": "No STATUS.md",
+        "statusMdUnavailable": "Unavailable",
+        "statusMdAvailable": "STATUS.md",
+        "piUnavailable": "Pi is not available.",
+        "piLaunchError": "Could not start Pi for this task.",
+        "copyTask": "Copy",
+        "delegateTask": "Delegate to a partner",
+        "delegateSuccess": "Task delegated.",
+        "delegateError": "Could not delegate this task.",
+        "statusMdOpenCount": "open",
+        "statusMdCompletedCount": "done",
+        "statusMdUnsectioned": "Unsectioned",
+        "openStatusLine": "Open in STATUS.md",
+        "workWithPi": "Work with Pi",
+        "statusMdMissingDescription": "This project has no STATUS.md file.",
+        "statusMdUnavailableDescription": "This project is on a remote host and cannot be read here.",
+        "statusMdNoMatches": "No tasks match these filters."
       },
       "Terminal": {
         "73768427cf": "閉じる",
@@ -7425,7 +7481,9 @@
           "integrationsHint": "すべてのプロバイダーの認証情報は次の場所でも管理できます：",
           "integrationsLink": "連携",
           "skillHint": "。Linear の接続後、使用例は設定 → Linear で確認できます。",
-          "incompleteBannerBodyWithLinear": "使用しないプロバイダーを非表示にするか、カードを展開して手順を完了してください。Linear では API アクセス、Agent スキル、タスクへの表示が必要です。"
+          "incompleteBannerBodyWithLinear": "使用しないプロバイダーを非表示にするか、カードを展開して手順を完了してください。Linear では API アクセス、Agent スキル、タスクへの表示が必要です。",
+          "statusMdTitle": "Tasks from STATUS.md",
+          "statusMdDescription": "Tasks are read-only and come from each project’s STATUS.md file."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "ペイン分割線の太さ。",
@@ -14690,7 +14748,8 @@
           "theme": "外観",
           "windowsTerminal": "Windows ターミナル",
           "notifications": "通知",
-          "integrations": "連携"
+          "integrations": "連携",
+          "arcaProjects": "ARCA プロジェクト"
         },
         "actions": {
           "addFirstProject": "最初のプロジェクトを追加",
@@ -14716,6 +14775,10 @@
           "reviewStatus": "すべてのワークツリーで Issue の状態、レビュー状況、CI チェックを確認",
           "managePullRequests": "ARCA から離れずに、PR の閲覧、コメント、マージ"
         }
+      },
+      "arcaProjects": {
+        "title": "ARCA プロジェクト",
+        "subtitle": "このコンピューターに追加する組織のリポジトリを選択します。"
       }
     },
     "native-chat": {
@@ -14893,6 +14956,21 @@
         "copySessionIdSuccess": "セッション ID をコピーしました",
         "copySessionIdError": "セッション ID のコピーに失敗しました"
       }
+    },
+    "arcaProjects": {
+      "ghRequired": "GitHub CLI が利用できないか、認証されていません。gh をインストールし、「gh auth login」を実行してから再試行してください。",
+      "registering": "登録中…",
+      "cloning": "クローン中…",
+      "loading": "ARCA プロジェクトを読み込み中…",
+      "retry": "再試行",
+      "select": "{{value0}} を選択",
+      "catalogued": "カタログ登録済み",
+      "destination": "{{value0}} の保存先",
+      "addSelected": "選択項目を追加",
+      "added": "追加済み",
+      "onDisk": "ディスクに存在します",
+      "ready": "クローンできます",
+      "title": "ARCA プロジェクト"
     }
   },
   "dashboardPopout": {

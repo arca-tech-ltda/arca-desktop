@@ -42,6 +42,7 @@ import { createWebRuntimeApi } from './preload-api/web-runtime-api'
 import { createRuntimeEnvironmentsApi } from './preload-api/web-runtime-environments-api'
 import { webRuntimeState } from './preload-api/web-runtime-session'
 import { createWebSettingsApi } from './preload-api/web-settings-api'
+import { createWebStatusMdTasksApi } from './preload-api/web-status-md-tasks-api'
 import { createShellApi } from './preload-api/web-shell-api'
 import { createWebStarNagApi } from './preload-api/web-star-nag-api'
 import { createWebTelemetryApi } from './preload-api/web-telemetry-api'
@@ -69,6 +70,20 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     ...createWebOrcaProfilesApi(),
     ...createWebE2EApi(),
     ...createWebSettingsApi(),
+    arcaMegamind: {
+      prerequisites: async () => ({ pi: false, installer: false, extension: false, windows: false }),
+      status: async () => ({ state: 'disconnected' }),
+      startEnrollment: async () => ({ state: 'disconnected' }),
+      agents: async () => [],
+      requests: async () => [],
+      approvals: async () => [],
+      decide: async () => 'login',
+      createRequest: async () => {},
+      onUpdate: () => () => {},
+      onNotification: () => () => {},
+      onDeepLink: () => () => {},
+      takeDeepLinks: async () => []
+    },
     keybindings: createWebKeybindingsApi(),
     ui: createWebUiApi(),
     ...createWebDiagnosticsApi(),
@@ -79,6 +94,7 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     nativeChat: createWebNativeChatApi(),
     runtimeEnvironments: createRuntimeEnvironmentsApi(),
     repos: createReposApi(),
+    statusMdTasks: createWebStatusMdTasksApi(),
     worktrees: createWorktreesApi(),
     fs: createFileApi(),
     git: createGitApi(),

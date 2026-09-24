@@ -47,6 +47,27 @@ export function buildUpdateCardErrorModel({
         }
       : null
   }
+  if (status.message === 'Conecte ao Megamind para receber atualizações') {
+    return {
+      title: translate('arca.updater.connect', 'Conecte ao Megamind para receber atualizações'),
+      summary: translate('arca.updater.connect', 'Conecte ao Megamind para receber atualizações'),
+      primaryAction: {
+        label: translate('auto.components.UpdateCard.6b0085010d', 'Re-check'),
+        onClick: onRecheck
+      }
+    }
+  }
+  if (status.manualDownloadUrl) {
+    return {
+      title: translate('arca.updater.downloadDmg', 'Baixe o DMG para atualizar'),
+      summary: translate(
+        'arca.updater.readOnly',
+        'O app não pode ser substituído neste local. O download requer autenticação de dispositivo.'
+      ),
+      releaseUrl: status.manualDownloadUrl,
+      manualLabel: translate('arca.updater.downloadDmg', 'Baixe o DMG para atualizar')
+    }
+  }
   if (isLocalBuild) {
     return {
       title: cachedVersion

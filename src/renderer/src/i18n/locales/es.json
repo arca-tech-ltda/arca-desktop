@@ -20,7 +20,33 @@
       "errorDetail": "ARCA Mainframe no respondió. Comprueba tu conexión e inténtalo de nuevo.",
       "unsupportedTitle": "Megamind necesita la aplicación de escritorio",
       "unsupportedDetail": "Este panel integra ARCA Mainframe, que solo funciona en la aplicación de escritorio.",
-      "retry": "Intentar de nuevo"
+      "retry": "Intentar de nuevo",
+      "connectedAs": "Conectado como",
+      "connect": "Conectar a Megamind",
+      "confirmCode": "Confirma este código en Mainframe:",
+      "expired": "El código caducó. Conecta de nuevo.",
+      "connectionError": "Falló la conexión. Revisa tus credenciales e inténtalo de nuevo.",
+      "loginRequired": "Inicia sesión en Mainframe y vuelve a intentarlo.",
+      "approve": "Aprobar",
+      "deny": "Denegar",
+      "approvalPending": "Aprobación pendiente",
+      "approvalDecided": "Aprobación resuelta",
+      "requestReceived": "Solicitud recibida",
+      "requestCompleted": "Solicitud finalizada",
+      "install": "Ejecutar instalador del espacio de trabajo",
+      "prerequisites": "Falta Pi o su extensión Megamind en este equipo.",
+      "installerMissing": "No se encontró el instalador en ~/ARCA/arca. Instala primero el espacio de trabajo ARCA.",
+      "localInstaller": "Cambia al entorno local para ejecutar este instalador.",
+      "settingsTitle": "ARCA Megamind",
+      "notConnected": "Sin conexión",
+      "sharedCredential": "Las credenciales se comparten con Pi. Gestiona o revoca dispositivos en Mainframe; esta app no elimina credenciales compartidas.",
+      "manageDevices": "Gestionar dispositivos en Mainframe",
+      "requestFailed": "La solicitud falló"
+    },
+    "updater": {
+      "connect": "Conéctate a Megamind para recibir actualizaciones",
+      "downloadDmg": "Descarga el DMG para actualizar",
+      "readOnly": "La aplicación no se puede reemplazar en esta ubicación. La descarga requiere autenticación del dispositivo."
     }
   },
   "app": {
@@ -1972,7 +1998,37 @@
         "jiraLinkSourceUnavailable": "Couldn’t link this Jira issue. Reconnect Jira or pick the matching site, then try again.",
         "loadPageUnreachable": "La página {{value0}} está más allá de lo que la búsqueda de GitHub puede devolver.",
         "loadPageFailed": "No se pudo cargar la página {{value0}} desde GitHub.",
-        "loadPageNoMoreResults": "No hay más resultados en la página {{value0}}."
+        "loadPageNoMoreResults": "No hay más resultados en la página {{value0}}.",
+        "statusMdTitle": "Tasks",
+        "statusMdSubtitle": "Read from each project’s STATUS.md",
+        "closeTasks": "Close",
+        "statusMdSearch": "Search tasks",
+        "statusMdProjectFilter": "Filter by project",
+        "allProjects": "All projects",
+        "statusMdOpen": "Open",
+        "statusMdAll": "All",
+        "statusMdCompleted": "Completed",
+        "hideMissingStatus": "Hide projects without STATUS.md",
+        "statusMdLoading": "Loading tasks…",
+        "statusMdEmpty": "No projects match these filters.",
+        "statusMdLoadError": "Could not read STATUS.md files.",
+        "statusMdMissing": "No STATUS.md",
+        "statusMdUnavailable": "Unavailable",
+        "statusMdAvailable": "STATUS.md",
+        "piUnavailable": "Pi is not available.",
+        "piLaunchError": "Could not start Pi for this task.",
+        "copyTask": "Copy",
+        "delegateTask": "Delegate to a partner",
+        "delegateSuccess": "Task delegated.",
+        "delegateError": "Could not delegate this task.",
+        "statusMdOpenCount": "open",
+        "statusMdCompletedCount": "done",
+        "statusMdUnsectioned": "Unsectioned",
+        "openStatusLine": "Open in STATUS.md",
+        "workWithPi": "Work with Pi",
+        "statusMdMissingDescription": "This project has no STATUS.md file.",
+        "statusMdUnavailableDescription": "This project is on a remote host and cannot be read here.",
+        "statusMdNoMatches": "No tasks match these filters."
       },
       "Terminal": {
         "73768427cf": "Cerrar",
@@ -7403,7 +7459,9 @@
           "integrationsHint": "Las credenciales de todos los proveedores también están en",
           "integrationsLink": "Integraciones",
           "skillHint": ". Después de conectar Linear, los ejemplos de uso están en Ajustes → Linear.",
-          "incompleteBannerBodyWithLinear": "Oculta los proveedores que no uses o expande una tarjeta y completa sus pasos. Para Linear: acceso a la API, la habilidad del agente y Mostrar en Tareas."
+          "incompleteBannerBodyWithLinear": "Oculta los proveedores que no uses o expande una tarjeta y completa sus pasos. Para Linear: acceso a la API, la habilidad del agente y Mostrar en Tareas.",
+          "statusMdTitle": "Tasks from STATUS.md",
+          "statusMdDescription": "Tasks are read-only and come from each project’s STATUS.md file."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "Grosor de la línea divisoria del panel.",
@@ -14857,6 +14915,32 @@
         "copySessionId": "Copiar ID de sesión",
         "copySessionIdSuccess": "ID de sesión copiado",
         "copySessionIdError": "No se pudo copiar el ID de sesión"
+      }
+    },
+    "arcaProjects": {
+      "ghRequired": "GitHub CLI no está disponible o no está autenticado. Instala gh, ejecuta «gh auth login» e inténtalo de nuevo.",
+      "registering": "Registrando…",
+      "cloning": "Clonando…",
+      "loading": "Cargando proyectos de ARCA…",
+      "retry": "Reintentar",
+      "select": "Seleccionar {{value0}}",
+      "catalogued": "en el catálogo",
+      "destination": "Destino de {{value0}}",
+      "addSelected": "Añadir seleccionados",
+      "added": "Añadido",
+      "onDisk": "Ya está en el disco",
+      "ready": "Listo para clonar",
+      "title": "Proyectos de ARCA"
+    },
+    "onboarding": {
+      "arcaProjects": {
+        "title": "Proyectos de ARCA",
+        "subtitle": "Elige los repositorios de la organización que quieres añadir a este equipo."
+      },
+      "flow": {
+        "stepTooltip": {
+          "arcaProjects": "Proyectos de ARCA"
+        }
       }
     }
   },

@@ -6,17 +6,9 @@ import { UpdaterScheduling } from './updater-scheduling'
 
 /** Handles checks initiated from the desktop menu and modifier-key variants. */
 export abstract class UpdaterMenuChecks extends UpdaterScheduling {
-  protected checkForUpdatesFromMenu(options?: UpdateCheckOptions): void {
+  protected checkForUpdatesFromMenu(_options?: UpdateCheckOptions): void {
     if (!app.isPackaged || is.dev) {
       this.sendStatus({ state: 'not-available', userInitiated: true })
-      return
-    }
-    if (options?.localBuild) {
-      void this.checkForLocalBuildFromMenu()
-      return
-    }
-    if (options?.targetTag && options.channel) {
-      void this.checkForPinnedBuild(options.channel, options.targetTag)
       return
     }
     if (this.localBuildSelectionInProgress || this.pinnedBuildSelectionInProgress) {
@@ -30,7 +22,7 @@ export abstract class UpdaterMenuChecks extends UpdaterScheduling {
     }
     this.restoreReleaseUpdateSource()
 
-    const checkVariant = this.getUpdateCheckVariant(options)
+    const checkVariant = this.getUpdateCheckVariant(undefined)
     if (checkVariant === 'prerelease') {
       this.clearPrereleaseFallbackContext()
       this.enableIncludePrerelease()

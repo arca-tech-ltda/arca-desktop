@@ -10,9 +10,10 @@ permissions:
 
 concurrency:
   group: arca-desktop-build-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
+  ARCA_RELEASE_VERSION: 1.5.${{ github.run_number }}
   NODE_OPTIONS: --max-old-space-size=4096
   ORCA_BACKGROUND_LAUNCH: '1'
   CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -73,7 +74,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: arca-desktop-windows-x64
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
           if-no-files-found: error
           retention-days: 14
 
@@ -130,6 +134,46 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: arca-desktop-macos-arm64-zip
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest-mac.yml
           if-no-files-found: error
           retention-days: 14
+
+  publish:
+    needs: [windows, mac]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/arca-desktop'
+    runs-on: ubuntu-latest
+    env:
+      ARCA_DESKTOP_PUBLISH_TOKEN: ${{ secrets.ARCA_DESKTOP_PUBLISH_TOKEN }}
+    steps:
+      - name: Skip publication without secret
+        if: env.ARCA_DESKTOP_PUBLISH_TOKEN == ''
+        run: echo '::warning::ARCA_DESKTOP_PUBLISH_TOKEN absent; skipping Mainframe publication'
+      - uses: actions/download-artifact@v4
+        if: env.ARCA_DESKTOP_PUBLISH_TOKEN != ''
+        with:
+          pattern: arca-desktop-*
+          path: release
+          merge-multiple: true
+      - name: Publish binaries before manifests
+        if: env.ARCA_DESKTOP_PUBLISH_TOKEN != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable
+          test -s release/latest.yml
+          test -s release/latest-mac.yml
+          upload() {
+            curl --fail --retry 5 --retry-all-errors --retry-delay 3 \
+              --request PUT --header "Authorization: Bearer $ARCA_DESKTOP_PUBLISH_TOKEN" \
+              --upload-file "$1" "$base/$(basename "$1")"
+          }
+          shopt -s nullglob
+          for file in release/*.exe release/*.zip release/*.dmg release/*.blockmap; do
+            upload "$file"
+          done
+          for file in release/latest*.yml; do
+            upload "$file"
+          done

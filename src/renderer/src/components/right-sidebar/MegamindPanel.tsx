@@ -6,6 +6,8 @@ import { translate } from '@/i18n/i18n'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import type { ArcaMainframePanelDescriptor } from '../../../../shared/arca-mainframe'
 import { attachMegamindWebview } from './megamind-webview-attach'
+import { MegamindConnection } from './MegamindConnection'
+import { MegamindPrerequisites } from './MegamindPrerequisites'
 
 type MegamindState = 'loading' | 'ready' | 'error' | 'unsupported'
 
@@ -24,6 +26,7 @@ function isPanelDescriptor(value: unknown): value is ArcaMainframePanelDescripto
 export default function MegamindPanel(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const reloadRef = useRef<(() => void) | null>(null)
+  const navigateRef = useRef<((url: string) => void) | null>(null)
   const [panel, setPanel] = useState<ArcaMainframePanelDescriptor | null>(null)
   const [state, setState] = useState<MegamindState>('loading')
   const [attempt, setAttempt] = useState(0)
@@ -88,7 +91,9 @@ export default function MegamindPanel(): React.JSX.Element {
       }
     })
     reloadRef.current = attached.reload
+    navigateRef.current = attached.navigate
     return () => {
+      navigateRef.current = null
       reloadRef.current = null
       attached.detach()
     }
@@ -156,6 +161,12 @@ export default function MegamindPanel(): React.JSX.Element {
           </TooltipContent>
         </Tooltip>
       </div>
+      {panel && !isWebClientLocation() && (
+        <>
+          <MegamindConnection navigate={(url) => navigateRef.current?.(url)} />
+          <MegamindPrerequisites />
+        </>
+      )}
       <div className="relative flex min-h-0 flex-1 overflow-hidden" ref={containerRef}>
         {state === 'error' || state === 'unsupported' ? (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background px-6 text-center">

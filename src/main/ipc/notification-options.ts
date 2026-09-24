@@ -27,6 +27,9 @@ export function buildNotificationOptions(args: NotificationDispatchRequest): {
   silent?: boolean
   sound?: string
 } {
+  if (args.megamind) {
+    return { title: args.megamind.title.slice(0, 80), body: args.megamind.body.slice(0, 180) }
+  }
   if (args.source === 'terminal-bell') {
     return {
       title: `Bell in ${args.worktreeLabel ?? 'workspace'}`,

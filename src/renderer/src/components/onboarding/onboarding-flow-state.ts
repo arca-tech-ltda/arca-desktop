@@ -7,6 +7,8 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { OnboardingState } from '../../../../shared/onboarding-state-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import { STEPS } from './use-onboarding-flow-types'
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { resolveAgentPermissionModeSummary } from '../../../../shared/tui-agent-permissions'
 
 type TaskSourcesSnapshotProps = EventProps<'onboarding_task_sources_snapshot'>
 type TaskSourcesGithubStatus = TaskSourcesSnapshotProps['github_status']
@@ -14,7 +16,24 @@ type TaskSourcesLinearStatus = TaskSourcesSnapshotProps['linear_status']
 export type TaskSourcesExitAction = TaskSourcesSnapshotProps['exit_action']
 
 export function shouldSkipIntegrationsStep(status: AppState['preflightStatus']): boolean {
-  return status?.gh.installed === true
+  return ARCA_PI_IS_AUTHORITY || status?.gh.installed === true
+}
+
+export function shouldSkipAgentStep(detectedAgentIds: readonly TuiAgent[]): boolean {
+  return ARCA_PI_IS_AUTHORITY && detectedAgentIds.includes('pi')
+}
+
+export function shouldEnableYoloPermissions(
+  settings: GlobalSettings | null,
+  skipAgent: boolean
+): boolean {
+  return (
+    !skipAgent &&
+    resolveAgentPermissionModeSummary({
+      agentDefaultArgs: settings?.agentDefaultArgs,
+      agentDefaultEnv: settings?.agentDefaultEnv
+    }) !== 'manual'
+  )
 }
 
 export function shouldSkipWindowsTerminalStep(isWindows: boolean): boolean {
@@ -22,6 +41,7 @@ export function shouldSkipWindowsTerminalStep(isWindows: boolean): boolean {
 }
 
 export type OnboardingStepSkipOptions = {
+  skipAgent?: boolean
   skipIntegrations: boolean
   skipWindowsTerminal: boolean
 }
@@ -29,6 +49,7 @@ export type OnboardingStepSkipOptions = {
 export function isSkippedStepIndex(index: number, options: OnboardingStepSkipOptions): boolean {
   const step = STEPS[index]
   return (
+    (options.skipAgent && step?.id === 'agent') ||
     (options.skipIntegrations && step?.id === 'integrations') ||
     (options.skipWindowsTerminal && step?.id === 'windows_terminal')
   )
@@ -91,6 +112,11 @@ export function remapOpenOnboardingLastCompletedStep({
   }
   if (outcome === 'completed' && lastCompletedStep >= 4) {
     return ONBOARDING_FINAL_STEP
+  }
+  if (flowVersion === 4) {
+    return lastCompletedStep <= 1
+      ? lastCompletedStep
+      : Math.min(lastCompletedStep + 1, ONBOARDING_FINAL_STEP)
   }
   // Why: in v3 (four-step, pre-Windows-terminal) step 4 already meant notifications, so resume there.
   if (flowVersion === 3) {

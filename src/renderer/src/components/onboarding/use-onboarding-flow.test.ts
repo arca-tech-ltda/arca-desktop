@@ -114,6 +114,6 @@ describe('remapOpenOnboardingLastCompletedStep', () => {
         outcome: 'completed',
         lastCompletedStep: 7
       })
-    ).toBe(5)
+    ).toBe(6)
   })
 })

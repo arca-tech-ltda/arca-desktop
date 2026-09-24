@@ -1,4 +1,5 @@
 import { MOBILE_APP_ENABLED } from '@/lib/arca-product-features'
+import { ARCA_PI_IS_AUTHORITY } from '../../../shared/arca-product'
 import { LinearIcon } from '@/components/icons/LinearIcon'
 import { getAccountsPaneSearchEntries } from '@/components/settings/accounts-search'
 import { getAgentsPaneSearchEntries } from '@/components/settings/agents-search'
@@ -62,19 +63,26 @@ export function buildCapabilitySettingsSections({
       group: 'capabilities',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.7c79d3b7bf', 'Optional')
     },
-    {
-      id: 'orchestration',
-      title: translate('auto.hooks.useSettingsNavigationMetadata.58a868e8e4', 'Orchestration'),
-      description: translate(
-        'auto.hooks.useSettingsNavigationMetadata.cd50cec5d7',
-        'Coordinate multiple coding agents through ARCA.'
-      ),
-      icon: Network,
-      searchEntries: getOrchestrationPaneSearchEntries({
-        includeNestedWorkerDepth: !isWebClient
-      }),
-      group: 'capabilities'
-    },
+    ...(!ARCA_PI_IS_AUTHORITY
+      ? [
+          {
+            id: 'orchestration',
+            title: translate(
+              'auto.hooks.useSettingsNavigationMetadata.58a868e8e4',
+              'Orchestration'
+            ),
+            description: translate(
+              'auto.hooks.useSettingsNavigationMetadata.cd50cec5d7',
+              'Coordinate multiple coding agents through ARCA.'
+            ),
+            icon: Network,
+            searchEntries: getOrchestrationPaneSearchEntries({
+              includeNestedWorkerDepth: !isWebClient
+            }),
+            group: 'capabilities'
+          }
+        ]
+      : []),
     // Why: only surfaced once Linear is connected — a capability that needs a
     // linked provider before the agent skill has anything to act on.
     ...(isLinearConnected

@@ -38,6 +38,7 @@ import {
 import { startFolderRepoGitUpgradeWatch } from '../ipc/folder-repo-git-upgrade'
 import { scheduleMainWindowAutoUpdaterSetup } from './main-window-updater'
 import { registerRuntimeWindowLifecycle } from './runtime-window-lifecycle'
+import { registerStatusMdTaskHandlers } from '../ipc/status-md-tasks'
 
 export { ensureAutoUpdaterConfigured, registerUpdaterHandlers } from './main-window-updater'
 
@@ -69,6 +70,7 @@ export function attachMainWindowServices(
   }
 ): void {
   registerAppReloadHandler(mainWindow, options?.onBeforeRendererReload)
+  registerStatusMdTaskHandlers(mainWindow, store)
   registerRepoHandlers(mainWindow, store, runtime)
   // Why: repo IPC mutations must also invalidate paired clients' catalogs (#11994).
   setRepoRemoteClientNotifier(runtime)

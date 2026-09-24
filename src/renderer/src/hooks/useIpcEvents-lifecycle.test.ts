@@ -8,6 +8,8 @@ const EXPECTED_DIRECT_CALLBACK_METHODS = [
   'agentStatus.onMigrationUnsupported',
   'agentStatus.onMigrationUnsupportedClear',
   'agentStatus.onSet',
+  'arcaMegamind.onDeepLink',
+  'arcaMegamind.onNotification',
   'automations.onChanged',
   'browser.onActivateView',
   'browser.onCertificateFailureChanged',
@@ -115,6 +117,8 @@ const EXPECTED_CALLBACK_REGISTRATION_SEQUENCE = [
   'worktrees.onRemoteBranchConflict',
   'worktrees.onCreateProgress',
   'gh.onPRRefreshEvent',
+  'arcaMegamind.onDeepLink',
+  'arcaMegamind.onNotification',
   'ui.onOpenSettings',
   'ui.onOpenSkillShare',
   'ui.onOpenSetupGuide',
@@ -328,6 +332,9 @@ describe('useIpcEvents App-lifetime lifecycle', () => {
                 registrationOrder.push(`${name}.${property}`)
                 return Promise.resolve(null)
               }
+            }
+            if (property === 'takeDeepLinks') {
+              return async () => []
             }
             if (property.startsWith('get') || property.startsWith('list')) {
               return () => {

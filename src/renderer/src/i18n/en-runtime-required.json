@@ -11,6 +11,13 @@
       "title": "Meet your Agents tab"
     }
   },
+  "arca": {
+    "updater": {
+      "connect": "Connect to Megamind to receive updates",
+      "downloadDmg": "Download the DMG to update",
+      "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
+    }
+  },
   "auto": {
     "App": {
       "1b9d9d065f": "settings",

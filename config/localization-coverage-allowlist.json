@@ -404,5 +404,12 @@
     "text": "rcfile",
     "dynamic": false,
     "count": 1
+  },
+  {
+    "filePath": "src/renderer/src/web/preload-api/web-repositories-api.ts",
+    "kind": "object-property:message",
+    "text": "ARCA Projects are available in the desktop app.",
+    "dynamic": false,
+    "count": 1
   }
 ]

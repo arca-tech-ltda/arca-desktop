@@ -82,7 +82,18 @@ export function deliverNativeNotification(
   // repoId to activate. A folder workspace ("folder:<id>") has none, but a chat reveal selects its
   // workspace itself, so only the terminal route needs the repoId to bind a click at all.
   const repoId = worktreeId?.includes('::') ? getRepoIdFromWorktreeId(worktreeId) : null
-  if (worktreeId && (repoId !== null || chatTarget)) {
+  if (args.megamind) {
+    clickHandler = () => {
+      release()
+      const win = getTrustedUIRendererWindow()
+      if (!win || win.isDestroyed()) {
+        return
+      }
+      safelyRevealWindow(win)
+      win.webContents.send('ui:showMegamindPanel')
+    }
+    notification.on('click', clickHandler)
+  } else if (worktreeId && (repoId !== null || chatTarget)) {
     clickHandler = () => {
       release()
       const win = getTrustedUIRendererWindow()

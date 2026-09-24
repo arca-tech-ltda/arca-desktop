@@ -2,13 +2,7 @@ import { compareAppVersions, isValidAppVersion } from './app-version'
 
 export type ReleaseChannel = 'stable' | 'rc' | 'hourly' | 'daily' | 'adhoc'
 
-export const RELEASE_CHANNELS: readonly ReleaseChannel[] = [
-  'stable',
-  'rc',
-  'hourly',
-  'daily',
-  'adhoc'
-]
+export const RELEASE_CHANNELS: readonly ReleaseChannel[] = ['stable']
 
 export const RELEASE_CHANNEL_LABELS: Readonly<Record<ReleaseChannel, string>> = {
   stable: 'Stable',
@@ -44,7 +38,7 @@ const CHANNEL_RELEASE_REPOS: Record<ReleaseChannel, string> = {
 }
 
 export function isReleaseChannel(value: unknown): value is ReleaseChannel {
-  return typeof value === 'string' && RELEASE_CHANNELS.includes(value as ReleaseChannel)
+  return typeof value === 'string' && Object.hasOwn(RELEASE_CHANNEL_LABELS, value)
 }
 
 /** True for channels published outside the main repo. The updater reports these
@@ -236,18 +230,8 @@ export function getVersionChannel(version: string): ReleaseChannel | null {
   return normalized.includes('-') ? 'rc' : 'stable'
 }
 
-/**
- * Release-notes page for a version, in whichever repo published it. Dev-channel
- * tags exist only in their own repo, so a main-repo tag URL for one 404s.
- * A null version falls back to the plain releases listing (not /releases/latest
- * — /latest also breaks when GitHub's API is degraded).
- */
-export function getReleaseNotesUrlForVersion(version: string | null): string {
-  const channel = version ? getVersionChannel(version) : null
-  const repo = channel ? getReleaseRepoForChannel(channel) : MAIN_RELEASE_REPO
-  return version
-    ? `https://github.com/${repo}/releases/tag/v${normalizeTagToVersion(version)}`
-    : `https://github.com/${repo}/releases`
+export function getReleaseNotesUrlForVersion(_version: string | null): string {
+  return 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/'
 }
 
 /**

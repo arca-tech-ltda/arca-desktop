@@ -20,7 +20,33 @@
       "errorDetail": "The ARCA Mainframe did not respond. Check your connection and try again.",
       "unsupportedTitle": "Megamind needs the desktop app",
       "unsupportedDetail": "This panel embeds the ARCA Mainframe, which only runs in the desktop app.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "approvalPending": "Approval pending",
+      "approvalDecided": "Approval decided",
+      "requestReceived": "Request received",
+      "requestFailed": "Request failed",
+      "requestCompleted": "Request completed",
+      "connectedAs": "Connected as",
+      "connect": "Connect to Megamind",
+      "confirmCode": "Confirm this code in Mainframe:",
+      "expired": "Code expired. Connect again to retry.",
+      "connectionError": "Connection failed. Check your credentials and try again.",
+      "loginRequired": "Sign in to Mainframe, then retry your decision.",
+      "approve": "Approve",
+      "deny": "Deny",
+      "install": "Run workspace installer",
+      "prerequisites": "Pi or its Megamind extension is missing on this computer.",
+      "installerMissing": "Installer not found in ~/ARCA/arca. Install the ARCA workspace first.",
+      "localInstaller": "Switch to the local environment to run this installer.",
+      "settingsTitle": "ARCA Megamind",
+      "notConnected": "Not connected",
+      "sharedCredential": "Credentials are shared with Pi. Manage or revoke devices in Mainframe; this app does not delete shared credentials.",
+      "manageDevices": "Manage devices in Mainframe"
+    },
+    "updater": {
+      "connect": "Connect to Megamind to receive updates",
+      "downloadDmg": "Download the DMG to update",
+      "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
     }
   },
   "sidebar": {
@@ -2346,7 +2372,37 @@
         "linearModeHasWorktreeTooltip": "Linear tickets linked to an ARCA workspace",
         "linearEmptyHasWorktree": "No Linear tickets are linked to an ARCA workspace yet. Start work from a Linear issue to see it here.",
         "linearOpenAttachedWorkspace": "Open workspace attached to {{value0}}",
-        "linearWorktreesColumn": "Workspaces"
+        "linearWorktreesColumn": "Workspaces",
+        "statusMdMissing": "No STATUS.md",
+        "statusMdUnavailable": "Unavailable",
+        "statusMdAvailable": "STATUS.md",
+        "statusMdLoadError": "Could not read STATUS.md files.",
+        "piUnavailable": "Pi is not available.",
+        "piLaunchError": "Could not start Pi for this task.",
+        "delegateSuccess": "Task delegated.",
+        "delegateError": "Could not delegate this task.",
+        "statusMdTitle": "Tasks",
+        "statusMdSubtitle": "Read from each project’s STATUS.md",
+        "closeTasks": "Close",
+        "statusMdSearch": "Search tasks",
+        "statusMdProjectFilter": "Filter by project",
+        "allProjects": "All projects",
+        "statusMdOpen": "Open",
+        "statusMdAll": "All",
+        "statusMdCompleted": "Completed",
+        "hideMissingStatus": "Hide projects without STATUS.md",
+        "statusMdLoading": "Loading tasks…",
+        "statusMdEmpty": "No projects match these filters.",
+        "statusMdOpenCount": "open",
+        "statusMdCompletedCount": "done",
+        "statusMdUnsectioned": "Unsectioned",
+        "openStatusLine": "Open in STATUS.md",
+        "workWithPi": "Work with Pi",
+        "copyTask": "Copy",
+        "delegateTask": "Delegate to a partner",
+        "statusMdMissingDescription": "This project has no STATUS.md file.",
+        "statusMdUnavailableDescription": "This project is on a remote host and cannot be read here.",
+        "statusMdNoMatches": "No tasks match these filters."
       },
       "Terminal": {
         "73768427cf": "Close",
@@ -8650,7 +8706,9 @@
           "integrationsHint": "Credentials for all providers also live under",
           "integrationsLink": "Integrations",
           "skillHint": ". After Linear is connected, usage examples stay under Settings → Linear.",
-          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks."
+          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks.",
+          "statusMdTitle": "Tasks from STATUS.md",
+          "statusMdDescription": "Tasks are read-only and come from each project’s STATUS.md file."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "Thickness of the pane divider line.",
@@ -17242,7 +17300,8 @@
           "theme": "Appearance",
           "windowsTerminal": "Windows Terminal",
           "notifications": "Notifications",
-          "integrations": "Integrations"
+          "integrations": "Integrations",
+          "arcaProjects": "ARCA Projects"
         },
         "actions": {
           "addFirstProject": "Add your first project",
@@ -17268,6 +17327,10 @@
           "reviewStatus": "See issue state, review status, and CI checks on every worktree",
           "managePullRequests": "Read, comment on, and merge pull requests without leaving ARCA"
         }
+      },
+      "arcaProjects": {
+        "title": "ARCA Projects",
+        "subtitle": "Choose the organization repositories to add to this computer."
       }
     },
     "jiraUserPicker": {
@@ -17925,6 +17988,21 @@
           }
         }
       }
+    },
+    "arcaProjects": {
+      "title": "ARCA Projects",
+      "ghRequired": "GitHub CLI is unavailable or not authenticated. Install gh, run “gh auth login”, then try again.",
+      "registering": "Registering…",
+      "cloning": "Cloning…",
+      "loading": "Loading ARCA projects…",
+      "retry": "Try again",
+      "select": "Select {{value0}}",
+      "catalogued": "catalogued",
+      "destination": "Destination for {{value0}}",
+      "addSelected": "Add selected",
+      "added": "Added",
+      "onDisk": "Already on disk",
+      "ready": "Ready to clone"
     }
   },
   "dashboardPopout": {

@@ -1,62 +1,58 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
+import { arcaUpdateFeed, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
+import { areAutoUpdatesEnabled } from './auto-update-policy'
+import { readCredential } from '../arca-megamind/credentials'
 
-const updaterCalls = vi.hoisted(() => ({
-  checkForUpdatesFromMenu: vi.fn(),
-  setupAutoUpdater: vi.fn()
+vi.mock('../arca-megamind/credentials', () => ({
+  megamindConfigPath: () => '/config',
+  readCredential: vi.fn()
 }))
+afterEach(() => vi.unstubAllEnvs())
 
-vi.mock('./updater-setup', () => ({
-  UpdaterSetup: class {
-    checkForUpdatesFromMenu = updaterCalls.checkForUpdatesFromMenu
-    setupAutoUpdater = updaterCalls.setupAutoUpdater
-  }
-}))
-
-import {
-  checkForUpdatesFromMenu,
-  getUpdateStatus,
-  setupAutoUpdater
-} from '../updater'
-import { AUTO_UPDATES_TEST_OVERRIDE_ENV, areAutoUpdatesEnabled } from './auto-update-policy'
-
-const previousOverride = process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV]
-
-describe('ARCA auto-update policy', () => {
-  beforeEach(() => {
-    delete process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV]
-    vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    if (previousOverride === undefined) {
-      delete process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV]
-    } else {
-      process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV] = previousOverride
-    }
-  })
-
-  it('disables inherited update checks unless the test override is set', () => {
-    expect(areAutoUpdatesEnabled()).toBe(false)
-    process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV] = '1'
+describe('ARCA update policy', () => {
+  it('enables only the authenticated stable generic feed', () => {
     expect(areAutoUpdatesEnabled()).toBe(true)
-    expect(
-      areAutoUpdatesEnabled({ NODE_ENV: 'production', [AUTO_UPDATES_TEST_OVERRIDE_ENV]: '1' })
-    ).toBe(false)
+    const feed = arcaUpdateFeed(undefined, 'device-token')
+    expect(feed).toEqual({
+      provider: 'generic',
+      channel: 'latest',
+      useMultipleRangeRequest: false,
+      url: 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/',
+      requestHeaders: { Authorization: 'Bearer device-token' }
+    })
+    expect(arcaUpdateFeed()).toBeNull()
+    expect(arcaUpdateFeed(undefined, ' ')).toBeNull()
+    expect(() => arcaUpdateFeed('https://github.com/stablyai/orca', 'token')).toThrow()
+    expect(() => arcaUpdateFeed('http://mainframe.arcatech.com.br', 'token')).toThrow()
   })
 
-  it('settles a menu check without invoking the inherited updater', () => {
-    const send = vi.fn()
-    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The policy boundary only reads this BrowserWindow subset.
-    setupAutoUpdater({ isDestroyed: () => false, webContents: { send } } as never)
-
-    checkForUpdatesFromMenu()
-
-    expect(updaterCalls.setupAutoUpdater).not.toHaveBeenCalled()
-    expect(updaterCalls.checkForUpdatesFromMenu).not.toHaveBeenCalled()
-    expect(getUpdateStatus()).toEqual({ state: 'not-available', userInitiated: true })
-    expect(send).toHaveBeenCalledWith('updater:status', {
-      state: 'not-available',
-      userInitiated: true
+  it('reads enrollment credentials and refuses mismatched hosts or absent tokens', async () => {
+    vi.stubEnv('ARCA_MAINFRAME_URL', 'https://mainframe.arcatech.com.br')
+    vi.mocked(readCredential).mockRejectedValueOnce(new Error('missing'))
+    expect(await readArcaUpdateFeed()).toBeNull()
+    vi.mocked(readCredential).mockResolvedValue({
+      endpoint: 'https://mainframe.arcatech.com.br/api',
+      token: 'abc',
+      tokenFile: '/token'
     })
+    expect((await readArcaUpdateFeed())?.requestHeaders.Authorization).toBe('Bearer abc')
+    vi.stubEnv('ARCA_MAINFRAME_URL', 'https://other.example')
+    expect(await readArcaUpdateFeed()).toBeNull()
+  })
+
+  it('rejects external and traversal artifact URLs', () => {
+    const feed = arcaUpdateFeed(undefined, 'token')!
+    expect(updateArtifactUrl(feed, 'arca-macos-1.5.123-arm64.zip')).toContain(
+      '/stable/arca-macos-1.5.123-arm64.zip'
+    )
+    for (const name of [
+      'https://github.com/stablyai/orca',
+      '../x.zip',
+      'a..zip',
+      '/x.zip',
+      'x/y.zip'
+    ]) {
+      expect(() => updateArtifactUrl(feed, name)).toThrow()
+    }
   })
 })

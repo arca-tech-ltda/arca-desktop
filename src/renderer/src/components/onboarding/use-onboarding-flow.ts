@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { getAgentCatalog } from '@/lib/agent-catalog'
 import { useAppStore } from '@/store'
 import { applyDocumentTheme } from '@/lib/document-theme'
 import { track } from '@/lib/telemetry'
@@ -12,18 +11,20 @@ import { STEPS } from './use-onboarding-flow-types'
 import { persistStep, useCloseWith, usePersistCurrentStep } from './use-onboarding-flow-persistence'
 import { resolveOnboardingSettingsHydration } from './onboarding-settings-hydration'
 import { translate } from '@/i18n/i18n'
-import { resolveAgentPermissionModeSummary } from '../../../../shared/tui-agent-permissions'
 import { isWindowsUserAgent } from '@/components/terminal-pane/pane-helpers'
 import {
   isSkippedStepIndex,
   remapOpenOnboardingLastCompletedStep,
   resolveStepIndex,
+  shouldEnableYoloPermissions,
+  shouldSkipAgentStep,
   shouldSkipIntegrationsStep,
   shouldSkipWindowsTerminalStep
 } from './onboarding-flow-state'
 
 import { useOnboardingFlowActions } from './use-onboarding-flow-actions'
 import { useOnboardingFlowTelemetry } from './use-onboarding-flow-telemetry'
+import { useOnboardingAgentDetection } from './use-onboarding-agent-detection'
 export { STEPS } from './use-onboarding-flow-types'
 export type { StepId, StepNumber } from './use-onboarding-flow-types'
 
@@ -48,11 +49,12 @@ export function useOnboardingFlow(
   // Why: renderToStaticMarkup uses Zustand's initial snapshot; the sync read keeps tests and the first client render aligned.
   const effectivePreflightStatus = preflightStatus ?? useAppStore.getState().preflightStatus
 
+  const skipAgent = shouldSkipAgentStep(detectedAgentIds ?? [])
   const skipIntegrations = shouldSkipIntegrationsStep(effectivePreflightStatus)
   const skipWindowsTerminal = shouldSkipWindowsTerminalStep(isWindowsUserAgent())
   const skipOptions = useMemo(
-    () => ({ skipIntegrations, skipWindowsTerminal }),
-    [skipIntegrations, skipWindowsTerminal]
+    () => ({ skipAgent, skipIntegrations, skipWindowsTerminal }),
+    [skipAgent, skipIntegrations, skipWindowsTerminal]
   )
   const remappedLastCompletedStep = remapOpenOnboardingLastCompletedStep(onboarding)
   const initialStep = resolveStepIndex(
@@ -67,17 +69,13 @@ export function useOnboardingFlow(
       : null
   )
   const [yoloPermissions, setYoloPermissions] = useState(
-    resolveAgentPermissionModeSummary({
-      agentDefaultArgs: settings?.agentDefaultArgs,
-      agentDefaultEnv: settings?.agentDefaultEnv
-    }) !== 'manual'
+    shouldEnableYoloPermissions(settings, skipAgent)
   )
   // Why: hydrate theme from saved settings so users who already chose one see it preselected.
   const [theme, setTheme] = useState<GlobalSettings['theme']>(settings?.theme ?? 'dark')
   const [busyLabel, setBusyLabel] = useState<string | null>(null)
   const [, setError] = useState<string | null>(null)
 
-  // Why: settings hydrate async after the lazy initializers run; re-sync once before commit unless the user edited the field.
   const themeInteractedRef = useRef(false)
   const agentInteractedRef = useRef(false)
   const yoloPermissionsInteractedRef = useRef(false)
@@ -100,17 +98,12 @@ export function useOnboardingFlow(
     }
   }
   if (settings && !yoloPermissionsInteractedRef.current) {
-    const nextYoloPermissions =
-      resolveAgentPermissionModeSummary({
-        agentDefaultArgs: settings.agentDefaultArgs,
-        agentDefaultEnv: settings.agentDefaultEnv
-      }) !== 'manual'
+    const nextYoloPermissions = shouldEnableYoloPermissions(settings, skipAgent)
     if (nextYoloPermissions !== yoloPermissions) {
       setYoloPermissions(nextYoloPermissions)
     }
   }
 
-  // Why: track interaction so async settings hydration doesn't overwrite a value the user chose.
   const setThemeInteractive = useCallback((value: GlobalSettings['theme']) => {
     themeInteractedRef.current = true
     setTheme(value)
@@ -195,7 +188,6 @@ export function useOnboardingFlow(
     themeStepEntryThemeRef.current = settings.theme
   }, [currentStep.id, settings])
 
-  // Apply preview when local theme changes.
   useEffect(() => {
     applyDocumentTheme(theme)
   }, [theme])
@@ -252,22 +244,19 @@ export function useOnboardingFlow(
       linearStatusChecked
     })
 
-  // Why: auto-pick only on first mount; otherwise re-running would clobber/race the user's own agent selection.
-  const didAutoSelectRef = useRef(false)
-  useEffect(() => {
-    if (didAutoSelectRef.current) {
-      return
-    }
-    didAutoSelectRef.current = true
-    // Why: re-read PATH on mount; the session cache can be poisoned by callers that ran before shell PATH hydration, giving a false "no agents" state.
-    void refreshDetectedAgents().then((ids) => {
-      if (selectedAgentRef.current !== null) {
-        return
-      }
-      const preferred = getAgentCatalog().find((agent) => ids.includes(agent.id))?.id ?? null
-      setSelectedAgent(preferred)
-    })
-  }, [refreshDetectedAgents])
+  useOnboardingAgentDetection({
+    currentStepId: currentStep.id,
+    refreshDetectedAgents,
+    selectedAgentRef,
+    setSelectedAgent,
+    setYoloPermissions,
+    settings,
+    skipAgent,
+    skipOptions,
+    stepIndex,
+    setStepIndex,
+    updateSettings
+  })
 
   const closeWith = useCloseWith({
     onOnboardingChange,

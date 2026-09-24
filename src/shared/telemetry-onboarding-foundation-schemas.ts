@@ -19,6 +19,7 @@ export const onboardingFailureReasonSchema = z.enum([
 ])
 export const onboardingValueKindSchema = z.enum([
   'agent',
+  'arca_projects',
   'theme',
   'notifications',
   'agent_setup',

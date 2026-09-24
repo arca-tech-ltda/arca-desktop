@@ -20,7 +20,33 @@
       "errorDetail": "ARCA Mainframe ne répond pas. Vérifiez votre connexion et réessayez.",
       "unsupportedTitle": "Megamind nécessite l’application de bureau",
       "unsupportedDetail": "Ce panneau intègre ARCA Mainframe, qui fonctionne uniquement dans l’application de bureau.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "connectedAs": "Connecté en tant que",
+      "connect": "Se connecter à Megamind",
+      "confirmCode": "Confirmez ce code dans Mainframe :",
+      "expired": "Code expiré. Reconnectez-vous pour réessayer.",
+      "connectionError": "Connexion impossible. Vérifiez vos identifiants et réessayez.",
+      "loginRequired": "Connectez-vous à Mainframe, puis réessayez votre décision.",
+      "approve": "Approuver",
+      "deny": "Refuser",
+      "approvalPending": "Approbation en attente",
+      "approvalDecided": "Décision prise",
+      "requestReceived": "Demande reçue",
+      "requestCompleted": "Demande terminée",
+      "install": "Lancer l’installation de l’espace de travail",
+      "prerequisites": "Pi ou son extension Megamind manque sur cet ordinateur.",
+      "installerMissing": "Installateur introuvable dans ~/ARCA/arca. Installez d’abord l’espace de travail ARCA.",
+      "localInstaller": "Passez à l’environnement local pour lancer cet installateur.",
+      "settingsTitle": "ARCA Megamind",
+      "notConnected": "Non connecté",
+      "sharedCredential": "Les identifiants sont partagés avec Pi. Gérez ou révoquez les appareils dans Mainframe ; cette application ne supprime pas les identifiants partagés.",
+      "manageDevices": "Gérer les appareils dans Mainframe",
+      "requestFailed": "Échec de la demande"
+    },
+    "updater": {
+      "connect": "Connectez-vous à Megamind pour recevoir les mises à jour",
+      "downloadDmg": "Téléchargez le DMG pour mettre à jour",
+      "readOnly": "L’application ne peut pas être remplacée à cet emplacement. Le téléchargement nécessite une authentification de l’appareil."
     }
   },
   "app": {
@@ -2110,7 +2136,37 @@
         "linearModeHasWorktreeTooltip": "Tickets Linear liés à un espace de travail ARCA",
         "linearEmptyHasWorktree": "Aucun ticket Linear n'est encore lié à un espace de travail ARCA. Démarrez le travail depuis une issue Linear pour le voir ici.",
         "linearOpenAttachedWorkspace": "Ouvrir l'espace de travail attaché à {{value0}}",
-        "linearWorktreesColumn": "Espaces de travail"
+        "linearWorktreesColumn": "Espaces de travail",
+        "statusMdTitle": "Tasks",
+        "statusMdSubtitle": "Read from each project’s STATUS.md",
+        "closeTasks": "Close",
+        "statusMdSearch": "Search tasks",
+        "statusMdProjectFilter": "Filter by project",
+        "allProjects": "All projects",
+        "statusMdOpen": "Open",
+        "statusMdAll": "All",
+        "statusMdCompleted": "Completed",
+        "hideMissingStatus": "Hide projects without STATUS.md",
+        "statusMdLoading": "Loading tasks…",
+        "statusMdEmpty": "No projects match these filters.",
+        "statusMdLoadError": "Could not read STATUS.md files.",
+        "statusMdMissing": "No STATUS.md",
+        "statusMdUnavailable": "Unavailable",
+        "statusMdAvailable": "STATUS.md",
+        "piUnavailable": "Pi is not available.",
+        "piLaunchError": "Could not start Pi for this task.",
+        "copyTask": "Copy",
+        "delegateTask": "Delegate to a partner",
+        "delegateSuccess": "Task delegated.",
+        "delegateError": "Could not delegate this task.",
+        "statusMdOpenCount": "open",
+        "statusMdCompletedCount": "done",
+        "statusMdUnsectioned": "Unsectioned",
+        "openStatusLine": "Open in STATUS.md",
+        "workWithPi": "Work with Pi",
+        "statusMdMissingDescription": "This project has no STATUS.md file.",
+        "statusMdUnavailableDescription": "This project is on a remote host and cannot be read here.",
+        "statusMdNoMatches": "No tasks match these filters."
       },
       "Terminal": {
         "73768427cf": "Fermer",
@@ -8212,7 +8268,9 @@
           "integrationsHint": "Les identifiants de tous les fournisseurs se trouvent aussi sous",
           "integrationsLink": "Intégrations",
           "skillHint": ". Une fois Linear connecté, des exemples d'utilisation restent disponibles sous Paramètres → Linear.",
-          "incompleteBannerBodyWithLinear": "Masquez les fournisseurs que vous n'utilisez pas, ou dépliez une carte et terminez ses étapes. Pour Linear : accès API, skill d'agent et Afficher dans Tâches."
+          "incompleteBannerBodyWithLinear": "Masquez les fournisseurs que vous n'utilisez pas, ou dépliez une carte et terminez ses étapes. Pour Linear : accès API, skill d'agent et Afficher dans Tâches.",
+          "statusMdTitle": "Tasks from STATUS.md",
+          "statusMdDescription": "Tasks are read-only and come from each project’s STATUS.md file."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "Épaisseur de la ligne de séparation des volets.",
@@ -16437,6 +16495,32 @@
         "hours": "{{value0}} h",
         "days": "{{value0}} j",
         "underOneMinute": "<1 min"
+      }
+    },
+    "arcaProjects": {
+      "ghRequired": "GitHub CLI est indisponible ou non authentifié. Installez gh, exécutez « gh auth login », puis réessayez.",
+      "registering": "Enregistrement…",
+      "cloning": "Clonage…",
+      "loading": "Chargement des projets ARCA…",
+      "retry": "Réessayer",
+      "select": "Sélectionner {{value0}}",
+      "catalogued": "au catalogue",
+      "destination": "Destination de {{value0}}",
+      "addSelected": "Ajouter la sélection",
+      "added": "Ajouté",
+      "onDisk": "Déjà sur le disque",
+      "ready": "Prêt à cloner",
+      "title": "Projets ARCA"
+    },
+    "onboarding": {
+      "arcaProjects": {
+        "title": "Projets ARCA",
+        "subtitle": "Choisissez les dépôts de l’organisation à ajouter à cet ordinateur."
+      },
+      "flow": {
+        "stepTooltip": {
+          "arcaProjects": "Projets ARCA"
+        }
       }
     }
   },

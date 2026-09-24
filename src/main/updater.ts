@@ -11,12 +11,13 @@ import type {
 } from '../shared/remote-server-update'
 import type { ReleaseBuild, ReleaseChannel } from '../shared/release-channel'
 import type { ReleaseBuildListOptions } from './updater-release-build-cache'
-import { UpdaterSetup, type UpdaterSetupOptions } from './updater/updater-setup'
+import type { UpdaterSetupOptions } from './updater/updater-setup'
+import { ArcaUpdater } from './updater/arca-updater'
 import type { UpdateInstallMode } from './updater/updater-state'
 import { areAutoUpdatesEnabled } from './updater/auto-update-policy'
 
 // Keep one service instance so all public API calls share updater state and event listeners.
-const updater = new UpdaterSetup()
+const updater = new ArcaUpdater()
 
 export type { UpdateInstallMode, UpdaterSetupOptions }
 

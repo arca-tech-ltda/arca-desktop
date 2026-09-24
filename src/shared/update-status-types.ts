@@ -84,6 +84,7 @@ export type UpdateStatus = (
   | {
       state: 'error'
       message: string
+      manualDownloadUrl?: string
       /** Known download/install target; absent for check-time failures and older hosts. */
       version?: string
       /** Omitted by older hosts and for failures whose retryability is unknown. */

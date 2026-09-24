@@ -16,6 +16,7 @@ import { useRepoMap } from '@/store/selectors'
 import { translate } from '@/i18n/i18n'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { getTaskPresetQuery } from '../../../../shared/task-preset-query'
+import { ARCA_TASKS_STATUS_MD_ONLY } from '../../../../shared/arca-product'
 import {
   normalizeVisibleTaskProviders,
   restoreAvailableDefaultTaskProvider,
@@ -120,7 +121,7 @@ export function SidebarTaskNavButton(): React.JSX.Element | null {
   ])
 
   const handlePrefetch = React.useCallback(() => {
-    if (resolvedDefaultTaskSource !== 'github') {
+    if (ARCA_TASKS_STATUS_MD_ONLY || resolvedDefaultTaskSource !== 'github') {
       return
     }
     const activeRepo = activeRepoId ? (repoMap.get(activeRepoId) ?? null) : null
@@ -183,7 +184,8 @@ export function SidebarTaskNavButton(): React.JSX.Element | null {
               {translate('auto.components.sidebar.SidebarNav.fee535205b', 'Tasks')}
             </span>
           </button>
-          <span className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 can-hover:pointer-events-none can-hover:opacity-0 can-hover:group-hover:pointer-events-auto can-hover:group-hover:opacity-100 can-hover:group-focus-within:pointer-events-auto can-hover:group-focus-within:opacity-100">
+          {!ARCA_TASKS_STATUS_MD_ONLY ? (
+            <span className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 can-hover:pointer-events-none can-hover:opacity-0 can-hover:group-hover:pointer-events-auto can-hover:group-hover:opacity-100 can-hover:group-focus-within:pointer-events-auto can-hover:group-focus-within:opacity-100">
             {visibleTaskProviders.includes('github') ? (
               <TaskProviderShortcut
                 label={translate(
@@ -228,7 +230,8 @@ export function SidebarTaskNavButton(): React.JSX.Element | null {
                 <JiraIcon className="size-3.5" />
               </TaskProviderShortcut>
             ) : null}
-          </span>
+            </span>
+          ) : null}
         </div>
       </ContextMenuTrigger>
       <HideTaskSidebarMenu onHide={hideTasksButton} />

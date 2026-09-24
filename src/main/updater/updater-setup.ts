@@ -1,4 +1,4 @@
-import { app, powerMonitor } from 'electron'
+import { app } from 'electron'
 import type { BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import type { ReleaseBuild, ReleaseChannel } from '../../shared/release-channel'
@@ -18,7 +18,6 @@ import { createUpdaterDiagnosticLogger } from '../linux-package-install-diagnost
 import { registerAutoUpdaterHandlers } from '../updater-events'
 import { getServeUpdateHandoffFailure } from '../serve-update-handoff'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
-import { AUTO_UPDATE_CHECK_INTERVAL_MS } from './updater-state'
 import { areAutoUpdatesEnabled } from './auto-update-policy'
 import { UpdaterDownloadInstall } from './updater-download-install'
 import type { UpdateInstallMode } from './updater-state'
@@ -41,8 +40,8 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     this.checkForUpdatesInBackground()
   }
 
-  checkForUpdatesFromMenu(options?: UpdateCheckOptions): void {
-    super.checkForUpdatesFromMenu(options)
+  checkForUpdatesFromMenu(_options?: UpdateCheckOptions): void {
+    super.checkForUpdatesFromMenu()
   }
 
   downloadUpdate(): void {
@@ -97,10 +96,10 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
   }
 
   async listAvailableReleaseBuilds(
-    channel: ReleaseChannel,
-    options?: ReleaseBuildListOptions
+    _channel: ReleaseChannel,
+    _options?: ReleaseBuildListOptions
   ): Promise<ReleaseBuild[]> {
-    return super.listAvailableReleaseBuilds(channel, options)
+    return []
   }
 
   dismissNudge(): void {
@@ -112,8 +111,6 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
   }
 
   setupAutoUpdater(mainWindow: BrowserWindow, opts?: UpdaterSetupOptions): void {
-    // Why here as well as at the public boundary: this is the only place that installs the upstream
-    // ARCA feed URL, and it must stay unreachable however the class is constructed.
     if (!areAutoUpdatesEnabled()) {
       return
     }
@@ -125,7 +122,7 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     this._getDismissedUpdateNudgeId = opts?.getDismissedUpdateNudgeId ?? null
     this._setPendingUpdateNudgeId = opts?.setPendingUpdateNudgeId ?? null
     this._setDismissedUpdateNudgeId = opts?.setDismissedUpdateNudgeId ?? null
-    this.getReleaseChannelOverride = opts?.getReleaseChannelOverride ?? null
+    this.getReleaseChannelOverride = null
     this.updateInstallMode = opts?.installMode ?? 'interactive'
     this.lastInstallDeferralVersion = { download: null, install: null }
 
@@ -155,19 +152,13 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     // Why: supervised serve installs require an explicit handoff; ordinary service quits must never install implicitly.
     // Only an explicit AppImage/non-root marker may opt into electron-updater's implicit quit install.
     autoUpdater.autoInstallOnAppQuit =
-      this.updateInstallMode === 'interactive' && getLinuxPackageType() === 'non-root'
+      this.updateInstallMode === 'interactive' &&
+      (process.platform === 'win32' || getLinuxPackageType() === 'non-root')
     // Why: MacUpdater ignores quitAndInstall arguments; the surviving CLI supervisor must be the only serve relaunch owner.
     autoUpdater.autoRunAppAfterInstall = this.updateInstallMode === 'interactive'
     // Why: our only on-machine window into electron-updater; otherwise an unexpected update-not-available or failed fetch is invisible.
     autoUpdater.logger = createUpdaterDiagnosticLogger() as never
 
-    // Security: never re-add a verifyUpdateCodeSignature override — a no-op disables electron-updater's built-in Authenticode check and accepts any installer.
-    if (this.activeUpdateSource === 'release') {
-      autoUpdater.setFeedURL({
-        provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
-      })
-    }
     if (this.autoUpdaterInitialized) {
       return
     }
@@ -226,36 +217,6 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
       }
     })
 
-    void this.checkForUpdateNudge()
-    this.scheduleUpdateNudgeCheck()
-
-    const checkDailyOnWake = () => {
-      void this.checkForUpdateNudge()
-      if (
-        this.backgroundCheckLaunchPending ||
-        this.currentStatus.state === 'checking' ||
-        this.currentStatus.state === 'downloading'
-      ) {
-        return
-      }
-      const lastCheck = this._getLastUpdateCheckAt?.() ?? null
-      const msSince = lastCheck === null ? Number.POSITIVE_INFINITY : Date.now() - lastCheck
-      if (msSince >= AUTO_UPDATE_CHECK_INTERVAL_MS) {
-        this.runBackgroundUpdateCheck()
-        this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
-      }
-    }
-    powerMonitor.on('resume', checkDailyOnWake)
-    app.on('browser-window-focus', checkDailyOnWake)
-
-    const lastUpdateCheckAt = opts?.getLastUpdateCheckAt?.() ?? null
-    const msSinceLastCheck =
-      lastUpdateCheckAt === null ? Number.POSITIVE_INFINITY : Date.now() - lastUpdateCheckAt
-    if (msSinceLastCheck >= AUTO_UPDATE_CHECK_INTERVAL_MS) {
-      this.runBackgroundUpdateCheck()
-      this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
-    } else {
-      this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS - msSinceLastCheck)
-    }
+    this.scheduleAutomaticUpdateCheck(30_000)
   }
 }

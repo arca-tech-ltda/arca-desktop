@@ -25,6 +25,7 @@ import {
   notifyOrchestrationSetupStateChanged
 } from '@/lib/orchestration-setup-state'
 import type { EventProps } from '../../../../shared/telemetry-events'
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
 
 export type OnboardingFeatureSetupId =
   | 'browserUse'
@@ -35,9 +36,9 @@ export type OnboardingFeatureSetupId =
 export type OnboardingFeatureSetupSelection = Record<OnboardingFeatureSetupId, boolean>
 
 export const DEFAULT_ONBOARDING_FEATURE_SETUP_SELECTION: OnboardingFeatureSetupSelection = {
-  browserUse: true,
-  computerUse: true,
-  orchestration: true,
+  browserUse: !ARCA_PI_IS_AUTHORITY,
+  computerUse: !ARCA_PI_IS_AUTHORITY,
+  orchestration: !ARCA_PI_IS_AUTHORITY,
   linearTickets: false
 }
 

@@ -55,19 +55,6 @@ const devChannelBuildVersion = isHourlyChannel
     : isAdhocChannel
       ? process.env.ORCA_ADHOC_BUILD_VERSION
       : undefined
-// Why each dev channel gets its own repo rather than tagging into the main one:
-// the releases atom feed exposes only the 10 newest entries, so 24 hourly tags a
-// day would evict every stable/RC entry and strand users on a feed with nothing
-// to install. Keeping adhoc/daily separate from hourly too means a branch build
-// or a once-a-day cut cannot be picked up by someone who only meant to ride
-// main's hourlies.
-const devChannelRepo = isHourlyChannel
-  ? 'orca-hourly'
-  : isDailyChannel
-    ? 'orca-daily'
-    : isAdhocChannel
-      ? 'orca-adhoc'
-      : null
 const appId = 'br.com.arcatech.arca-desktop'
 const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
@@ -170,11 +157,13 @@ module.exports = {
   // still written `orca://`, so dropping it would break existing links; `arca://` is the new brand.
   protocols: [{ name: 'ARCA', schemes: ['arca', 'orca'] }],
   toolsets: { appimage: '1.0.3' },
-  ...(devChannelBuildVersion
-    ? { extraMetadata: { version: devChannelBuildVersion } }
-    : localBuildVersion
-      ? { extraMetadata: { version: localBuildVersion } }
-      : {}),
+  ...(process.env.ARCA_RELEASE_VERSION
+    ? { extraMetadata: { version: process.env.ARCA_RELEASE_VERSION } }
+    : devChannelBuildVersion
+      ? { extraMetadata: { version: devChannelBuildVersion } }
+      : localBuildVersion
+        ? { extraMetadata: { version: localBuildVersion } }
+        : {}),
   directories: {
     buildResources: 'resources/build'
   },
@@ -434,7 +423,7 @@ module.exports = {
       sign: signWindowsUninstallerViaSignPath,
       ...(isWinDevChannel ? {} : { publisherName: 'SignPath Foundation' })
     },
-    ...(isWinDevChannel ? { verifyUpdateCodeSignature: false } : {}),
+    verifyUpdateCodeSignature: false,
     extraResources: [
       ...commonExtraResources,
       ...windowsRuntimeResources,
@@ -459,7 +448,7 @@ module.exports = {
     ]
   },
   nsis: {
-    artifactName: 'arca-windows-setup.${ext}',
+    artifactName: 'arca-windows-${version}-setup.${ext}',
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',
     createDesktopShortcut: 'always',
@@ -471,6 +460,7 @@ module.exports = {
     include: resolve(__dirname, 'nsis', 'orca-installer-hooks.nsh')
   },
   mac: {
+    artifactName: 'arca-macos-${version}-${arch}.${ext}',
     // Why rank Alternate: Orca joins Finder's "Open With" list for Markdown without claiming
     // LSHandlerRank ownership, so whichever editor the user already prefers stays the default.
     // Why one entry per extension: app-builder-lib globs `*.${ext}`, which an array would break.
@@ -571,7 +561,7 @@ module.exports = {
   // silently downgrading to ad-hoc artifacts that look shippable in CI logs.
   forceCodeSigning: isMacRelease,
   dmg: {
-    artifactName: 'arca-macos-${arch}.${ext}'
+    artifactName: 'arca-macos-${version}-${arch}.${ext}'
   },
   linux: {
     // Why mimeTypes and not fileAssociations: shared-mime-info already maps *.md/*.markdown to
@@ -668,14 +658,9 @@ module.exports = {
   // returns false so electron-builder does not rebuild optional cpu-features.
   npmRebuild: true,
   publish: {
-    provider: 'github',
-    owner: 'arca-tech-ltda',
-    repo: devChannelRepo ?? 'arca-desktop',
-    // Why draft on the main repo: `--publish always` otherwise creates a
-    // public GitHub release as soon as the first platform uploads, and
-    // /releases/latest serves a missing Windows exe. release-cut undrafts
-    // only after every required asset exists.
-    releaseType: devChannelRepo ? 'prerelease' : 'draft'
+    provider: 'generic',
+    url: 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/',
+    channel: 'latest'
   }
 }
 

@@ -24,6 +24,11 @@ const mocks = vi.hoisted(() => ({
   jiraSetupProps: [] as { onOpenIntegrations: () => void }[]
 }))
 
+vi.mock('../../../../shared/arca-product', () => ({
+  ARCA_TASKS_STATUS_MD_ONLY: false,
+  ARCA_PI_IS_AUTHORITY: true
+}))
+
 vi.mock('./use-task-source-provider-readiness', () => ({
   useTaskSourceProviderReadiness: () => mocks.readiness
 }))

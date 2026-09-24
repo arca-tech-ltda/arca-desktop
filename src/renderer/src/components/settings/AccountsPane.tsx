@@ -59,6 +59,7 @@ import {
 } from './accounts-pane-provider-setting-sections'
 import { renderMiniMaxAccountsSection } from './accounts-pane-minimax-section'
 import { renderAccountsRemovalDialogs } from './accounts-pane-removal-dialogs'
+import { MegamindSettingsSection } from './MegamindSettingsSection'
 
 export { getAccountsPaneSearchEntries }
 
@@ -382,6 +383,7 @@ export function AccountsPane({
 
   return (
     <div className="space-y-8">
+      <MegamindSettingsSection />
       {renderAccountsRemovalDialogs(model, removeCodexTarget, removeClaudeTarget)}
       {visibleSections.map((section, index) => (
         <div key={index} className="space-y-8">

@@ -1,5 +1,7 @@
 import { app, type BrowserWindow } from 'electron'
 import { parseSkillShareId } from '../shared/skill-share-link'
+import { parseArcaDeepLink } from '../shared/arca-deep-link'
+import { captureArcaDeepLinks } from './arca-megamind/deep-links'
 import { createMacAppActivationHandler } from './window/macos-app-activation'
 import {
   focusExistingWindow as focusExistingWindowAction,
@@ -25,6 +27,7 @@ function focusExistingWindow(): void {
 }
 
 function requestDesktopActivation(argv: readonly string[] = []): void {
+  captureArcaDeepLinks(argv)
   state.skillShareDeepLinks.capture(argv, (shareId) => {
     state.mainWindow?.webContents.send('ui:openSkillShare', shareId)
   })
@@ -82,7 +85,7 @@ const preflightReady = runMainProcessPreflight({
 // Why: when another process holds the lock we've already exited; skip file-writing side effects so this transient process never touches userData.
 if (preflightReady) {
   app.on('open-url', (event, url) => {
-    if (!parseSkillShareId(url)) {
+    if (!parseSkillShareId(url) && !parseArcaDeepLink(url)) {
       return
     }
     event.preventDefault()
@@ -101,12 +104,16 @@ if (preflightReady) {
       requestDesktopActivation()
     }
   })
+  captureArcaDeepLinks(process.argv)
   state.skillShareDeepLinks.capture(process.argv)
   // Why no publish: nothing is listening this early, so the first renderer pulls these on mount.
   state.osOpenedMarkdownFiles.capture(process.argv)
   registerMainProcessIpcHandlers()
   installMainProcessQuitHandlers()
   void app.whenReady().then(async () => {
+    if (app.isPackaged) {
+      app.setAsDefaultProtocolClient('arca')
+    }
     await initializeMainProcessReady({
       openMainWindow,
       handleMacAppActivation

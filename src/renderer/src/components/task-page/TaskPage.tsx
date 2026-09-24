@@ -1,4 +1,6 @@
 import React from 'react'
+import { ARCA_TASKS_STATUS_MD_ONLY } from '../../../../shared/arca-product'
+import { StatusMdTasksPage } from './StatusMdTasksPage'
 import { useTaskPageStoreBindings } from '../use-task-page-store-bindings'
 import { useTaskPageRepoSelection } from '../use-task-page-repo-selection'
 import { useTaskPageRuntimeHosts } from '../use-task-page-runtime-hosts'
@@ -40,7 +42,7 @@ import { useTaskPageJiraListEffects } from '../use-task-page-jira-list-effects'
 import { useTaskPageComposerActions } from '../use-task-page-composer-actions'
 import { TaskPageSurface } from './Surface'
 
-export default function TaskPage(): React.JSX.Element {
+function LegacyTaskPage(): React.JSX.Element {
   const stage1 = useTaskPageStoreBindings()
   const stage2 = useTaskPageRepoSelection(stage1)
   const stage3 = useTaskPageRuntimeHosts(stage2)
@@ -81,4 +83,8 @@ export default function TaskPage(): React.JSX.Element {
   const stage38 = useTaskPageJiraListEffects(stage37)
   const stage39 = useTaskPageComposerActions(stage38)
   return <TaskPageSurface model={stage39} />
+}
+
+export default function TaskPage(): React.JSX.Element {
+  return ARCA_TASKS_STATUS_MD_ONLY ? <StatusMdTasksPage /> : <LegacyTaskPage />
 }

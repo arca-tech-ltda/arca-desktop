@@ -1,3 +1,4 @@
+import type { ArcaMegamindApi } from '../shared/arca-megamind'
 import type {
   ClaudeAccountsApi,
   CodexAccountsApi,
@@ -54,6 +55,7 @@ import type { ProjectGroupsApi, ProjectsApi, RepositoryApi } from './api/reposit
 import type { RuntimeApi } from './api/runtime-api'
 import type { KeybindingsApi, SettingsApi } from './api/settings-api'
 import type { ShellApi } from './api/shell-api'
+import type { StatusMdTasksApi } from './api/status-md-tasks-api'
 import type { SpeechApi } from './api/speech-api'
 import type { SshApi } from './api/ssh-api'
 import type { DiagnosticsApi, MemoryApi, StatsApi, TelemetryApi } from './api/telemetry-api'
@@ -116,6 +118,7 @@ export type PreloadApi = {
   developerPermissions: DeveloperPermissionsApi
   computerUsePermissions: ComputerUsePermissionsApi
   shell: ShellApi
+  statusMdTasks: StatusMdTasksApi
   skills: SkillsApi
   pet: PetApi
   browser: BrowserApi
@@ -129,6 +132,7 @@ export type PreloadApi = {
   notebook: FilesystemApi['notebook']
   docPreview: DocPreviewApi['docPreview']
   arcaMainframe: ArcaMainframeApi['arcaMainframe']
+  arcaMegamind: ArcaMegamindApi
   stats: StatsApi
   memory: MemoryApi
   claudeUsage: ClaudeUsageApi

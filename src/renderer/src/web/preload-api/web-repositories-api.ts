@@ -66,6 +66,15 @@ export function createReposApi(): NonNullable<Partial<PreloadApi>['repos']> {
       throw new Error('Creating projects on SSH hosts is unavailable in paired web clients.')
     },
     cloneAbort: () => Promise.resolve(),
+    listArcaProjects: async () => ({
+      ok: false,
+      reason: 'unknown',
+      message: 'ARCA Projects are available in the desktop app.'
+    }),
+    inspectArcaProjectDestination: async () => ({
+      diskState: 'conflict',
+      diskError: 'ARCA Projects are available in the desktop app.'
+    }),
     addRemote: async ({ remotePath, displayName, kind }) => {
       invalidateRuntimeWorktreeCaches()
       const owned = await callRuntimeResultWithOwner<{ repo: Repo }>('repo.add', {

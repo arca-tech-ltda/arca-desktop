@@ -5,6 +5,7 @@ import { subscribeToUnpairedDeviceAuthNotification } from '../unpaired-device-au
 import { translate } from '@/i18n/i18n'
 import { toast } from 'sonner'
 import { useAppStore } from '../../store'
+import { registerMegamindEvents } from '@/attention/megamind-events'
 
 function getShortcutPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Mac')) {
@@ -17,6 +18,7 @@ function getShortcutPlatform(): NodeJS.Platform {
 }
 
 export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): void {
+  unsubs.push(registerMegamindEvents())
   unsubs.push(
     window.api.ui.onOpenSettings(() => {
       useAppStore.getState().openSettingsPage()
@@ -163,7 +165,7 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
   const unsubscribeShowMegamind = window.api.ui.onShowMegamindPanel?.(() => {
     const store = useAppStore.getState()
     if (!canShowRightSidebarForView(store.activeView)) {
-      return
+      store.setActiveView('terminal')
     }
     store.setRightSidebarTab('megamind')
     store.setRightSidebarOpen(true)

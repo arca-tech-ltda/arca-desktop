@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { lazyWithRetry as lazy } from '@/lib/lazy-with-retry'
 import type { ActiveRightSidebarTab } from '@/store/slices/editor'
 import { isPluginPanelTabKey } from '../../../../shared/plugins/plugin-manifest'
@@ -22,6 +22,12 @@ export function RightSidebarPanelContent({
   effectiveTab,
   rightSidebarOpen
 }: RightSidebarPanelContentProps): React.JSX.Element {
+  const [megamindOpened, setMegamindOpened] = useState(false)
+  useEffect(() => {
+    if (effectiveTab === 'megamind') {
+      setMegamindOpened(true)
+    }
+  }, [effectiveTab])
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <Suspense fallback={null}>
@@ -35,7 +41,14 @@ export function RightSidebarPanelContent({
           <PortsPanel isVisible={rightSidebarOpen && effectiveTab === 'ports'} />
         )}
         {effectiveTab === 'vault' && <AiVaultPanel />}
-        {effectiveTab === 'megamind' && <MegamindPanel />}
+        {/* Keep human-session polling alive after leaving the panel, without opening it on startup. */}
+        {(megamindOpened || effectiveTab === 'megamind') && (
+          <div hidden={effectiveTab !== 'megamind'} className="min-h-0 flex-1 overflow-hidden">
+            <div className="flex h-full min-h-0 flex-col">
+              <MegamindPanel />
+            </div>
+          </div>
+        )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
         {effectiveTab === 'pr-checks' && (
           <FolderWorkspacePrChecksPanel

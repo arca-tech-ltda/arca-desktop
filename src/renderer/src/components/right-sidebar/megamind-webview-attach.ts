@@ -4,6 +4,7 @@ import type { ArcaMainframePanelDescriptor } from '../../../../shared/arca-mainf
 export type MegamindWebviewHandle = {
   detach: () => void
   reload: () => void
+  navigate: (url: string) => void
 }
 
 /**
@@ -43,6 +44,15 @@ export function attachMegamindWebview({
   webview.setAttribute('src', panel.panelUrl)
 
   return {
+    navigate: (url) => {
+      try {
+        if (new URL(url).origin === panel.origin) {
+          webview.setAttribute('src', url)
+        }
+      } catch {
+        /* Refuse malformed navigation targets. */
+      }
+    },
     detach: () => {
       webview.removeEventListener('did-start-loading', onLoadStarted)
       webview.removeEventListener('did-stop-loading', onLoadStopped)

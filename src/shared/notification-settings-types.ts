@@ -24,6 +24,7 @@ export type NotificationSettings = {
 export type NotificationEventSource = 'agent-task-complete' | 'terminal-bell' | 'test'
 
 export type NotificationDispatchRequest = {
+  megamind?: { title: string; body: string }
   source: NotificationEventSource
   notificationId?: string
   /** Why: useful for fast native failures, but macOS can still drop notifications after 'show'. */

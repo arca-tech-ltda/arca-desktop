@@ -19,6 +19,7 @@ import {
   type AddRepoDialogHostedController
 } from './use-add-repo-hosted-controller'
 import { routeAddRepoBrowse } from './add-repo-browse-authority'
+import { ArcaProjectsDialog } from '../arca-projects/ArcaProjectsDialog'
 
 export default React.memo(function AddRepoDialog({
   hosted
@@ -287,6 +288,7 @@ export default React.memo(function AddRepoDialog({
       onCloseAutoFocus={hosted?.onCloseAutoFocus}
       onOpenChange={handleOpenChange}
     >
+      {step === 'add' && selectedHostKind === 'local' ? <ArcaProjectsDialog /> : null}
       <AddRepoDialogStepContent
         step={step}
         isRuntimeEnvironmentActive={isRuntimeEnvironmentActive}

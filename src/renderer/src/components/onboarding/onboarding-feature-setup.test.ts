@@ -106,11 +106,11 @@ describe('onboarding feature setup runner', () => {
     vi.unstubAllGlobals()
   })
 
-  it('defaults every setup item on so first-launch setup is ready to run', () => {
+  it('defaults agent skill setup off when Pi owns setup', () => {
     expect(DEFAULT_ONBOARDING_FEATURE_SETUP_SELECTION).toEqual({
-      browserUse: true,
-      computerUse: true,
-      orchestration: true,
+      browserUse: false,
+      computerUse: false,
+      orchestration: false,
       linearTickets: false
     })
   })
