@@ -11,14 +11,16 @@ import {
 } from '@/components/ui/dialog'
 import { ArcaProjectsPanel } from './ArcaProjectsPanel'
 
-export function ArcaProjectsDialog(): React.JSX.Element {
+export function ArcaProjectsDialog({ label }: { label?: string } = {}): React.JSX.Element {
   const [open, setOpen] = useState(false)
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="w-full justify-start">
+        <Button type="button" variant="outline" className="h-auto w-full justify-start">
           <FolderGit2 className="mr-2 size-4" />
-          {translate('components.arcaProjects.title', 'ARCA Projects')}
+          <span className="min-w-0 whitespace-normal text-left">
+            {label ?? translate('components.arcaProjects.title', 'ARCA Projects')}
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">

@@ -154,6 +154,7 @@ vi.mock('../browser/browser-session-proxy', () => ({
 vi.mock('../browser/doc-preview-protocol', () => ({ installDocPreviewProtocolHandler: vi.fn() }))
 vi.mock('../ipc/doc-preview-grant-ipc', () => ({ registerDocPreviewGrantHandlers: vi.fn() }))
 vi.mock('../ipc/arca-mainframe-ipc', () => ({ registerArcaMainframeHandlers: vi.fn() }))
+vi.mock('../arca-projects-sync/service', () => ({ registerArcaProjectsSync: vi.fn() }))
 vi.mock('../arca-mainframe/arca-mainframe-session-policy', () => ({
   installArcaMainframeSessionPolicy: vi.fn()
 }))

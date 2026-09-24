@@ -74,8 +74,10 @@ export function registerRepoHandlers(
   ipcMain.handle('arcaProjects:list', (_event, args?: { includeHidden?: boolean }) =>
     listArcaOrgProjects(args?.includeHidden === true)
   )
-  ipcMain.handle('arcaProjects:inspectDestination', (_event, args: { destination: string }) =>
-    inspectArcaProjectDestination(args.destination)
+  ipcMain.handle(
+    'arcaProjects:inspectDestination',
+    (_event, args: { destination: string; expectedRemote?: string }) =>
+      inspectArcaProjectDestination(args.destination, args.expectedRemote)
   )
 
   registerRepoCatalogHandlers(mainWindow, store)

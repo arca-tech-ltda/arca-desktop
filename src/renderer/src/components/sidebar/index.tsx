@@ -1,3 +1,4 @@
+import { ArcaSyncMissing } from '../arca-projects/ArcaSyncMissing'
 import React, { useEffect, useMemo } from 'react'
 import { useAppStore } from '@/store'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -193,6 +194,7 @@ function Sidebar({
             )}
 
             <div className="relative shrink-0">
+              <ArcaSyncMissing />
               <SetupScriptPromptCard />
 
               {/* Fixed bottom toolbar */}

@@ -1,84 +1,69 @@
-import path from 'node:path'
-import { describe, expect, it } from 'vitest'
-import type { ArcaGitHubRepository } from '../../shared/arca-projects-types'
-import { reconcileArcaProjects } from './arca-org-projects'
+import type * as CatalogModule from '../arca-projects-sync/catalog'
+import { beforeEach, expect, it, vi } from 'vitest'
+const mocks = vi.hoisted(() => ({ catalog: vi.fn(), scan: vi.fn(), stat: vi.fn(), git: vi.fn() }))
+vi.mock('node:fs/promises', () => ({ stat: mocks.stat }))
+vi.mock('./gh-utils', () => ({ gitExecFileAsync: mocks.git }))
+vi.mock('../arca-projects-sync/catalog', async (original) => ({
+  ...(await original<typeof CatalogModule>()),
+  loadArcaCatalog: mocks.catalog
+}))
+vi.mock('../arca-projects-sync/disk', () => ({ scanArcaDisk: mocks.scan }))
+import { inspectArcaProjectDestination, listArcaOrgProjects } from './arca-org-projects'
 
-function repository(name: string, isArchived = false): ArcaGitHubRepository {
-  return {
-    name,
-    description: null,
-    isArchived,
-    url: `https://github.com/arca-tech-ltda/${name}`,
-    sshUrl: `git@github.com:arca-tech-ltda/${name}.git`,
-    pushedAt: '2026-01-01T00:00:00Z'
-  }
-}
-
-describe('reconcileArcaProjects', () => {
-  it('uses catalog destinations and suggests clientes for uncatalogued repositories', () => {
-    const home = path.resolve('/home/ana')
-    const result = reconcileArcaProjects({
-      repositories: [repository('arca'), repository('new-client')],
-      catalog: {
-        root_default: '~/ARCA',
-        projects: [{ repos: [{ repo_id: 'github.com/arca-tech-ltda/arca', path: 'arca' }] }]
-      },
-      home,
-      inspections: {}
-    })
-
-    expect(
-      result.projects.map(({ name, destination, catalogued, selected }) => ({
-        name,
-        destination,
-        catalogued,
-        selected
-      }))
-    ).toEqual([
+beforeEach(() => {
+  vi.resetAllMocks()
+})
+it('lists outside-org catalog repos and preselects only missing clones', async () => {
+  mocks.catalog.mockResolvedValue({
+    sources: ['file'],
+    errors: [],
+    entries: [
       {
-        name: 'arca',
-        destination: path.join(home, 'ARCA', 'arca'),
-        catalogued: true,
-        selected: true
+        name: 'mcscala',
+        repoKey: 'github.com/dkelles/mcscala',
+        url: 'https://github.com/dkelles/mcscala.git',
+        destination: '/arca/clientes/mcdonalds-escalas'
       },
       {
-        name: 'new-client',
-        destination: path.join(home, 'ARCA', 'clientes', 'new-client'),
-        catalogued: false,
-        selected: false
+        name: 'new',
+        repoKey: 'github.com/org/new',
+        url: 'https://github.com/org/new.git',
+        destination: '/arca/produtos/new'
       }
-    ])
+    ]
   })
-
-  it('hides archived repositories and brain by default', () => {
-    const result = reconcileArcaProjects({
-      repositories: [repository('brain'), repository('old', true), repository('active')],
-      catalog: {},
-      home: '/home/ana',
-      inspections: {}
-    })
-    expect(result.projects.map((project) => project.name)).toEqual(['active'])
-    expect(result.hiddenCount).toBe(2)
+  mocks.scan.mockResolvedValue([
+    { repoKey: 'github.com/dkelles/mcscala', path: '/arca/clientes/mcdonalds-escalas' }
+  ])
+  mocks.stat.mockImplementation(async (path: string) => {
+    if (path.startsWith('/arca/produtos/new')) {
+      throw Object.assign(new Error('missing'), { code: 'ENOENT' })
+    }
+    return { isDirectory: () => true }
   })
-
-  it('preselects an ARCA repository already on disk and preserves remote conflicts', () => {
-    const home = '/home/ana'
-    const existing = path.join(home, 'ARCA', 'clientes', 'existing')
-    const conflict = path.join(home, 'ARCA', 'clientes', 'conflict')
-    const result = reconcileArcaProjects({
-      repositories: [repository('existing'), repository('conflict')],
-      catalog: {},
-      home,
-      inspections: {
-        [existing]: { diskState: 'arca_repo' },
-        [conflict]: { diskState: 'conflict', diskError: 'different remote' }
-      }
-    })
-    expect(result.projects[0]).toMatchObject({ selected: true, diskState: 'arca_repo' })
-    expect(result.projects[1]).toMatchObject({
-      selected: false,
-      diskState: 'conflict',
-      diskError: 'different remote'
-    })
+  mocks.git.mockResolvedValue({ stdout: 'git@github.com:DKelles/mcScala.git\n' })
+  const result = await listArcaOrgProjects()
+  expect(result).toMatchObject({
+    ok: true,
+    projects: [
+      { selected: false, diskState: 'arca_repo', destination: '/arca/clientes/mcdonalds-escalas' },
+      { selected: true, diskState: 'missing', destination: '/arca/produtos/new' }
+    ]
   })
+})
+it('rejects a destination containing a different repository even within the org', async () => {
+  mocks.stat.mockResolvedValue({ isDirectory: () => true })
+  mocks.git.mockResolvedValue({ stdout: 'https://github.com/arca-tech-ltda/other' })
+  expect(
+    await inspectArcaProjectDestination('/repo', 'https://github.com/arca-tech-ltda/wanted')
+  ).toMatchObject({ diskState: 'conflict' })
+})
+it('rejects an existing directory without its own git marker', async () => {
+  mocks.stat
+    .mockResolvedValueOnce({ isDirectory: () => true })
+    .mockRejectedValueOnce(new Error('No marker'))
+  expect(
+    await inspectArcaProjectDestination('/repo/nested', 'https://github.com/org/repo')
+  ).toMatchObject({ diskState: 'conflict' })
+  expect(mocks.git).not.toHaveBeenCalled()
 })

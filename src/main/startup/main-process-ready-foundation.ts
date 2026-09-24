@@ -1,3 +1,4 @@
+import { registerArcaProjectsSync } from '../arca-projects-sync/service'
 import { app, session } from 'electron'
 import { electronApp, is } from '@electron-toolkit/utils'
 import { applyBackgroundActivationPolicy } from '../window/foreground-activation-policy'
@@ -141,6 +142,7 @@ export async function initializeReadyFoundation(): Promise<void> {
     storageAuthority: state.isServeMode ? 'runtime' : 'desktop'
   })
   state.store = store
+  registerArcaProjectsSync(store)
   // Why: create pending readiness before the guard can observe the default session.
   // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell
   // proxy env vars, so the persisted proxy must land before any app-owned network fetcher runs —

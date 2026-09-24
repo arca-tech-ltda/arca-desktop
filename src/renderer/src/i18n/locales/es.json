@@ -15106,5 +15106,22 @@
       "stopped": "detenido",
       "finished": "finalizado"
     }
+  },
+  "arcaSync": {
+    "updated": "Actualizado",
+    "missing": "No está en este equipo",
+    "dirty": "Cambios locales",
+    "branch": "Rama no predeterminada",
+    "error": "Error de sincronización",
+    "ahead": "↑{{count}} por delante",
+    "behind": "↓{{behind}} por detrás · ↑{{ahead}} por delante",
+    "cloneMissing": "{{count}} proyectos de ARCA no están en este equipo — Clonar",
+    "title": "Proyectos de ARCA",
+    "autoUpdate": "Mantener los proyectos actualizados automáticamente",
+    "source": "Fuentes del catálogo: {{sources}} · Última sincronización: {{last}}",
+    "syncNow": "Sincronizar ahora",
+    "registered": "Registrado en la aplicación",
+    "unregistered": "No registrado en la aplicación",
+    "outside": "Encontrados fuera del catálogo"
   }
 }

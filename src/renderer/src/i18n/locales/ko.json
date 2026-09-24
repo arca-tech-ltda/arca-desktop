@@ -15273,5 +15273,22 @@
       "stopped": "중지됨",
       "finished": "완료됨"
     }
+  },
+  "arcaSync": {
+    "updated": "최신 상태",
+    "missing": "이 컴퓨터에 없음",
+    "dirty": "로컬 변경 사항",
+    "branch": "기본 브랜치가 아님",
+    "error": "동기화 오류",
+    "ahead": "↑{{count}} 앞섬",
+    "behind": "↓{{behind}} 뒤처짐 · ↑{{ahead}} 앞섬",
+    "cloneMissing": "이 컴퓨터에 ARCA 프로젝트 {{count}}개가 없습니다 — 복제",
+    "title": "ARCA 프로젝트",
+    "autoUpdate": "프로젝트 자동 업데이트",
+    "source": "카탈로그 소스: {{sources}} · 마지막 동기화: {{last}}",
+    "syncNow": "지금 동기화",
+    "registered": "앱에 등록됨",
+    "unregistered": "앱에 등록되지 않음",
+    "outside": "카탈로그 외부에서 발견됨"
   }
 }

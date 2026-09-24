@@ -1,3 +1,4 @@
+import type { ArcaProjectsSyncApi } from '../shared/arca-projects-sync'
 import type { ArcaMegamindApi } from '../shared/arca-megamind'
 import type {
   ClaudeAccountsApi,
@@ -133,6 +134,7 @@ export type PreloadApi = {
   notebook: FilesystemApi['notebook']
   docPreview: DocPreviewApi['docPreview']
   arcaMainframe: ArcaMainframeApi['arcaMainframe']
+  arcaProjectsSync: ArcaProjectsSyncApi
   arcaMegamind: ArcaMegamindApi
   arcaPriorities: ArcaPrioritiesApi
   stats: StatsApi

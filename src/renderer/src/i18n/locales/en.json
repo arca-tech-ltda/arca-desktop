@@ -18277,5 +18277,22 @@
   },
   "common": {
     "retry": "Retry"
+  },
+  "arcaSync": {
+    "updated": "Up to date",
+    "missing": "Not on this computer",
+    "dirty": "Local changes",
+    "branch": "Non-default branch",
+    "error": "Sync error",
+    "ahead": "↑{{count}} ahead",
+    "behind": "↓{{behind}} behind · ↑{{ahead}} ahead",
+    "cloneMissing": "{{count}} ARCA projects are not on this computer — Clone",
+    "title": "ARCA Projects",
+    "autoUpdate": "Keep projects updated automatically",
+    "source": "Catalog sources: {{sources}} · Last sync: {{last}}",
+    "syncNow": "Sync now",
+    "registered": "Registered in app",
+    "unregistered": "Not registered in app",
+    "outside": "Found outside the catalog"
   }
 }

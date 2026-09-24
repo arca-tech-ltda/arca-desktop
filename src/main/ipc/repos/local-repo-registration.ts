@@ -11,7 +11,7 @@ import {
   getLinkedWorktreeMainRepoRoot,
   getRepoName
 } from '../../git/repo'
-import { LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
+import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
 import { detectRepoIconAndUpstream } from '../../repo-icon-autodetect'
 import { prepareLocalWorktreeRootForRepo } from '../../worktree-root-preparation'
 
@@ -33,7 +33,11 @@ export async function addLocalRepoFromPath(
   const pathKey = normalizeRuntimePathForComparison(path)
   const existing = store
     .getRepos()
-    .find((repo) => !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === pathKey)
+    .find(
+      (repo) =>
+        getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID &&
+        normalizeRuntimePathForComparison(repo.path) === pathKey
+    )
   if (existing) {
     return { repo: existing, alreadyExisted: true }
   }
@@ -44,7 +48,8 @@ export async function addLocalRepoFromPath(
       .getRepos()
       .find(
         (repo) =>
-          !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === resolvedPathKey
+          getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID &&
+          normalizeRuntimePathForComparison(repo.path) === resolvedPathKey
       )
     if (existingAfterRootResolve) {
       return { repo: existingAfterRootResolve, alreadyExisted: true }
@@ -64,7 +69,7 @@ export async function addLocalRepoFromPath(
         .getRepos()
         .find(
           (repo) =>
-            !repo.connectionId &&
+            getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID &&
             !isFolderRepo(repo) &&
             normalizeRuntimePathForComparison(repo.path) === mainRepoKey
         )

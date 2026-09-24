@@ -1,3 +1,4 @@
+import { ArcaProjectsSettingsSection } from './ArcaProjectsSettingsSection'
 import { STAR_PROMPTS_ENABLED } from '@/lib/arca-product-features'
 import type React from 'react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
@@ -284,6 +285,7 @@ export function GeneralPane({
 
   return (
     <div className="space-y-6">
+      {(!searchQuery || /arca|sync/i.test(searchQuery)) && <ArcaProjectsSettingsSection />}
       {visibleSections.map((section, index) => (
         <div key={index} className="space-y-6">
           {index > 0 ? <Separator /> : null}

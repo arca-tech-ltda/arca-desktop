@@ -1,3 +1,4 @@
+import { ArcaSyncBadge } from '../../../arca-projects/ArcaSyncBadge'
 import React from 'react'
 import { ChevronDown } from 'lucide-react'
 import type { VirtualItem } from '@tanstack/react-virtual'
@@ -333,6 +334,7 @@ export function renderWorktreeSectionHeaderRow(args: {
               <div className="min-w-0 truncate text-[13px] font-semibold leading-none">
                 {row.label}
               </div>
+              {row.repo && !row.repo.connectionId && <ArcaSyncBadge repo={row.repo} />}
               <RepoForkIndicator upstream={row.repo?.upstream} />
               <FolderPathStatusIndicator status={projectGroupPathStatus} />
               {isRepoHeader ? <RepoScanUnavailableIndicator repo={row.repo!} /> : null}

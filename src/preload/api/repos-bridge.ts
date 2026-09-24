@@ -82,7 +82,7 @@ export const reposApi = {
   listArcaProjects: (args?: { includeHidden?: boolean }) =>
     ipcRenderer.invoke('arcaProjects:list', args),
 
-  inspectArcaProjectDestination: (args: { destination: string }) =>
+  inspectArcaProjectDestination: (args: { destination: string; expectedRemote?: string }) =>
     ipcRenderer.invoke('arcaProjects:inspectDestination', args),
 
   onChanged: (callback: () => void): (() => void) => {

@@ -1,3 +1,4 @@
+import { ArcaSyncBadge } from '../arca-projects/ArcaSyncBadge'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Server, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -181,6 +182,7 @@ export function SidebarProjectFilterPanel({
                 color={repo.badgeColor}
                 className="max-w-full"
               />
+              {!repo.connectionId && <ArcaSyncBadge repo={repo} />}
               {repo.connectionId && (
                 <span className="shrink-0 inline-flex items-center gap-0.5 rounded bg-muted px-1 py-0.5 text-[9px] font-medium leading-none text-muted-foreground">
                   <Server className="size-2.5" />

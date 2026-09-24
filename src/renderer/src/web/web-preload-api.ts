@@ -1,3 +1,4 @@
+import { emptyArcaSyncStatus } from '../../../shared/arca-projects-sync'
 import type { PreloadApi } from '../../../preload/api-types'
 import type { StatsSummary } from '../../../shared/process-stats-types'
 import { createWebE2EApi } from './preload-api/web-e2e-api'
@@ -72,6 +73,12 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     ...createWebSettingsApi(),
     arcaPriorities: {
       list: async () => [],
+      onChange: () => () => {}
+    },
+    arcaProjectsSync: {
+      status: async () => emptyArcaSyncStatus,
+      syncNow: async () => emptyArcaSyncStatus,
+      setAutoUpdate: async () => emptyArcaSyncStatus,
       onChange: () => () => {}
     },
     arcaMegamind: {

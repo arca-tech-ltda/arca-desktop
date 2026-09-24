@@ -15247,5 +15247,22 @@
       "stopped": "已停止",
       "finished": "已完成"
     }
+  },
+  "arcaSync": {
+    "updated": "已是最新",
+    "missing": "不在此计算机上",
+    "dirty": "本地更改",
+    "branch": "非默认分支",
+    "error": "同步错误",
+    "ahead": "↑领先 {{count}}",
+    "behind": "↓落后 {{behind}} · ↑领先 {{ahead}}",
+    "cloneMissing": "此计算机缺少 {{count}} 个 ARCA 项目 — 克隆",
+    "title": "ARCA 项目",
+    "autoUpdate": "自动保持项目更新",
+    "source": "目录来源：{{sources}} · 上次同步：{{last}}",
+    "syncNow": "立即同步",
+    "registered": "已在应用中注册",
+    "unregistered": "未在应用中注册",
+    "outside": "发现目录外的仓库"
   }
 }

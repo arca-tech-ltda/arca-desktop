@@ -127,6 +127,7 @@ export type RepositoryApi = {
   listArcaProjects: (args?: { includeHidden?: boolean }) => Promise<ArcaProjectsListResult>
   inspectArcaProjectDestination: (args: {
     destination: string
+    expectedRemote?: string
   }) => Promise<ArcaProjectDestinationInspection>
 }
 

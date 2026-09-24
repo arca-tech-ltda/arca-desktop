@@ -58,7 +58,7 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
   const selected = useMemo(() => projects.filter((project) => project.selected), [projects])
   const updateProject = (name: string, updates: Partial<ArcaProjectCandidate>): void => {
     setProjects((current) =>
-      current.map((project) => (project.name === name ? { ...project, ...updates } : project))
+      current.map((project) => (project.url === name ? { ...project, ...updates } : project))
     )
   }
 
@@ -71,7 +71,8 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
     for (const project of selected) {
       try {
         const inspection = await window.api.repos.inspectArcaProjectDestination({
-          destination: project.destination
+          destination: project.destination,
+          expectedRemote: project.url
         })
         if (inspection.diskState === 'conflict') {
           throw new Error(inspection.diskError ?? 'The destination cannot be used.')
@@ -79,7 +80,7 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
         if (inspection.diskState === 'arca_repo') {
           setStatuses((current) => ({
             ...current,
-            [project.name]: {
+            [project.url]: {
               state: 'cloning',
               detail: translate('components.arcaProjects.registering', 'Registering…')
             }
@@ -89,10 +90,10 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
             throw new Error('Could not register the repository.')
           }
         } else {
-          setActiveName(project.name)
+          setActiveName(project.url)
           setStatuses((current) => ({
             ...current,
-            [project.name]: {
+            [project.url]: {
               state: 'cloning',
               detail: translate('components.arcaProjects.cloning', 'Cloning…'),
               percent: 0
@@ -101,11 +102,11 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
           await window.api.repos.clone({ url: project.url, destination: project.destination })
         }
         addedAny = true
-        setStatuses((current) => ({ ...current, [project.name]: { state: 'added' } }))
+        setStatuses((current) => ({ ...current, [project.url]: { state: 'added' } }))
       } catch (error) {
         setStatuses((current) => ({
           ...current,
-          [project.name]: {
+          [project.url]: {
             state: 'error',
             detail: error instanceof Error ? error.message : String(error)
           }
@@ -116,6 +117,7 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
     }
     if (addedAny) {
       await fetchRepos()
+      void window.api.arcaProjectsSync.syncNow().catch(() => {})
       await window.api.onboarding.update({ checklist: { addedRepo: true } })
       onAdded?.()
     }
@@ -149,17 +151,17 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
     <div className="flex min-h-0 flex-col gap-4">
       <div className="scrollbar-sleek max-h-[52vh] space-y-2 overflow-y-auto pr-1">
         {projects.map((project) => {
-          const status = statuses[project.name] ?? { state: 'idle' as const }
+          const status = statuses[project.url] ?? { state: 'idle' as const }
           return (
             <div
-              key={project.name}
+              key={project.url}
               className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-lg border border-border bg-card p-3"
             >
               <Checkbox
                 checked={project.selected}
                 disabled={adding || status.state === 'added'}
                 onCheckedChange={(checked) =>
-                  updateProject(project.name, { selected: checked === true })
+                  updateProject(project.url, { selected: checked === true })
                 }
                 aria-label={translate('components.arcaProjects.select', 'Select {{value0}}', {
                   value0: project.name
@@ -183,7 +185,7 @@ export function ArcaProjectsPanel({ onAdded }: { onAdded?: () => void }): React.
                 value={project.destination}
                 disabled={adding || status.state === 'added'}
                 onChange={(event) =>
-                  updateProject(project.name, { destination: event.target.value })
+                  updateProject(project.url, { destination: event.target.value })
                 }
                 aria-label={translate(
                   'components.arcaProjects.destination',

@@ -144,6 +144,23 @@ describe('repos:add + repos:clone', () => {
     expect(mockStore.addRepo).not.toHaveBeenCalled()
   })
 
+  it('does not mistake a runtime-host checkout for a local registration', async () => {
+    mockStore.getRepos.mockReturnValue([
+      {
+        id: 'remote-only',
+        path: '/tmp/from-add',
+        displayName: 'Remote',
+        kind: 'git',
+        executionHostId: 'runtime:other',
+        connectionId: null
+      }
+    ])
+    vi.mocked(getGitRepoRoot).mockReturnValue('/tmp/from-add')
+    const result = await handlers.get('repos:add')!(null, { path: '/tmp/from-add', kind: 'git' })
+    expect(mockStore.addRepo).toHaveBeenCalledOnce()
+    expect(result).not.toHaveProperty('repo.id', 'remote-only')
+  })
+
   it('returns existing badgeColor unchanged on repos:add dedupe', async () => {
     const existing = {
       id: 'repo-add-existing',
