@@ -194,9 +194,11 @@
         "cdc9ac4b2d": "editor"
       },
       "UpdateCard": {
+        "09a55c39b5": "Installing...",
         "522df222b9": "spinner",
         "7ffc08506e": "check",
-        "d5253b54af": "error"
+        "d5253b54af": "error",
+        "ec8fe71cfc": "Update"
       },
       "WorktreeJumpPalette": {
         "c4afa68159": "Try a worktree, setting, action, tab title, agent prompt, URL, PR, or port.",
@@ -697,6 +699,9 @@
             }
           }
         }
+      },
+      "priorities": {
+        "noPriority": "No priority defined"
       },
       "right": {
         "sidebar": {
@@ -1225,10 +1230,12 @@
         },
         "GeneralUpdateSettingsSection": {
           "3394d1f663": "checking",
+          "42717918f4": "Download Update (",
           "4c1c001813": "downloading",
           "6405510b92": "error",
           "7173352632": "idle",
           "82465b2444": "available",
+          "8311da27ba": "is available. Click \"Download Update\" to download it.",
           "90eb7309d7": "not-available",
           "a0832ccdb1": "downloaded"
         },

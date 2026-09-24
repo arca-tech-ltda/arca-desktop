@@ -70,12 +70,19 @@ describe('updater', () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
 
-    const { setupAutoUpdater, checkForUpdatesFromMenu } = await loadUpdaterModule()
+    const { setupAutoUpdater, checkForUpdatesFromMenu, downloadUpdate } = await loadUpdaterModule()
 
     setupAutoUpdater(mainWindow as never, {
       getLastUpdateCheckAt: () => Date.now()
     })
     checkForUpdatesFromMenu()
+    await vi.waitFor(() =>
+      expect(sendMock).toHaveBeenCalledWith(
+        'updater:status',
+        expect.objectContaining({ state: 'available' })
+      )
+    )
+    downloadUpdate()
 
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith(
@@ -123,6 +130,7 @@ describe('updater', () => {
       })
     })
 
+    downloadUpdate()
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
@@ -163,7 +171,7 @@ describe('updater', () => {
 
     await vi.advanceTimersByTimeAsync(1)
     expect(autoUpdaterMock.quitAndInstall).toHaveBeenCalledTimes(1)
-    expect(autoUpdaterMock.quitAndInstall).toHaveBeenCalledWith(false, true)
+    expect(autoUpdaterMock.quitAndInstall).toHaveBeenCalledWith(true, true)
     expect(launcherSawLaunchPathScope).toBe(true)
     expect(launchPathScope.calls).toBe(1)
     expect(launchPathScope.active).toBe(false)

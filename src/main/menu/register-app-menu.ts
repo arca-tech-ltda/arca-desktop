@@ -1,4 +1,5 @@
 import { BrowserWindow, Menu, app } from 'electron'
+import { createArcaUpdateMenuItem, setArcaUpdateMenu } from './arca-update-menu'
 import {
   formatKeybindingList,
   getEffectiveKeybindingsForAction,
@@ -90,30 +91,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     webContents.reload()
   }
 
-  // Why: modifier-click update checks are hidden power-user affordances.
-  // Extracted so the macOS app-menu entry and Windows/Linux Help entry share
-  // identical RC/perf channel routing.
-  const checkForUpdatesClick: Electron.MenuItemConstructorOptions['click'] = (
-    _menuItem,
-    _window,
-    event
-  ) => {
-    const modifierClick = !event.triggeredByAccelerator
-    const localBuild = isMac && modifierClick && event.altKey === true
-    const includePerfPrerelease =
-      !localBuild && modifierClick && (isMac ? event.metaKey === true : event.ctrlKey === true)
-    const includePrerelease = !localBuild && modifierClick && event.shiftKey === true
-    onCheckForUpdates({
-      includePrerelease,
-      includePerfPrerelease,
-      ...(localBuild ? { localBuild: true } : {})
-    })
-  }
-
-  const checkForUpdatesItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.checkForUpdates', 'Check for Updates...'),
-    click: checkForUpdatesClick
-  }
+  const checkForUpdatesItem = createArcaUpdateMenuItem(onCheckForUpdates)
 
   const settingsItem: Electron.MenuItemConstructorOptions = {
     label: `${translateMain('menu.settings', 'Settings')}\t${shortcutLabel('app.settings')}`,
@@ -348,7 +326,9 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     helpMenu
   ]
 
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+  const menu = Menu.buildFromTemplate(template)
+  setArcaUpdateMenu(menu)
+  Menu.setApplicationMenu(menu)
 }
 
 let lastRegisterOptions: RegisterAppMenuOptions | null = null
@@ -358,10 +338,6 @@ export function registerAppMenu(options: RegisterAppMenuOptions): void {
   buildAndApplyMenu(options)
 }
 
-/** Rebuild the application menu using the options from the most recent
- *  registerAppMenu call. Used to refresh checkbox `checked` state when
- *  settings that feed the Appearance submenu change, since Electron's
- *  menu items do not reactively re-render when the backing state updates. */
 export function rebuildAppMenu(): void {
   if (lastRegisterOptions) {
     buildAndApplyMenu(lastRegisterOptions)

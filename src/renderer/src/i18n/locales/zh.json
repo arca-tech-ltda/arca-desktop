@@ -48,7 +48,13 @@
       "downloadDmg": "下载 DMG 以更新",
       "readOnly": "无法替换此位置的应用。下载需要设备身份验证。",
       "serverUnavailable": "更新服务器不可用",
-      "feedAccessDenied": "无法访问更新源"
+      "feedAccessDenied": "无法访问更新源",
+      "availableVersion": "有可用更新：{{version}}",
+      "downloadInstall": "下载并安装",
+      "cancel": "取消",
+      "later": "稍后",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "已可用。准备好后即可下载。"
     }
   },
   "app": {
@@ -123,7 +129,8 @@
     "help": "帮助",
     "paste": "粘贴",
     "copy": "复制",
-    "selectAll": "全选"
+    "selectAll": "全选",
+    "restartToUpdate": "重启以更新"
   },
   "tray": {
     "openOrca": "打开 ARCA",

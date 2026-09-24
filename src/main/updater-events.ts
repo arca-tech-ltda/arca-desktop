@@ -198,6 +198,7 @@ export function registerAutoUpdaterHandlers({
         sendStatus(
           getRetainedLinuxPackageManualInstallStatus() ?? {
             state: 'available',
+            releaseDate: info.releaseDate,
             version: info.version,
             changelog,
             // Why: the offer is real, but this host can never apply it — say so before a download is offered.
@@ -254,6 +255,8 @@ export function registerAutoUpdaterHandlers({
     sendStatus({
       state: 'downloading',
       percent: Math.round(progress.percent),
+      transferred: progress.transferred,
+      total: progress.total,
       version
     })
   })

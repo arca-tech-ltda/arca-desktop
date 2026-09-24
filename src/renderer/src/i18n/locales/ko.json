@@ -48,7 +48,13 @@
       "downloadDmg": "업데이트하려면 DMG를 다운로드하세요",
       "readOnly": "이 위치에서는 앱을 교체할 수 없습니다. 다운로드하려면 기기 인증이 필요합니다.",
       "serverUnavailable": "업데이트 서버를 사용할 수 없습니다",
-      "feedAccessDenied": "업데이트 피드에 접근할 수 없습니다"
+      "feedAccessDenied": "업데이트 피드에 접근할 수 없습니다",
+      "availableVersion": "업데이트 사용 가능: {{version}}",
+      "downloadInstall": "다운로드 및 설치",
+      "cancel": "취소",
+      "later": "나중에",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "버전을 사용할 수 있습니다. 준비되면 다운로드하세요."
     }
   },
   "app": {
@@ -123,7 +129,8 @@
     "help": "도움말",
     "paste": "붙여넣기",
     "copy": "복사",
-    "selectAll": "모두 선택"
+    "selectAll": "모두 선택",
+    "restartToUpdate": "다시 시작하여 업데이트"
   },
   "tray": {
     "openOrca": "ARCA 열기",

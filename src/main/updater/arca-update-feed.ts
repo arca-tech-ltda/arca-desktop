@@ -4,7 +4,18 @@ import { megamindConfigPath, readCredential } from '../arca-megamind/credentials
 // Why: stable code shared with the renderer, which shows the localized text.
 export const MEGAMIND_UPDATE_REQUIRED = 'arca-updater:megamind-required'
 
+export function arcaUpdateChannel(value = process.env.ARCA_UPDATE_CHANNEL): string {
+  if (value === undefined) {
+    return 'stable'
+  }
+  if (!/^[a-z0-9-]{1,32}$/.test(value)) {
+    throw new Error('Invalid ARCA update channel')
+  }
+  return value
+}
+
 export function arcaUpdateFeed(base = ARCA_MAINFRAME_DEFAULT_URL, token?: string) {
+  const channel = arcaUpdateChannel()
   const url = new URL(base)
   if (
     url.protocol !== 'https:' ||
@@ -21,7 +32,7 @@ export function arcaUpdateFeed(base = ARCA_MAINFRAME_DEFAULT_URL, token?: string
   }
   return {
     provider: 'generic' as const,
-    url: new URL('/api/arca/desktop/updates/stable/', url.origin).href,
+    url: new URL(`/api/arca/desktop/updates/${channel}/`, url.origin).href,
     channel: 'latest',
     useMultipleRangeRequest: false,
     requestHeaders: { Authorization: `Bearer ${token.trim()}` }

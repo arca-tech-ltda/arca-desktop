@@ -3,9 +3,10 @@ import type { BrowserWindow } from 'electron'
 import type { UpdateCheckOptions, UpdateStatus } from '../../shared/update-status-types'
 import { UpdaterSetup, type UpdaterSetupOptions } from './updater-setup'
 import { ArcaMacUpdate } from './arca-mac-update'
+import { updateArcaMenuStatus } from '../menu/arca-update-menu'
 import { AUTO_UPDATE_CHECK_INTERVAL_MS } from './updater-state'
 
-/** Keeps the upstream status/install machinery, but admits only the ARCA stable feed. */
+/** Keeps the upstream status/install machinery, but admits only the authenticated ARCA feed. */
 export class ArcaUpdater extends UpdaterSetup {
   private readonly mac = new ArcaMacUpdate((status) => this.sendStatus(status))
   private macStarted = false
@@ -60,9 +61,17 @@ export class ArcaUpdater extends UpdaterSetup {
 
   override downloadUpdate(): void {
     if (process.platform === 'darwin') {
-      void this.mac.check(true)
+      void this.mac.download()
     } else if (process.platform === 'win32') {
       super.downloadUpdate()
+    }
+  }
+
+  override cancelDownload(): void {
+    if (process.platform === 'darwin') {
+      this.mac.cancelDownload()
+    } else {
+      super.cancelDownload()
     }
   }
 
@@ -96,13 +105,7 @@ export class ArcaUpdater extends UpdaterSetup {
 
   protected override sendStatus(status: UpdateStatus, options?: { force?: boolean }): void {
     super.sendStatus(status, options)
-    if (
-      status.state === 'available' &&
-      process.platform === 'win32' &&
-      this.updateInstallMode === 'interactive'
-    ) {
-      queueMicrotask(() => this.downloadUpdate())
-    }
+    updateArcaMenuStatus(status)
   }
 
   protected override async checkForUpdateNudge(): Promise<void> {}

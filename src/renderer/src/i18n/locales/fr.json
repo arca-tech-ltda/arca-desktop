@@ -48,7 +48,13 @@
       "downloadDmg": "Téléchargez le DMG pour mettre à jour",
       "readOnly": "L’application ne peut pas être remplacée à cet emplacement. Le téléchargement nécessite une authentification de l’appareil.",
       "serverUnavailable": "Serveur de mises à jour indisponible",
-      "feedAccessDenied": "Aucun accès au flux de mises à jour"
+      "feedAccessDenied": "Aucun accès au flux de mises à jour",
+      "availableVersion": "Mise à jour disponible : {{version}}",
+      "downloadInstall": "Télécharger et installer",
+      "cancel": "Annuler",
+      "later": "Plus tard",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "est disponible. Téléchargez-la quand vous le souhaitez."
     }
   },
   "app": {
@@ -150,7 +156,8 @@
     "help": "Aide",
     "paste": "Coller",
     "copy": "Copier",
-    "selectAll": "Tout sélectionner"
+    "selectAll": "Tout sélectionner",
+    "restartToUpdate": "Redémarrer pour mettre à jour"
   },
   "tray": {
     "openOrca": "Ouvrir ARCA",

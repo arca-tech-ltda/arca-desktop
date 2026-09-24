@@ -105,6 +105,7 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
             <Button
               variant="default"
               size="sm"
+              data-testid="update-download"
               onClick={() => {
                 void window.api.updater.download().catch((error) => {
                   toast.error(
@@ -121,14 +122,17 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
               className="gap-2"
             >
               <Download className="size-3.5" />
-              {translate(
-                'auto.components.settings.GeneralUpdateSettingsSection.42717918f4',
-                'Download Update ('
-              )}
+              {translate('arca.updater.downloadInstall', 'Download and install')} (
               {updateStatus.version})
             </Button>
           ) : updateStatus.state === 'downloaded' ? (
-            <Button variant="default" size="sm" onClick={handleRestartToUpdate} className="gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              data-testid="update-restart"
+              onClick={handleRestartToUpdate}
+              className="gap-2"
+            >
               <Download className="size-3.5" />
               {translate(
                 'auto.components.settings.GeneralUpdateSettingsSection.f44299636f',
@@ -156,15 +160,18 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
                 'auto.components.settings.GeneralUpdateSettingsSection.a6b37929dc',
                 'Version'
               )}{' '}
-              {updateStatus.version}{' '}
+              <span data-testid="update-available-version">{updateStatus.version}</span>{' '}
+              {updateStatus.state === 'available' && updateStatus.releaseDate && (
+                <span>{updateStatus.releaseDate}</span>
+              )}
               {updateStatus.externallyManaged
                 ? translate(
                     'auto.components.settings.GeneralUpdateSettingsSection.e3b9d21c07',
                     'is available. Update ARCA through your system package manager — ARCA cannot install this release itself.'
                   )
                 : translate(
-                    'auto.components.settings.GeneralUpdateSettingsSection.8311da27ba',
-                    'is available. Click "Download Update" to download it.'
+                    'arca.updater.downloadHint',
+                    'is available. Download it when you are ready.'
                   )}{' '}
               {updateStatus.source !== 'local' && (
                 <a

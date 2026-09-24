@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { parse } from 'yaml'
 import type { UpdateStatus } from '../../shared/update-status-types'
@@ -22,10 +23,19 @@ export class ArcaMacUpdate {
   private staged: string | null = null
   private directory: string | null = null
   private version = ''
+  private cancellation: AbortController | null = null
+
+  cancelDownload(): void {
+    this.cancellation?.abort()
+  }
 
   constructor(private readonly send: (status: UpdateStatus) => void) {}
 
-  async check(userInitiated: boolean): Promise<void> {
+  async download(): Promise<void> {
+    await this.check(true, true)
+  }
+
+  async check(userInitiated: boolean, downloadRequested = false): Promise<void> {
     if (this.busy) {
       return
     }
@@ -75,6 +85,16 @@ export class ArcaMacUpdate {
         throw new Error('No update for this Mac architecture')
       }
       const url = updateArtifactUrl(feed, zip.url)
+      this.version = manifest.version
+      this.send({
+        state: 'available',
+        version: this.version,
+        changelog: null,
+        releaseDate: typeof manifest.releaseDate === 'string' ? manifest.releaseDate : undefined
+      })
+      if (!downloadRequested) {
+        return
+      }
       checkingFeed = false
       try {
         await writableMacTarget(process.execPath)
@@ -90,31 +110,49 @@ export class ArcaMacUpdate {
         })
         return
       }
-      this.version = manifest.version
-      this.send({ state: 'available', version: this.version, changelog: null })
       this.send({ state: 'downloading', version: this.version, percent: 0 })
+      this.cancellation = new AbortController()
       this.directory = await mkdtemp(join(tmpdir(), 'arca-update-'))
       const archive = join(this.directory, 'update.zip')
       const download = await net.fetch(url, {
         headers: feed.requestHeaders,
         redirect: 'error',
-        signal: AbortSignal.timeout(30 * 60_000)
+        signal: AbortSignal.any([this.cancellation.signal, AbortSignal.timeout(30 * 60_000)])
       })
       if (!download.ok || !download.body) {
         throw new Error(`Update download HTTP ${download.status}`)
       }
-      await pipeline(download.body, createWriteStream(archive, { mode: 0o600 }))
+      let transferred = 0
+      const total = Number(download.headers?.get('content-length')) || 0
+      const progress = new Transform({
+        transform: (chunk, _encoding, callback) => {
+          transferred += chunk.length
+          this.send({
+            state: 'downloading',
+            version: this.version,
+            transferred,
+            total,
+            percent: total > 0 ? Math.min(100, Math.round((transferred / total) * 100)) : 0
+          })
+          callback(null, chunk)
+        }
+      })
+      await pipeline(download.body, progress, createWriteStream(archive, { mode: 0o600 }))
       await verifyUpdateSha512(archive, zip.sha512)
-      this.staged = await extractMacUpdate(archive, this.directory)
+      const staged = await extractMacUpdate(archive, this.directory)
+      this.cancellation.signal.throwIfAborted()
+      this.staged = staged
       this.send({ state: 'downloaded', version: this.version })
     } catch (error) {
       if (this.directory) {
         await rm(this.directory, { recursive: true, force: true }).catch(() => {})
       }
       this.directory = null
-      const feedUnavailableMessage = checkingFeed
-        ? arcaUpdateFeedUnavailableMessage(error)
-        : null
+      if (this.cancellation?.signal.aborted) {
+        this.send({ state: 'available', version: this.version, changelog: null })
+        return
+      }
+      const feedUnavailableMessage = checkingFeed ? arcaUpdateFeedUnavailableMessage(error) : null
       if (feedUnavailableMessage) {
         console.warn('[updater] update feed unavailable:', error)
         this.send(
@@ -131,6 +169,7 @@ export class ArcaMacUpdate {
       }
     } finally {
       this.busy = false
+      this.cancellation = null
     }
   }
 

@@ -31,7 +31,7 @@ afterEach(() => {
 it('describes the available action as a download', () => {
   render(<GeneralUpdateSettingsSection />)
 
-  expect(screen.getByRole('button', { name: 'Download Update (1.4.200)' })).toBeTruthy()
-  expect(screen.getByText(/is available\. Click "Download Update" to download it\./)).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Download and install (1.4.200)' })).toBeTruthy()
+  expect(screen.getByText(/is available\. Download it when you are ready\./)).toBeTruthy()
   expect(screen.queryByText(/download and install it/)).toBeNull()
 })

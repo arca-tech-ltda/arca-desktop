@@ -48,7 +48,13 @@
       "downloadDmg": "更新するには DMG をダウンロードしてください",
       "readOnly": "この場所ではアプリを置き換えられません。ダウンロードにはデバイス認証が必要です。",
       "serverUnavailable": "更新サーバーを利用できません",
-      "feedAccessDenied": "更新フィードにアクセスできません"
+      "feedAccessDenied": "更新フィードにアクセスできません",
+      "availableVersion": "更新があります: {{version}}",
+      "downloadInstall": "ダウンロードしてインストール",
+      "cancel": "キャンセル",
+      "later": "後で",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "が利用可能です。準備ができたらダウンロードしてください。"
     }
   },
   "app": {
@@ -123,7 +129,8 @@
     "help": "ヘルプ",
     "paste": "貼り付け",
     "copy": "コピー",
-    "selectAll": "すべて選択"
+    "selectAll": "すべて選択",
+    "restartToUpdate": "再起動して更新"
   },
   "tray": {
     "openOrca": "ARCA を開く",

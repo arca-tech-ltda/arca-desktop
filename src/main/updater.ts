@@ -102,6 +102,10 @@ export function checkForUpdatesFromMenu(options?: UpdateCheckOptions): void {
   updater.checkForUpdatesFromMenu(options)
 }
 
+export function cancelUpdateDownload(): void {
+  updater.cancelDownload()
+}
+
 export function downloadUpdate(): void {
   if (!areAutoUpdatesEnabled()) {
     publishDisabledUpdateStatus(true)

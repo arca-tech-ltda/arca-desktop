@@ -23,10 +23,19 @@ export async function verifyUpdateSha512(path: string, expected: string): Promis
 
 const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`
 
-export function macInstallScript(pid: number, target: string, staged: string): string {
+export function macInstallScript(
+  pid: number,
+  target: string,
+  staged: string,
+  args: string[] = [],
+  background = false
+): string {
   if (!Number.isSafeInteger(pid) || pid <= 0 || !target.endsWith('.app')) {
     throw new Error('Invalid macOS install target')
   }
+  const launch = background
+    ? `"$target/Contents/MacOS/ARCA" ${args.map(quote).join(' ')} >/dev/null 2>&1 &`
+    : `/usr/bin/open -g "$target"${args.length ? ` --args ${args.map(quote).join(' ')}` : ''}`
   return `#!/bin/sh
 set -eu
 target=${quote(target)}
@@ -46,12 +55,12 @@ mv "$target" "$backup"
 rollback() {
   rm -rf "$target"
   mv "$backup" "$target"
-  /usr/bin/open -g "$target"
+  ${launch}
 }
 trap 'rollback' EXIT
 /usr/bin/ditto "$staged" "$target"
 /usr/bin/xattr -dr com.apple.quarantine "$target"
-/usr/bin/open -g "$target"
+${launch}
 trap - EXIT
 `
 }
@@ -91,7 +100,21 @@ export async function extractMacUpdate(zip: string, directory: string): Promise<
 export async function launchMacInstaller(target: string, staged: string): Promise<void> {
   const directory = await mkdtemp(join(tmpdir(), 'arca-install-'))
   const script = join(directory, 'install.sh')
-  await writeFile(script, macInstallScript(process.pid, target, staged), { mode: 0o700 })
+  await writeFile(
+    script,
+    macInstallScript(
+      process.pid,
+      target,
+      staged,
+      process.argv
+        .slice(1)
+        .filter(
+          (arg) => arg.startsWith('--user-data-dir=') || arg.startsWith('--remote-debugging-port=')
+        ),
+      process.env.ORCA_BACKGROUND_LAUNCH === '1'
+    ),
+    { mode: 0o700 }
+  )
   const child = spawnProcess({
     program: '/bin/sh',
     args: [script],

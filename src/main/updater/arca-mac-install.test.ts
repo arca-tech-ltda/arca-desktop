@@ -55,3 +55,17 @@ describe('unsigned macOS update', () => {
     }
   )
 })
+
+it('preserves the isolated profile and hidden launch across an E2E restart', () => {
+  const script = macInstallScript(
+    123,
+    '/tmp/ARCA.app',
+    '/tmp/staged/ARCA.app',
+    ['--user-data-dir=/tmp/arca-e2e/ud', '--remote-debugging-port=9339'],
+    true
+  )
+  expect(script).toContain("'--user-data-dir=/tmp/arca-e2e/ud'")
+  expect(script).toContain("'--remote-debugging-port=9339'")
+  expect(script).not.toContain('/usr/bin/open')
+  expect(script).toContain('"$target/Contents/MacOS/ARCA"')
+})

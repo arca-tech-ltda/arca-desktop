@@ -108,7 +108,10 @@ export abstract class UpdaterInstallExecution extends UpdaterPackageRecovery {
         // Why: invoke before killAllPty/removing close listeners so a sync 'error' can recover while windows and PTYs are intact.
         const supervisorOwnsRelaunch = this.updateInstallMode === 'supervised-headless-serve'
         runWithLaunchPath(() =>
-          this.getAutoUpdater().quitAndInstall(supervisorOwnsRelaunch, !supervisorOwnsRelaunch)
+          this.getAutoUpdater().quitAndInstall(
+            process.platform === 'win32' || supervisorOwnsRelaunch,
+            !supervisorOwnsRelaunch
+          )
         )
         span.addEvent('native_quit_and_install_invoked')
 

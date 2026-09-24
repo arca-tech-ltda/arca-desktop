@@ -62,6 +62,7 @@ export type UpdateStatus = (
   | {
       state: 'available'
       version: string
+      releaseDate?: string
       activeNudgeId?: string
       // Why: releaseUrl is not currently populated by the update-available handler
       // (it always sends undefined). Kept on the type for the Settings page's
@@ -79,7 +80,14 @@ export type UpdateStatus = (
       externallyManaged?: boolean
     }
   | { state: 'not-available'; userInitiated?: boolean }
-  | { state: 'downloading'; percent: number; version: string; activeNudgeId?: string }
+  | {
+      state: 'downloading'
+      transferred?: number
+      total?: number
+      percent: number
+      version: string
+      activeNudgeId?: string
+    }
   | { state: 'downloaded'; version: string; releaseUrl?: string; activeNudgeId?: string }
   | {
       state: 'error'

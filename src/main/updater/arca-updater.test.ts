@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BrowserWindow } from 'electron'
 import type * as ArcaFeedModule from './arca-update-feed'
-import { arcaUpdateFeed } from './arca-update-feed'
+import { arcaUpdateFeed, arcaUpdateChannel } from './arca-update-feed'
 
 const harness = await vi.hoisted(async () =>
   (await import('../updater-test-harness')).createUpdaterMocks()
@@ -61,7 +61,7 @@ function setup(skipAutomatic = false) {
 }
 
 describe('ARCA upstream integration', () => {
-  it('checks immediately, configures Bearer auth, and downloads in background', async () => {
+  it('checks immediately, configures Bearer auth, and waits for an explicit download', async () => {
     const updater = setup()
     await vi.advanceTimersByTimeAsync(0)
     expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenCalledWith(
@@ -71,6 +71,9 @@ describe('ARCA upstream integration', () => {
     harness.autoUpdaterMock.emit('checking-for-update')
     harness.autoUpdaterMock.emit('update-available', { version: '1.5.100' })
     await vi.advanceTimersByTimeAsync(0)
+    expect(harness.autoUpdaterMock.downloadUpdate).not.toHaveBeenCalled()
+    expect(harness.autoUpdaterMock.autoDownload).toBe(false)
+    updater.downloadUpdate()
     expect(harness.autoUpdaterMock.downloadUpdate).toHaveBeenCalledTimes(1)
     expect(updater.getUpdateStatus().state).toBe('downloading')
     expect(harness.autoUpdaterMock.autoInstallOnAppQuit).toBe(true)
@@ -130,5 +133,23 @@ describe('ARCA upstream integration', () => {
     expect(harness.autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     await vi.advanceTimersByTimeAsync(60_000)
     expect(harness.autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('test update channel', () => {
+  it('defaults to stable and routes the override on the same origin', () => {
+    vi.stubEnv('ARCA_UPDATE_CHANNEL', undefined)
+    expect(arcaUpdateFeed(undefined, 'device')?.url).toContain('/updates/stable/')
+    vi.stubEnv('ARCA_UPDATE_CHANNEL', 'e2e')
+    expect(arcaUpdateFeed(undefined, 'device')?.url).toBe(
+      'https://mainframe.arcatech.com.br/api/arca/desktop/updates/e2e/'
+    )
+    vi.unstubAllEnvs()
+  })
+  it.each(['e2e', 'stable', 'a-1'])('accepts %s', (channel) => {
+    expect(arcaUpdateChannel(channel)).toBe(channel)
+  })
+  it.each(['', '../stable', 'UPPER', 'a'.repeat(33), 'a/b'])('rejects %s', (channel) => {
+    expect(() => arcaUpdateChannel(channel)).toThrow()
   })
 })

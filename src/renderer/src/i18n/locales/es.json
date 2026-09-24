@@ -48,7 +48,13 @@
       "downloadDmg": "Descarga el DMG para actualizar",
       "readOnly": "La aplicación no se puede reemplazar en esta ubicación. La descarga requiere autenticación del dispositivo.",
       "serverUnavailable": "Servidor de actualizaciones no disponible",
-      "feedAccessDenied": "Sin acceso al feed de actualizaciones"
+      "feedAccessDenied": "Sin acceso al feed de actualizaciones",
+      "availableVersion": "Actualización disponible: {{version}}",
+      "downloadInstall": "Descargar e instalar",
+      "cancel": "Cancelar",
+      "later": "Después",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "está disponible. Descárgala cuando quieras."
     }
   },
   "app": {
@@ -123,7 +129,8 @@
     "help": "Ayuda",
     "paste": "Pegar",
     "copy": "Copiar",
-    "selectAll": "Seleccionar todo"
+    "selectAll": "Seleccionar todo",
+    "restartToUpdate": "Reiniciar para actualizar"
   },
   "tray": {
     "openOrca": "Abrir ARCA",

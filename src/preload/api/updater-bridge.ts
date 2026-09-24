@@ -8,6 +8,7 @@ export const updaterApi = {
   getStatus: () => ipcRenderer.invoke('updater:getStatus'),
   getVersion: () => ipcRenderer.invoke('updater:getVersion'),
   check: (options) => ipcRenderer.invoke('updater:check', options),
+  cancelDownload: () => ipcRenderer.invoke('updater:cancelDownload'),
   download: () => ipcRenderer.invoke('updater:download'),
   dismissNudge: () => ipcRenderer.invoke('updater:dismissNudge'),
   dismissAvailableUpdate: () => ipcRenderer.invoke('updater:dismissAvailableUpdate'),

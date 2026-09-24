@@ -48,7 +48,13 @@
       "downloadDmg": "Download the DMG to update",
       "readOnly": "The app cannot be replaced in this location. The download requires device authentication.",
       "serverUnavailable": "Update server unavailable",
-      "feedAccessDenied": "No access to the update feed"
+      "feedAccessDenied": "No access to the update feed",
+      "availableVersion": "Update available: {{version}}",
+      "downloadInstall": "Download and install",
+      "cancel": "Cancel",
+      "later": "Later",
+      "megabytes": "{{received}} / {{total}} MB",
+      "downloadHint": "is available. Download it when you are ready."
     }
   },
   "sidebar": {
@@ -289,7 +295,8 @@
     "help": "Help",
     "paste": "Paste",
     "copy": "Copy",
-    "selectAll": "Select All"
+    "selectAll": "Select All",
+    "restartToUpdate": "Restart to Update"
   },
   "tray": {
     "openOrca": "Open ARCA",

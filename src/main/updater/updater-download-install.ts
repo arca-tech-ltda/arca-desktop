@@ -1,3 +1,4 @@
+import { CancellationToken } from 'builder-util-runtime'
 import { beginMacUpdateDownload, deferMacQuitUntilInstallerReady } from '../updater-mac-install'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
 import { isExternallyManagedLinuxInstall } from '../linux-update-package-type'
@@ -7,6 +8,12 @@ import { UpdaterRemoteStatus } from './updater-remote-status'
 
 /** Coordinates renderer-facing download/install actions and their duplicate guards. */
 export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
+  private downloadCancellation: CancellationToken | null = null
+
+  cancelDownload(): void {
+    this.downloadCancellation?.cancel()
+  }
+
   protected quitAndInstall(): void {
     if (
       this.localBuildSelectionInProgress ||
@@ -84,10 +91,16 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
     beginMacUpdateDownload()
     // Why: setup can take seconds before progress emits; surface acceptance now so the action never looks inert.
     this.sendStatus({ state: 'downloading', percent: 0, version })
+    const cancellation = new CancellationToken()
+    this.downloadCancellation = cancellation
     this.getAutoUpdater()
-      .downloadUpdate()
+      .downloadUpdate(cancellation)
       .catch((err) => {
         this.downloadInFlight = false
+        if (cancellation.cancelled) {
+          this.sendStatus({ state: 'available', version, changelog: null })
+          return
+        }
         const message = String(err?.message ?? err)
         if (localBuildDownload) {
           this.sendLocalBuildErrorAndRestore(message)

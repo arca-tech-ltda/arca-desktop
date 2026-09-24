@@ -12,6 +12,8 @@ function isAnimatedGif(url: string | undefined): boolean {
 export function UpdateDownloadingContent({
   version,
   percent,
+  transferred,
+  total,
   changelog,
   prefersReducedMotion,
   mediaFailed,
@@ -22,6 +24,8 @@ export function UpdateDownloadingContent({
   showReleaseNotes
 }: {
   version: string
+  transferred?: number
+  total?: number
   percent: number
   changelog: ChangelogData | null
   prefersReducedMotion: boolean
@@ -100,9 +104,17 @@ export function UpdateDownloadingContent({
       <div className="flex flex-col gap-2 mt-1">
         <Progress value={percent} className="h-1.5" />
         <p className="text-xs text-muted-foreground">
-          {translate('auto.components.UpdateCard.6e45bfa2e0', 'Downloading...')} {percent}%
+          {translate('auto.components.UpdateCard.6e45bfa2e0', 'Downloading...')} {percent}%{' '}
+          {transferred !== undefined &&
+            translate('arca.updater.megabytes', '{{received}} / {{total}} MB', {
+              received: (transferred / 1048576).toFixed(1),
+              total: ((total ?? 0) / 1048576).toFixed(1)
+            })}
         </p>
       </div>
+      <Button variant="ghost" size="sm" onClick={() => void window.api.updater.cancelDownload?.()}>
+        {translate('arca.updater.cancel', 'Cancel')}
+      </Button>
     </div>
   )
 }
@@ -139,8 +151,17 @@ export function UpdateReadyToInstallContent({
           { value0: version }
         )}
       </p>
-      <Button variant="default" size="sm" onClick={onRestart} className="w-full">
+      <Button
+        variant="default"
+        size="sm"
+        data-testid="update-restart"
+        onClick={onRestart}
+        className="w-full"
+      >
         {translate('auto.components.UpdateCard.68b235d264', 'Restart to Update')}
+      </Button>
+      <Button variant="ghost" size="sm" onClick={onClose}>
+        {translate('arca.updater.later', 'Later')}
       </Button>
     </div>
   )

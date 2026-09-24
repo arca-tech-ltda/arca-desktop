@@ -1,3 +1,4 @@
+import type { Transform } from 'node:stream'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -67,7 +68,29 @@ describe('ARCA macOS update flow', () => {
       .mockResolvedValueOnce({ ok: true, body: {} })
     const send = vi.fn()
 
-    await new ArcaMacUpdate(send).check(true)
+    const updater = new ArcaMacUpdate(send)
+    await updater.check(true)
+    expect(mocks.netFetch).toHaveBeenCalledTimes(1)
+    expect(mocks.verify).not.toHaveBeenCalled()
+    mocks.netFetch.mockReset()
+    mocks.netFetch
+      .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+      .mockResolvedValueOnce({
+        ok: true,
+        body: {},
+        headers: new Headers({ 'content-length': '10' })
+      })
+    mocks.pipeline.mockImplementationOnce(async (_body: unknown, progress: Transform) => {
+      progress.write(Buffer.alloc(5))
+    })
+    await updater.download()
+    expect(send).toHaveBeenCalledWith({
+      state: 'downloading',
+      version: '1.5.2',
+      percent: 50,
+      transferred: 5,
+      total: 10
+    })
 
     expect(mocks.netFetch).toHaveBeenNthCalledWith(
       2,
@@ -88,16 +111,19 @@ describe('ARCA macOS update flow', () => {
     [404, 'arca-updater:server-unavailable'],
     [401, 'arca-updater:feed-access-denied'],
     [403, 'arca-updater:feed-access-denied']
-  ])('keeps automatic HTTP %i feed failures neutral and explains manual failures', async (status, message) => {
-    mocks.netFetch.mockResolvedValue({ ok: false, status })
-    const automaticSend = vi.fn()
-    await new ArcaMacUpdate(automaticSend).check(false)
-    expect(automaticSend).toHaveBeenLastCalledWith({ state: 'idle' })
+  ])(
+    'keeps automatic HTTP %i feed failures neutral and explains manual failures',
+    async (status, message) => {
+      mocks.netFetch.mockResolvedValue({ ok: false, status })
+      const automaticSend = vi.fn()
+      await new ArcaMacUpdate(automaticSend).check(false)
+      expect(automaticSend).toHaveBeenLastCalledWith({ state: 'idle' })
 
-    const manualSend = vi.fn()
-    await new ArcaMacUpdate(manualSend).check(true)
-    expect(manualSend).toHaveBeenLastCalledWith({ state: 'error', message, userInitiated: true })
-  })
+      const manualSend = vi.fn()
+      await new ArcaMacUpdate(manualSend).check(true)
+      expect(manualSend).toHaveBeenLastCalledWith({ state: 'error', message, userInitiated: true })
+    }
+  )
 
   it.each(['fetch failed', 'getaddrinfo ENOTFOUND mainframe', 'request timed out'])(
     'keeps automatic transport failure %s neutral',
@@ -121,11 +147,11 @@ describe('ARCA macOS update flow', () => {
       .mockResolvedValueOnce({ ok: true, body: {} })
     mocks.verify.mockRejectedValue(new Error('sha512 checksum mismatch'))
     const send = vi.fn()
-    await new ArcaMacUpdate(send).check(false)
+    await new ArcaMacUpdate(send).download()
     expect(send).toHaveBeenLastCalledWith({
       state: 'error',
       message: 'sha512 checksum mismatch',
-      userInitiated: false
+      userInitiated: true
     })
   })
 
@@ -141,7 +167,7 @@ describe('ARCA macOS update flow', () => {
       .mockResolvedValueOnce({ ok: true, body: {} })
     const cleanup = vi.fn()
     const updater = new ArcaMacUpdate(vi.fn())
-    await updater.check(false)
+    await updater.download()
 
     await updater.install(cleanup)
 
@@ -155,4 +181,51 @@ describe('ARCA macOS update flow', () => {
     )
     expect(mocks.appQuit).toHaveBeenCalledTimes(1)
   })
+})
+
+it('retries a failed download only when requested again', async () => {
+  vi.clearAllMocks()
+  const manifest = `version: 1.5.2\nfiles:\n  - url: arca-macos-1.5.2-${process.arch}.zip\n    sha512: digest`
+  mocks.netFetch.mockReset()
+  mocks.netFetch
+    .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+    .mockRejectedValueOnce(new Error('download interrupted'))
+  mocks.writableTarget.mockResolvedValue('/Applications/ARCA.app')
+  mocks.mkdtemp.mockResolvedValue('/tmp/arca-update-test')
+  const send = vi.fn()
+  const updater = new ArcaMacUpdate(send)
+  await updater.download()
+  expect(send).toHaveBeenLastCalledWith({
+    state: 'error',
+    message: 'download interrupted',
+    userInitiated: true
+  })
+  expect(mocks.netFetch).toHaveBeenCalledTimes(2)
+  mocks.netFetch
+    .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+    .mockResolvedValueOnce({ ok: true, body: {} })
+  mocks.pipeline.mockResolvedValue(undefined)
+  mocks.verify.mockResolvedValue(undefined)
+  mocks.extract.mockResolvedValue('/tmp/arca-update-test/extracted/ARCA.app')
+  await updater.download()
+  expect(send).toHaveBeenLastCalledWith({ state: 'downloaded', version: '1.5.2' })
+})
+
+it('cancels the ZIP request and retains the offer for retry', async () => {
+  vi.clearAllMocks()
+  const manifest = `version: 1.5.2\nfiles:\n  - url: arca-macos-1.5.2-${process.arch}.zip\n    sha512: digest`
+  const send = vi.fn()
+  const updater = new ArcaMacUpdate(send)
+  mocks.netFetch.mockReset()
+  mocks.netFetch
+    .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+    .mockImplementationOnce(async (_url: string, options: RequestInit) => {
+      updater.cancelDownload()
+      options.signal?.throwIfAborted()
+    })
+  mocks.writableTarget.mockResolvedValue('/Applications/ARCA.app')
+  mocks.mkdtemp.mockResolvedValue('/tmp/arca-update-test')
+  await updater.download()
+  expect(send).toHaveBeenLastCalledWith({ state: 'available', version: '1.5.2', changelog: null })
+  expect(mocks.extract).not.toHaveBeenCalled()
 })

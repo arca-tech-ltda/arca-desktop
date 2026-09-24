@@ -207,6 +207,9 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
               onClick={openSettingsPage}
             >
               <Settings className="size-3.5" />
+              {(updateStatus.state === 'available' || updateStatus.state === 'downloaded') && (
+                <span className="size-1.5 rounded-full bg-primary" />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4} className="flex items-center gap-1.5">

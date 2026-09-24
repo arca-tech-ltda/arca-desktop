@@ -448,6 +448,8 @@ module.exports = {
     ]
   },
   nsis: {
+    perMachine: false,
+    allowElevation: false,
     artifactName: 'arca-windows-${version}-setup.${ext}',
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',

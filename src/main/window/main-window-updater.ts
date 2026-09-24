@@ -10,6 +10,7 @@ import {
   dismissAvailableUpdate,
   dismissNudge,
   downloadUpdate,
+  cancelUpdateDownload,
   getLinuxPackageInstallInstructions,
   getUpdateStatus,
   listAvailableReleaseBuilds,
@@ -84,6 +85,7 @@ export function registerUpdaterHandlers(_store: Store): void {
   ipcMain.removeHandler('updater:getVersion')
   ipcMain.removeHandler('updater:check')
   ipcMain.removeHandler('updater:download')
+  ipcMain.removeHandler('updater:cancelDownload')
   ipcMain.removeHandler('updater:quitAndInstall')
   ipcMain.removeHandler('updater:dismissNudge')
   ipcMain.removeHandler('updater:dismissAvailableUpdate')
@@ -98,6 +100,10 @@ export function registerUpdaterHandlers(_store: Store): void {
     return checkForUpdatesFromMenu(options)
   })
   ipcMain.handle('updater:download', () => downloadUpdate())
+  ipcMain.handle('updater:cancelDownload', (event) => {
+    assertTrustedUpdaterRecoverySender(event)
+    cancelUpdateDownload()
+  })
   ipcMain.handle('updater:quitAndInstall', () => quitAndInstall())
   ipcMain.handle('updater:dismissNudge', () => dismissNudge())
   ipcMain.handle('updater:dismissAvailableUpdate', () => dismissAvailableUpdate())

@@ -104,8 +104,14 @@ export function UpdateAvailableRichContent({
       {externallyManaged ? (
         <ExternallyManagedNote />
       ) : (
-        <Button variant="default" size="sm" onClick={onUpdate} className="w-full cursor-pointer">
-          {translate('auto.components.UpdateCard.ec8fe71cfc', 'Update')}
+        <Button
+          variant="default"
+          size="sm"
+          data-testid="update-download"
+          onClick={onUpdate}
+          className="w-full cursor-pointer"
+        >
+          {translate('arca.updater.downloadInstall', 'Download and install')}
         </Button>
       )}
     </div>
@@ -141,7 +147,7 @@ export function UpdateAvailableSimpleContent({
           <X className="size-3.5" />
         </Button>
       </div>
-      <p className="text-sm text-muted-foreground">
+      <p data-testid="update-available-version" className="text-sm text-muted-foreground">
         {translate('auto.components.UpdateCard.05ad78a6d1', 'ARCA v{{value0}} is ready.', {
           value0: version
         })}
@@ -166,10 +172,11 @@ export function UpdateAvailableSimpleContent({
         <Button
           variant="default"
           size="sm"
+          data-testid="update-download"
           onClick={onUpdate}
           className="mt-0.5 w-full cursor-pointer"
         >
-          {translate('auto.components.UpdateCard.ec8fe71cfc', 'Update')}
+          {translate('arca.updater.downloadInstall', 'Download and install')}
         </Button>
       )}
     </div>

@@ -187,7 +187,7 @@ describe('UpdateCard local builds', () => {
     render(<UpdateCard />)
 
     expect(screen.queryByText('Release notes')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Update' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Download and install' }))
     expect(download).toHaveBeenCalledTimes(1)
 
     act(() =>
@@ -479,4 +479,15 @@ describe('UpdateCard recovery keyboard and motion', () => {
     // Why: the card's Escape handler sits on the wrapper and must not swallow action keys.
     expect(useAppStore.getState().updateCardCollapsed).toBe(false)
   })
+})
+
+it('downloads only on click and waits for a separate restart confirmation', async () => {
+  renderAfterAvailableStatus()
+  expect(download).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByTestId('update-download'))
+  expect(download).toHaveBeenCalledTimes(1)
+  act(() => useAppStore.setState({ updateStatus: { state: 'downloaded', version: '1.4.200' } }))
+  expect(quitAndInstall).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByTestId('update-restart'))
+  expect(quitAndInstall).toHaveBeenCalledTimes(1)
 })

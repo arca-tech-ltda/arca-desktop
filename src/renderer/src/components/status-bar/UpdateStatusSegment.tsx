@@ -17,7 +17,12 @@ export function UpdateStatusSegment({
   const collapsed = useAppStore((s) => s.updateCardCollapsed)
   const setCollapsed = useAppStore((s) => s.setUpdateCardCollapsed)
 
-  if (status.state !== 'downloading' && status.state !== 'downloaded' && status.state !== 'error') {
+  if (
+    status.state !== 'available' &&
+    status.state !== 'downloading' &&
+    status.state !== 'downloaded' &&
+    status.state !== 'error'
+  ) {
     return null
   }
 
@@ -26,6 +31,17 @@ export function UpdateStatusSegment({
       ? status.recovery
       : null
   const segment = (() => {
+    if (status.state === 'available') {
+      const label = translate('arca.updater.availableVersion', 'Update available: {{version}}', {
+        version: status.version
+      })
+      return {
+        icon: <Download className="size-3 text-muted-foreground" />,
+        label,
+        tooltip: label,
+        ariaLabel: label
+      }
+    }
     if (status.state === 'downloading') {
       const pct = Math.max(0, Math.min(100, Math.round(status.percent)))
       return {
@@ -81,7 +97,12 @@ export function UpdateStatusSegment({
   })()
 
   const handleClick = () => {
-    setCollapsed(!collapsed)
+    if (status.state === 'available') {
+      useAppStore.setState({ dismissedUpdateVersion: null })
+      setCollapsed(false)
+    } else {
+      setCollapsed(!collapsed)
+    }
   }
 
   return (

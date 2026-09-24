@@ -10,6 +10,7 @@ export type UpdaterApi = {
   getVersion: () => Promise<string>
   getStatus: () => Promise<UpdateStatus>
   check: (options?: UpdateCheckOptions) => Promise<void>
+  cancelDownload?: () => Promise<void>
   download: () => Promise<void>
   quitAndInstall: () => Promise<void>
   dismissNudge: () => Promise<void>
