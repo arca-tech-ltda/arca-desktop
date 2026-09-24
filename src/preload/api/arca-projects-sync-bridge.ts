@@ -12,5 +12,12 @@ export const arcaProjectsSyncApi: ArcaProjectsSyncApi = {
     return () => {
       ipcRenderer.removeListener('arcaProjectsSync:changed', listener)
     }
+  },
+  onRepoUpdated: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, repoId: string): void => callback(repoId)
+    ipcRenderer.on('arcaProjectsSync:repoUpdated', listener)
+    return () => {
+      ipcRenderer.removeListener('arcaProjectsSync:repoUpdated', listener)
+    }
   }
 }

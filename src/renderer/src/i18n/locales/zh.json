@@ -15279,6 +15279,12 @@
     "syncNow": "立即同步",
     "registered": "已在应用中注册",
     "unregistered": "未在应用中注册",
-    "outside": "发现目录外的仓库"
+    "outside": "发现目录外的仓库",
+    "cloning": "正在下载",
+    "conflict": "目标冲突",
+    "inaccessible": "无权访问",
+    "paused": "已暂停：磁盘空间不足",
+    "downloading": "正在下载 ARCA 项目 {{current}}/{{total}} — {{name}} {{percent}}%",
+    "autoDownloadMissing": "自动下载缺失的 ARCA 项目"
   }
 }

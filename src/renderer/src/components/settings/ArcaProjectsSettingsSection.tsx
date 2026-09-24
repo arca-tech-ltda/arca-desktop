@@ -25,7 +25,10 @@ export function ArcaProjectsSettingsSection(): React.JSX.Element {
     <section className="space-y-4">
       <SettingsSubsectionHeader title={translate('arcaSync.title', 'ARCA Projects')} />
       <SettingsSwitchRow
-        label={translate('arcaSync.autoUpdate', 'Keep projects updated automatically')}
+        label={translate(
+          'arcaSync.autoDownloadMissing',
+          'Download missing ARCA projects automatically'
+        )}
         checked={status.autoUpdate}
         disabled={busy}
         onChange={() =>
@@ -49,6 +52,9 @@ export function ArcaProjectsSettingsSection(): React.JSX.Element {
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
+      )}
+      {status.diskWarning && (
+        <p className="text-xs text-destructive">{status.diskWarning}</p>
       )}
       {status.errors.map((message) => (
         <p key={message} className="text-xs text-muted-foreground">

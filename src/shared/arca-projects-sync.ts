@@ -11,9 +11,21 @@ export type ArcaCatalogEntry = {
 export type ArcaSyncRow = ArcaCatalogEntry & {
   diskPath?: string
   repoId?: string
-  state: 'missing' | 'updated' | 'behind' | 'ahead' | 'dirty' | 'branch' | 'error'
+  state:
+    | 'missing'
+    | 'updated'
+    | 'behind'
+    | 'ahead'
+    | 'dirty'
+    | 'branch'
+    | 'cloning'
+    | 'conflict'
+    | 'inaccessible'
+    | 'paused'
+    | 'error'
   ahead?: number
   behind?: number
+  clonePercent?: number
   error?: string
 }
 export type ArcaSyncStatus = {
@@ -24,6 +36,8 @@ export type ArcaSyncStatus = {
   errors: string[]
   projects: ArcaSyncRow[]
   outside: { repoKey: string; path: string }[]
+  cloneProgress?: { current: number; total: number; name: string; percent: number }
+  diskWarning?: string
 }
 export const emptyArcaSyncStatus: ArcaSyncStatus = {
   running: false,
@@ -38,4 +52,5 @@ export type ArcaProjectsSyncApi = {
   syncNow(): Promise<ArcaSyncStatus>
   setAutoUpdate(enabled: boolean): Promise<ArcaSyncStatus>
   onChange(callback: (status: ArcaSyncStatus) => void): () => void
+  onRepoUpdated(callback: (repoId: string) => void): () => void
 }

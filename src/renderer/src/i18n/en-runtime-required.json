@@ -16,6 +16,9 @@
       "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
     }
   },
+  "arcaSync": {
+    "autoUpdate": "Keep projects updated automatically"
+  },
   "auto": {
     "App": {
       "1b9d9d065f": "settings",

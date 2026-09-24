@@ -18309,6 +18309,12 @@
     "syncNow": "Sync now",
     "registered": "Registered in app",
     "unregistered": "Not registered in app",
-    "outside": "Found outside the catalog"
+    "outside": "Found outside the catalog",
+    "cloning": "Downloading",
+    "conflict": "Destination conflict",
+    "inaccessible": "No access",
+    "paused": "Paused: low disk space",
+    "downloading": "Downloading ARCA projects {{current}}/{{total}} — {{name}} {{percent}}%",
+    "autoDownloadMissing": "Download missing ARCA projects automatically"
   }
 }

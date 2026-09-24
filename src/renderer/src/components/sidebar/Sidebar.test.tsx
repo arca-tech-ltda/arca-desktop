@@ -59,6 +59,7 @@ vi.mock('./WorktreeList', () => ({
 }))
 
 vi.mock('../arca-projects/ArcaSyncMissing', () => ({ ArcaSyncMissing: () => null }))
+vi.mock('../arca-projects/ArcaSyncProgress', () => ({ ArcaSyncProgress: () => null }))
 
 vi.mock('./SidebarToolbar', () => ({
   default: () => <div data-testid="sidebar-toolbar" />

@@ -12,10 +12,18 @@ export function arcaSyncLabel(row: ArcaSyncRow): string {
       return translate('arcaSync.updated', 'Up to date')
     case 'missing':
       return translate('arcaSync.missing', 'Not on this computer')
+    case 'cloning':
+      return translate('arcaSync.cloning', 'Downloading')
+    case 'conflict':
+      return translate('arcaSync.conflict', 'Destination conflict')
+    case 'inaccessible':
+      return translate('arcaSync.inaccessible', 'No access')
+    case 'paused':
+      return translate('arcaSync.paused', 'Paused: low disk space')
     case 'dirty':
-      return translate('arcaSync.dirty', 'Local changes')
+      return withBehind(translate('arcaSync.dirty', 'Local changes'), row)
     case 'branch':
-      return translate('arcaSync.branch', 'Non-default branch')
+      return withBehind(translate('arcaSync.branch', 'Non-default branch'), row)
     case 'error':
       return translate('arcaSync.error', 'Sync error')
     case 'ahead':
@@ -27,6 +35,16 @@ export function arcaSyncLabel(row: ArcaSyncRow): string {
       })
   }
 }
+
+function withBehind(label: string, row: ArcaSyncRow): string {
+  return row.behind && row.behind > 0
+    ? `${label} · ${translate('arcaSync.behind', '↓{{behind}} behind · ↑{{ahead}} ahead', {
+        behind: row.behind,
+        ahead: row.ahead ?? 0
+      })}`
+    : label
+}
+
 export function ArcaSyncBadge({ repo }: { repo: Repo }): React.JSX.Element | null {
   const status = useArcaProjectsSync()
   const row = status.projects.find((project) => project.repoId === repo.id)

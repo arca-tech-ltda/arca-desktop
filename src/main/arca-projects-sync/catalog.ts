@@ -112,6 +112,7 @@ export function unionCatalogs(...catalogs: ArcaCatalogEntry[][]): ArcaCatalogEnt
 export async function loadArcaCatalog(
   home = homedir()
 ): Promise<{ entries: ArcaCatalogEntry[]; sources: string[]; errors: string[] }> {
+  const paths = isWindowsAbsolutePathLike(home) ? path.win32 : path
   const catalogs: ArcaCatalogEntry[][] = []
   const sources: string[] = []
   const errors: string[] = []
@@ -145,7 +146,7 @@ export async function loadArcaCatalog(
   try {
     catalogs.push(
       parseCatalog(
-        JSON.parse(await readFile(path.join(home, 'ARCA', 'arca', 'projects.json'), 'utf8')),
+        JSON.parse(await readFile(paths.join(home, 'ARCA', 'arca', 'projects.json'), 'utf8')),
         'file',
         home
       )

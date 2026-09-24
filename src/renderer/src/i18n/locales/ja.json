@@ -15167,6 +15167,12 @@
     "syncNow": "今すぐ同期",
     "registered": "アプリに登録済み",
     "unregistered": "アプリに未登録",
-    "outside": "カタログ外で見つかったリポジトリ"
+    "outside": "カタログ外で見つかったリポジトリ",
+    "cloning": "ダウンロード中",
+    "conflict": "保存先の競合",
+    "inaccessible": "アクセスできません",
+    "paused": "一時停止: ディスク容量不足",
+    "downloading": "ARCA プロジェクトをダウンロード中 {{current}}/{{total}} — {{name}} {{percent}}%",
+    "autoDownloadMissing": "不足している ARCA プロジェクトを自動的にダウンロード"
   }
 }

@@ -79,7 +79,8 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       status: async () => emptyArcaSyncStatus,
       syncNow: async () => emptyArcaSyncStatus,
       setAutoUpdate: async () => emptyArcaSyncStatus,
-      onChange: () => () => {}
+      onChange: () => () => {},
+      onRepoUpdated: () => () => {}
     },
     arcaMegamind: {
       prerequisites: async () => ({ pi: false, installer: false, extension: false, windows: false }),

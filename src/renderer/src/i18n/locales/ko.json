@@ -15305,6 +15305,12 @@
     "syncNow": "지금 동기화",
     "registered": "앱에 등록됨",
     "unregistered": "앱에 등록되지 않음",
-    "outside": "카탈로그 외부에서 발견됨"
+    "outside": "카탈로그 외부에서 발견됨",
+    "cloning": "다운로드 중",
+    "conflict": "대상 충돌",
+    "inaccessible": "액세스할 수 없음",
+    "paused": "일시 중지됨: 디스크 공간 부족",
+    "downloading": "ARCA 프로젝트 다운로드 중 {{current}}/{{total}} — {{name}} {{percent}}%",
+    "autoDownloadMissing": "누락된 ARCA 프로젝트 자동 다운로드"
   }
 }

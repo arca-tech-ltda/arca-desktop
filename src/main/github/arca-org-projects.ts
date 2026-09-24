@@ -9,6 +9,7 @@ import { isArcaProjectExcludedByDefault } from '../../shared/arca-product'
 import { gitExecFileAsync } from './gh-utils'
 import { loadArcaCatalog, normalizeArcaRemote } from '../arca-projects-sync/catalog'
 import { scanArcaDisk } from '../arca-projects-sync/disk'
+import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 
 const ARCA_ORG = 'arca-tech-ltda'
 
@@ -31,8 +32,9 @@ export async function inspectArcaProjectDestination(
     }
     throw error
   }
+  const paths = isWindowsAbsolutePathLike(destination) ? path.win32 : path
   try {
-    await stat(path.join(destination, '.git'))
+    await stat(paths.join(destination, '.git'))
     const { stdout } = await gitExecFileAsync(['config', '--get', 'remote.origin.url'], {
       cwd: destination,
       timeout: 10_000

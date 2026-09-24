@@ -1,4 +1,5 @@
 import { ArcaSyncMissing } from '../arca-projects/ArcaSyncMissing'
+import { ArcaSyncProgress } from '../arca-projects/ArcaSyncProgress'
 import React, { useEffect, useMemo } from 'react'
 import { useAppStore } from '@/store'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -194,6 +195,7 @@ function Sidebar({
             )}
 
             <div className="relative shrink-0">
+              <ArcaSyncProgress />
               <ArcaSyncMissing />
               <SetupScriptPromptCard />
 

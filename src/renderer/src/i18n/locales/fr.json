@@ -16698,6 +16698,12 @@
     "syncNow": "Synchroniser maintenant",
     "registered": "Enregistré dans l’application",
     "unregistered": "Non enregistré dans l’application",
-    "outside": "Trouvés hors catalogue"
+    "outside": "Trouvés hors catalogue",
+    "cloning": "Téléchargement",
+    "conflict": "Conflit de destination",
+    "inaccessible": "Accès impossible",
+    "paused": "En pause : espace disque insuffisant",
+    "downloading": "Téléchargement des projets ARCA {{current}}/{{total}} — {{name}} {{percent}} %",
+    "autoDownloadMissing": "Télécharger automatiquement les projets ARCA manquants"
   }
 }
