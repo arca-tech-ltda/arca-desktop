@@ -16026,6 +16026,13 @@
       },
       "priorities": {
         "title": "Priorités",
+        "cardTitle": "Tâches du projet",
+        "currentProject": "Ce projet",
+        "recent": "Récentes",
+        "recentlyCompleted": "Récemment terminées",
+        "openTasks": "Tâches ouvertes",
+        "noOpenTasks": "Aucune tâche ouverte",
+        "noRecentTasks": "Aucune tâche récente",
         "expand": "Développer les priorités",
         "collapse": "Réduire les priorités",
         "sharedSource": "partagé",

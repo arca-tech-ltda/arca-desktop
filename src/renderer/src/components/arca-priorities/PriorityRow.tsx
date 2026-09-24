@@ -1,9 +1,14 @@
 import { AlertTriangle, Clock, ExternalLink, Play } from 'lucide-react'
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
+import type { StatusMdTaskProject } from '../../../../preload/api/status-md-tasks-api'
+import type { StatusMdTask } from '../../../../shared/status-md-tasks'
 import { translate } from '@/i18n/i18n'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { selectProjectCardTasks, statusProjectProgress } from './priority-card-data'
+import { ProjectPresence } from './ProjectPresence'
+import { StatusTaskRows } from './StatusTaskRows'
 
 type PriorityRowProps = {
   project: ArcaPriorityProject
@@ -11,32 +16,31 @@ type PriorityRowProps = {
   onOpenStatus: (project: ArcaPriorityProject) => void
   onWork: (project: ArcaPriorityProject) => void
   agents?: Record<string, unknown>[]
-}
-
-function agentName(agent: Record<string, unknown>): string {
-  const value = agent.name ?? agent.label ?? agent.actor_name
-  return typeof value === 'string' ? value : ''
+  statusProject?: StatusMdTaskProject
+  onOpenTask?: (project: StatusMdTaskProject, task: StatusMdTask) => void
+  onWorkTask?: (project: StatusMdTaskProject, task: StatusMdTask) => Promise<void>
+  onCopyTask?: (task: StatusMdTask) => Promise<void>
 }
 
 const NO_AGENTS: Record<string, unknown>[] = []
-
-function projectAgents(agents: Record<string, unknown>[], project: ArcaPriorityProject) {
-  return agents.filter((agent) =>
-    [agent.project_id, agent.repo_key].some(
-      (value) => typeof value === 'string' && [project.projectId, project.repoKey].includes(value)
-    )
-  )
-}
 
 export function PriorityRow({
   project,
   compact = false,
   onOpenStatus,
   onWork,
-  agents = NO_AGENTS
+  agents = NO_AGENTS,
+  statusProject,
+  onOpenTask,
+  onWorkTask,
+  onCopyTask
 }: PriorityRowProps): React.JSX.Element {
-  const present = projectAgents(agents, project)
   const blocked = project.blocked[0]
+  const tasks = statusProject ? selectProjectCardTasks(statusProject, project) : []
+  const fallbackProgress = statusProject ? statusProjectProgress(statusProject) : null
+  const progress = project.title
+    ? { percent: project.percent, done: project.done, total: project.total }
+    : fallbackProgress
   return (
     <div
       className={cn(
@@ -56,19 +60,35 @@ export function PriorityRow({
           </div>
           {project.title ? (
             <p className="mt-1 truncate text-sm">{project.title}</p>
+          ) : tasks.length > 0 ? (
+            <p className="mt-1 text-xs font-medium">
+              {translate('auto.components.priorities.openTasks', 'Open tasks')}
+            </p>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">
-              {translate('auto.components.priorities.noPriority', 'No priority defined')}
+              {translate('auto.components.priorities.noOpenTasks', 'No open tasks')}
             </p>
           )}
-          {project.title ? (
+          {progress ? (
             <div className="mt-2 flex items-center gap-2">
-              <Progress value={project.percent ?? 0} className="h-1.5 flex-1" />
+              <Progress value={progress.percent ?? 0} className="h-1.5 flex-1" />
               <span className="text-[11px] tabular-nums text-muted-foreground">
-                {project.percent === null
+                {progress.percent === null
                   ? translate('auto.components.priorities.noTasks', 'no tasks')
-                  : `${project.percent}% · ${project.done} ${translate('auto.components.priorities.of', 'of')} ${project.total}`}
+                  : `${progress.percent}% · ${progress.done} ${translate('auto.components.priorities.of', 'of')} ${progress.total}`}
               </span>
+            </div>
+          ) : null}
+          {statusProject && onOpenTask && onWorkTask && onCopyTask && tasks.length > 0 ? (
+            <div className="mt-2">
+              <StatusTaskRows
+                project={statusProject}
+                tasks={tasks}
+                blockedLines={new Set(project.blocked.map((task) => task.line))}
+                onOpen={onOpenTask}
+                onWork={onWorkTask}
+                onCopy={onCopyTask}
+              />
             </div>
           ) : null}
           {blocked ? (
@@ -96,20 +116,11 @@ export function PriorityRow({
             </div>
           ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {present.map((agent) => {
-              const name = agentName(agent)
-              return name ? (
-                <span
-                  key={String(agent.id ?? name)}
-                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
-                >
-                  <span className="flex size-5 items-center justify-center rounded-full bg-muted font-medium text-foreground">
-                    {name.slice(0, 1).toUpperCase()}
-                  </span>
-                  {name}
-                </span>
-              ) : null
-            })}
+            <ProjectPresence
+              agents={agents}
+              projectId={project.projectId}
+              repoKey={project.repoKey}
+            />
             {project.hours7d !== null ? (
               <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Clock className="size-3" />

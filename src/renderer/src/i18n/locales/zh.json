@@ -14765,6 +14765,13 @@
       },
       "priorities": {
         "title": "优先事项",
+        "cardTitle": "项目任务",
+        "currentProject": "此项目",
+        "recent": "最近",
+        "recentlyCompleted": "最近完成",
+        "openTasks": "未完成任务",
+        "noOpenTasks": "没有未完成任务",
+        "noRecentTasks": "没有最近任务",
         "expand": "展开优先事项",
         "collapse": "收起优先事项",
         "sharedSource": "共享",

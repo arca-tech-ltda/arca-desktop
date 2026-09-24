@@ -4,9 +4,14 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Repo } from '../../shared/repo-types'
 import { parseStatusMd } from '../../shared/status-md-tasks'
-import type { StatusMdTaskProject } from '../../preload/api/status-md-tasks-api'
+import type {
+  StatusMdRecentTask,
+  StatusMdRecentTasks,
+  StatusMdTaskProject
+} from '../../preload/api/status-md-tasks-api'
 import type { Store } from '../persistence'
 import { registerArcaPriorityHandlers } from '../arca-priorities/priority-service'
+import { statusMdTaskTimestamps } from '../git/status-md-task-recency'
 
 const STATUS_FILE = 'STATUS.md'
 
@@ -18,7 +23,9 @@ export async function readStatusMdTasksForRepos(
 ): Promise<StatusMdTaskProject[]> {
   return Promise.all(
     repos.map(async (repo): Promise<StatusMdTaskProject> => {
-      const remote = Boolean(repo.connectionId) || Boolean(repo.executionHostId && repo.executionHostId !== 'local')
+      const remote =
+        Boolean(repo.connectionId) ||
+        Boolean(repo.executionHostId && repo.executionHostId !== 'local')
       if (remote) {
         return {
           repoId: repo.id,
@@ -72,6 +79,51 @@ function isMissingFile(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT'
 }
 
+type ReadTaskTimestamps = (
+  repoPath: string,
+  statusPath: string,
+  tasks: StatusMdTaskProject['tasks']
+) => Promise<Map<number, number>>
+
+export async function recentStatusMdTasks(
+  projects: readonly StatusMdTaskProject[],
+  readTimestamps: ReadTaskTimestamps = statusMdTaskTimestamps
+): Promise<StatusMdRecentTasks> {
+  const recent = (
+    await Promise.all(
+      projects
+        .filter((project) => project.status === 'available')
+        .map(async (project): Promise<StatusMdRecentTask[]> => {
+          try {
+            const timestamps = await readTimestamps(project.path, project.statusPath, project.tasks)
+            return project.tasks.map((task) => ({
+              repoId: project.repoId,
+              projectName: project.name,
+              path: project.path,
+              statusPath: project.statusPath,
+              task,
+              changedAt: timestamps.get(task.lineNumber) ?? 0
+            }))
+          } catch {
+            return []
+          }
+        })
+    )
+  )
+    .flat()
+    .sort(
+      (left, right) =>
+        right.changedAt - left.changedAt ||
+        left.projectName.localeCompare(right.projectName) ||
+        left.task.lineNumber - right.task.lineNumber
+    )
+
+  return {
+    open: recent.filter((item) => !item.task.completed).slice(0, 8),
+    completed: recent.filter((item) => item.task.completed).slice(0, 3)
+  }
+}
+
 export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: Store): void {
   const refreshPriorities = registerArcaPriorityHandlers(mainWindow, store)
   syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
@@ -80,6 +132,12 @@ export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: S
     const repos = store.getRepos()
     syncStatusWatchers(mainWindow, repos, refreshPriorities)
     return readStatusMdTasksForRepos(repos)
+  })
+  ipcMain.removeHandler('status-md-tasks:recent')
+  ipcMain.handle('status-md-tasks:recent', async (): Promise<StatusMdRecentTasks> => {
+    const repos = store.getRepos()
+    syncStatusWatchers(mainWindow, repos, refreshPriorities)
+    return recentStatusMdTasks(await readStatusMdTasksForRepos(repos))
   })
 }
 

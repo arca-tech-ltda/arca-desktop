@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { readStatusMdTasksForRepos } from './status-md-tasks'
+import { readStatusMdTasksForRepos, recentStatusMdTasks } from './status-md-tasks'
+import { parseStatusMd } from '../../shared/status-md-tasks'
 import type { Repo } from '../../shared/repo-types'
 
 const repo: Repo = {
@@ -39,5 +40,32 @@ describe('readStatusMdTasksForRepos', () => {
     await expect(readStatusMdTasksForRepos([remote], read)).resolves.toMatchObject([
       { status: 'unavailable', tasks: [] }
     ])
+  })
+
+  it('orders open and completed tasks by their blamed line timestamps', async () => {
+    const tasks = parseStatusMd('- [ ] Older\n- [x] Recently done\n- [ ] Newest', repo.id).tasks
+    const projects = [
+      {
+        repoId: repo.id,
+        name: repo.displayName,
+        path: repo.path,
+        statusPath: `${repo.path}/STATUS.md`,
+        status: 'available' as const,
+        tasks,
+        updatedAt: null
+      }
+    ]
+    const result = await recentStatusMdTasks(
+      projects,
+      async () =>
+        new Map([
+          [1, 100],
+          [2, 300],
+          [3, 400]
+        ])
+    )
+
+    expect(result.open.map((item) => item.task.title)).toEqual(['Newest', 'Older'])
+    expect(result.completed.map((item) => item.task.title)).toEqual(['Recently done'])
   })
 })

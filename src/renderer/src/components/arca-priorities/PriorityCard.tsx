@@ -1,84 +1,122 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp, Target } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { ChevronDown, ChevronUp, ListTodo } from 'lucide-react'
+import type {
+  StatusMdRecentTasks,
+  StatusMdTaskProject
+} from '../../../../preload/api/status-md-tasks-api'
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
 import { translate } from '@/i18n/i18n'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useActiveWorktree } from '@/store/selectors'
+import { useStatusMdTaskActions } from '@/components/task-page/useStatusMdTaskActions'
+import { CurrentProjectPane } from './CurrentProjectPane'
 import { PriorityRow } from './PriorityRow'
+import { RecentTasksPane } from './RecentTasksPane'
+import { selectCurrentStatusProject } from './priority-card-data'
 import { usePriorityActions } from './usePriorityActions'
 
 const COLLAPSED_KEY = 'arca.priority-card.collapsed'
+const TAB_KEY = 'arca.priority-card.tab'
+type CardTab = 'current' | 'recent' | 'priorities'
+const EMPTY_RECENT: StatusMdRecentTasks = { open: [], completed: [] }
+
+function savedTab(hasActiveProject: boolean): CardTab {
+  const value = localStorage.getItem(TAB_KEY)
+  if (value === 'current' || value === 'recent' || value === 'priorities') {
+    return value
+  }
+  return hasActiveProject ? 'current' : 'recent'
+}
 
 export function PriorityCard(): React.JSX.Element | null {
-  const [projects, setProjects] = useState<ArcaPriorityProject[]>([])
+  const activeWorktree = useActiveWorktree()
+  const [priorities, setPriorities] = useState<ArcaPriorityProject[]>([])
+  const [projects, setProjects] = useState<StatusMdTaskProject[]>([])
+  const [recent, setRecent] = useState<StatusMdRecentTasks>(EMPTY_RECENT)
+  const [tasksLoaded, setTasksLoaded] = useState(false)
   const [agents, setAgents] = useState<Record<string, unknown>[]>([])
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === 'true')
-  const [celebrate, setCelebrate] = useState(false)
-  const previous = useRef(
-    new Map<string, { completed: boolean; next: string | null }>()
+  const [tab, setTab] = useState<CardTab>(() => savedTab(Boolean(activeWorktree)))
+  const priorityActions = usePriorityActions()
+  const taskActions = useStatusMdTaskActions()
+  const currentProject = useMemo(
+    () => selectCurrentStatusProject(projects, activeWorktree),
+    [activeWorktree, projects]
   )
-  const { openStatus, work } = usePriorityActions()
+  const currentPriority = useMemo(
+    () => priorities.find((project) => project.repoId === currentProject?.repoId) ?? null,
+    [currentProject?.repoId, priorities]
+  )
 
   useEffect(() => {
-    const refresh = (): void => {
+    const refreshPriorities = (): void => {
       void window.api.arcaPriorities
         .list()
-        .then((next) => {
-          if (
-            next.some((item) => {
-              const before = previous.current.get(item.projectId)
-              return (
-                (item.completed && before?.completed === false) ||
-                (before?.next !== null && item.title === before?.next)
-              )
-            })
-          ) {
-            setCelebrate(true)
-            window.setTimeout(() => setCelebrate(false), 1400)
-          }
-          previous.current = new Map(
-            next.map((item) => [
-              item.projectId,
-              {
-                completed: item.completed,
-                next: item.queue[0]?.title ?? null
-              }
-            ])
-          )
-          setProjects(next)
-        })
-        .catch(() => setProjects([]))
+        .then(setPriorities)
+        .catch(() => setPriorities([]))
     }
-    refresh()
+    const refreshTasks = (): void => {
+      void Promise.all([window.api.statusMdTasks.list(), window.api.statusMdTasks.recent()])
+        .then(([nextProjects, nextRecent]) => {
+          setProjects(nextProjects)
+          setRecent(nextRecent)
+          setTasksLoaded(true)
+        })
+        .catch(() => {
+          setProjects([])
+          setRecent(EMPTY_RECENT)
+          setTasksLoaded(true)
+        })
+    }
+    refreshPriorities()
+    refreshTasks()
     void window.api.arcaMegamind
       .agents()
       .then(setAgents)
       .catch(() => setAgents([]))
-    return window.api.arcaPriorities.onChange(refresh)
+    const stopPriorities = window.api.arcaPriorities.onChange(refreshPriorities)
+    const stopTasks = window.api.statusMdTasks.onChanged(refreshTasks)
+    return () => {
+      stopPriorities()
+      stopTasks()
+    }
   }, [])
 
-  const top = useMemo(() => projects.find((project) => project.title !== null), [projects])
-  if (!top && projects.length === 0) {
+  useEffect(() => {
+    if (tasksLoaded && !currentProject && tab === 'current') {
+      setTab('recent')
+      localStorage.setItem(TAB_KEY, 'recent')
+    }
+  }, [currentProject, tab, tasksLoaded])
+
+  if (projects.length === 0 && priorities.length === 0) {
     return null
   }
 
+  const chooseTab = (next: CardTab): void => {
+    setTab(next)
+    localStorage.setItem(TAB_KEY, next)
+  }
   const toggle = (): void => {
-    const next = !collapsed
-    setCollapsed(next)
-    localStorage.setItem(COLLAPSED_KEY, String(next))
+    setCollapsed((value) => {
+      localStorage.setItem(COLLAPSED_KEY, String(!value))
+      return !value
+    })
+  }
+
+  const taskActionProps = {
+    onOpen: taskActions.openStatusTask,
+    onWork: taskActions.workWithPi,
+    onCopy: taskActions.copyTask
   }
 
   return (
-    <aside
-      className={cn(
-        'fixed bottom-10 right-4 z-30 w-[360px] max-w-[calc(100vw-32px)] rounded-xl border border-border bg-card shadow-floating motion-reduce:transition-none',
-        celebrate && 'animate-pulse'
-      )}
-    >
+    <aside className="fixed right-12 bottom-10 z-30 w-[380px] max-w-[calc(100vw-64px)] rounded-xl border border-border bg-card shadow-floating">
       <div className="flex items-center gap-2 px-3 py-2">
-        <Target className="size-4 text-muted-foreground" />
+        <ListTodo className="size-4 text-muted-foreground" />
         <h2 className="flex-1 text-sm font-semibold">
-          {translate('auto.components.priorities.title', 'Priorities')}
+          {translate('auto.components.priorities.cardTitle', 'Project tasks')}
         </h2>
         <Button
           type="button"
@@ -94,25 +132,72 @@ export function PriorityCard(): React.JSX.Element | null {
           {collapsed ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
         </Button>
       </div>
-      {collapsed ? (
-        top ? (
-          <div className="border-t border-border px-3 py-2 text-xs">
-            <span className="font-medium">{top.name}</span> · {top.title}
+      {!collapsed ? (
+        <>
+          <div className="flex gap-1 border-y border-border px-2 py-1">
+            {currentProject ? (
+              <button
+                type="button"
+                className={cn(
+                  'rounded-md px-2 py-1 text-xs',
+                  tab === 'current' ? 'bg-accent font-medium' : 'text-muted-foreground'
+                )}
+                onClick={() => chooseTab('current')}
+              >
+                {translate('auto.components.priorities.currentProject', 'This project')}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={cn(
+                'rounded-md px-2 py-1 text-xs',
+                tab === 'recent' ? 'bg-accent font-medium' : 'text-muted-foreground'
+              )}
+              onClick={() => chooseTab('recent')}
+            >
+              {translate('auto.components.priorities.recent', 'Recent')}
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'rounded-md px-2 py-1 text-xs',
+                tab === 'priorities' ? 'bg-accent font-medium' : 'text-muted-foreground'
+              )}
+              onClick={() => chooseTab('priorities')}
+            >
+              {translate('auto.components.priorities.title', 'Priorities')}
+            </button>
           </div>
-        ) : null
-      ) : (
-        <div className="scrollbar-sleek max-h-[min(65vh,560px)] space-y-2 overflow-y-auto border-t border-border p-2">
-          {projects.map((project) => (
-            <PriorityRow
-              key={project.projectId}
-              project={project}
-              onOpenStatus={openStatus}
-              onWork={(item) => void work(item)}
-              agents={agents}
-            />
-          ))}
-        </div>
-      )}
+          <div className="scrollbar-sleek max-h-[min(60vh,520px)] overflow-y-auto">
+            {tab === 'current' && currentProject ? (
+              <CurrentProjectPane
+                project={currentProject}
+                priority={currentPriority}
+                agents={agents}
+                {...taskActionProps}
+              />
+            ) : null}
+            {tab === 'recent' ? <RecentTasksPane recent={recent} {...taskActionProps} /> : null}
+            {tab === 'priorities' ? (
+              <div className="space-y-2 p-2">
+                {priorities.map((priority) => (
+                  <PriorityRow
+                    key={priority.projectId}
+                    project={priority}
+                    statusProject={projects.find((project) => project.repoId === priority.repoId)}
+                    onOpenStatus={priorityActions.openStatus}
+                    onWork={(item) => void priorityActions.work(item)}
+                    onOpenTask={taskActions.openStatusTask}
+                    onWorkTask={taskActions.workWithPi}
+                    onCopyTask={taskActions.copyTask}
+                    agents={agents}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </>
+      ) : null}
     </aside>
   )
 }

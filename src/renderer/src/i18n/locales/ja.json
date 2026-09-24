@@ -14685,6 +14685,13 @@
       },
       "priorities": {
         "title": "優先事項",
+        "cardTitle": "プロジェクトのタスク",
+        "currentProject": "このプロジェクト",
+        "recent": "最近",
+        "recentlyCompleted": "最近完了したタスク",
+        "openTasks": "未完了のタスク",
+        "noOpenTasks": "未完了のタスクはありません",
+        "noRecentTasks": "最近のタスクはありません",
         "expand": "優先事項を展開",
         "collapse": "優先事項を折りたたむ",
         "sharedSource": "共有",

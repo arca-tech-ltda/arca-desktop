@@ -14762,6 +14762,13 @@
       },
       "priorities": {
         "title": "우선순위",
+        "cardTitle": "프로젝트 작업",
+        "currentProject": "이 프로젝트",
+        "recent": "최근",
+        "recentlyCompleted": "최근 완료됨",
+        "openTasks": "열린 작업",
+        "noOpenTasks": "열린 작업 없음",
+        "noRecentTasks": "최근 작업 없음",
         "expand": "우선순위 펼치기",
         "collapse": "우선순위 접기",
         "sharedSource": "공유",

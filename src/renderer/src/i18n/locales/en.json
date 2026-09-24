@@ -17231,6 +17231,13 @@
       },
       "priorities": {
         "title": "Priorities",
+        "cardTitle": "Project tasks",
+        "currentProject": "This project",
+        "recent": "Recent",
+        "recentlyCompleted": "Recently completed",
+        "openTasks": "Open tasks",
+        "noOpenTasks": "No open tasks",
+        "noRecentTasks": "No recent tasks",
         "expand": "Expand priorities",
         "collapse": "Collapse priorities",
         "sharedSource": "shared",

@@ -1,23 +1,46 @@
 import { useEffect, useState } from 'react'
+import type { StatusMdTaskProject } from '../../../../preload/api/status-md-tasks-api'
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
 import { translate } from '@/i18n/i18n'
+import { useStatusMdTaskActions } from '@/components/task-page/useStatusMdTaskActions'
 import { PriorityRow } from './PriorityRow'
 import { usePriorityActions } from './usePriorityActions'
 
 export function PrioritiesSection(): React.JSX.Element | null {
-  const [projects, setProjects] = useState<ArcaPriorityProject[]>([])
-  const { openStatus, work } = usePriorityActions()
+  const [priorities, setPriorities] = useState<ArcaPriorityProject[]>([])
+  const [projects, setProjects] = useState<StatusMdTaskProject[]>([])
+  const [agents, setAgents] = useState<Record<string, unknown>[]>([])
+  const priorityActions = usePriorityActions()
+  const taskActions = useStatusMdTaskActions()
+
   useEffect(() => {
-    const refresh = (): void => {
+    const refreshPriorities = (): void => {
       void window.api.arcaPriorities
+        .list()
+        .then(setPriorities)
+        .catch(() => setPriorities([]))
+    }
+    const refreshTasks = (): void => {
+      void window.api.statusMdTasks
         .list()
         .then(setProjects)
         .catch(() => setProjects([]))
     }
-    refresh()
-    return window.api.arcaPriorities.onChange(refresh)
+    refreshPriorities()
+    refreshTasks()
+    void window.api.arcaMegamind
+      .agents()
+      .then(setAgents)
+      .catch(() => setAgents([]))
+    const stopPriorities = window.api.arcaPriorities.onChange(refreshPriorities)
+    const stopTasks = window.api.statusMdTasks.onChanged(refreshTasks)
+    return () => {
+      stopPriorities()
+      stopTasks()
+    }
   }, [])
-  if (projects.length === 0) {
+
+  if (priorities.length === 0) {
     return null
   }
   return (
@@ -25,12 +48,17 @@ export function PrioritiesSection(): React.JSX.Element | null {
       <h2 className="text-sm font-semibold">
         {translate('auto.components.priorities.title', 'Priorities')}
       </h2>
-      {projects.map((project) => (
+      {priorities.map((priority) => (
         <PriorityRow
-          key={project.projectId}
-          project={project}
-          onOpenStatus={openStatus}
-          onWork={(item) => void work(item)}
+          key={priority.projectId}
+          project={priority}
+          statusProject={projects.find((project) => project.repoId === priority.repoId)}
+          onOpenStatus={priorityActions.openStatus}
+          onWork={(item) => void priorityActions.work(item)}
+          onOpenTask={taskActions.openStatusTask}
+          onWorkTask={taskActions.workWithPi}
+          onCopyTask={taskActions.copyTask}
+          agents={agents}
         />
       ))}
     </section>
