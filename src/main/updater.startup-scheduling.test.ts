@@ -1,16 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
-const {
-  appMock,
-  autoUpdaterMock,
-  isMock,
-  powerMonitorOnMock,
-  fetchNudgeMock,
-  shouldApplyNudgeMock,
-  moduleFactories,
-  resetUpdaterMocks
-} = await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
+const { appMock, autoUpdaterMock, isMock, powerMonitorOnMock, moduleFactories, resetUpdaterMocks } =
+  await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
 
 vi.mock('electron', () => moduleFactories.electron())
 vi.mock('electron-updater', () => moduleFactories.electronUpdater())
@@ -56,7 +48,7 @@ describe('updater', () => {
     const { setupAutoUpdater } = await loadUpdaterModule()
 
     setupAutoUpdater(mainWindow as never, {
-      getLastUpdateCheckAt: () => Date.now() - 25 * 60 * 60 * 1000,
+      getLastUpdateCheckAt: () => Date.now() - 5 * 60 * 60 * 1000,
       setLastUpdateCheckAt
     })
 
@@ -64,26 +56,6 @@ describe('updater', () => {
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
     expect(setLastUpdateCheckAt).not.toHaveBeenCalled()
-  })
-
-  it('starts nudge polling only after updater initialization is complete', async () => {
-    const mainWindow = { webContents: { send: vi.fn() } }
-    fetchNudgeMock.mockResolvedValue({ id: 'campaign-1', minVersion: '1.0.0' })
-    shouldApplyNudgeMock.mockReturnValue(true)
-
-    const { setupAutoUpdater } = await loadUpdaterModule()
-
-    setupAutoUpdater(mainWindow as never)
-
-    expect(autoUpdaterMock.setFeedURL).toHaveBeenCalledTimes(1)
-    expect(autoUpdaterMock.on).toHaveBeenCalled()
-    expect(fetchNudgeMock).toHaveBeenCalledTimes(1)
-    expect(autoUpdaterMock.setFeedURL.mock.invocationCallOrder[0]).toBeLessThan(
-      fetchNudgeMock.mock.invocationCallOrder[0]
-    )
-    expect(autoUpdaterMock.on.mock.invocationCallOrder[0]).toBeLessThan(
-      fetchNudgeMock.mock.invocationCallOrder[0]
-    )
   })
 
   it('waits until the remaining interval before the next background check', async () => {
@@ -96,7 +68,7 @@ describe('updater', () => {
     const { setupAutoUpdater } = await loadUpdaterModule()
 
     setupAutoUpdater(mainWindow as never, {
-      getLastUpdateCheckAt: () => Date.now() - 23 * 60 * 60 * 1000,
+      getLastUpdateCheckAt: () => Date.now() - 3 * 60 * 60 * 1000,
       setLastUpdateCheckAt
     })
 
@@ -124,7 +96,7 @@ describe('updater', () => {
       getLastUpdateCheckAt: () => lastUpdateCheckAt
     })
 
-    lastUpdateCheckAt = Date.now() - 25 * 60 * 60 * 1000
+    lastUpdateCheckAt = Date.now() - 5 * 60 * 60 * 1000
     appMock.emit('browser-window-focus')
     appMock.emit('browser-window-focus')
 
@@ -154,7 +126,7 @@ describe('updater', () => {
       setLastUpdateCheckAt
     })
 
-    lastUpdateCheckAt = Date.now() - 25 * 60 * 60 * 1000
+    lastUpdateCheckAt = Date.now() - 5 * 60 * 60 * 1000
     appMock.emit('browser-window-focus')
 
     await vi.waitFor(() => {
@@ -202,14 +174,14 @@ describe('updater', () => {
     })
   })
 
-  it('reschedules the next automatic check 24 hours after finding an available update', async () => {
+  it('reschedules the next automatic check four hours after a completed check', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-04-03T12:00:00Z'))
 
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
-        autoUpdaterMock.emit('update-available', { version: '1.0.61' })
+        autoUpdaterMock.emit('update-not-available')
       })
       return Promise.resolve(undefined)
     })
@@ -220,11 +192,10 @@ describe('updater', () => {
 
     const { setupAutoUpdater } = await loadUpdaterModule()
 
-    // Why: a startup check also arms its own 24h timer, which would fire at the same boundary as the
-    // reschedule under test; entering 23h in makes the startup timer fire the check itself, so only
-    // the result handler's re-arm can produce a check 24h later.
+    // Entering three hours in makes the startup timer fire the check itself, so only the result
+    // handler's re-arm can produce a check four hours later.
     setupAutoUpdater(mainWindow as never, {
-      getLastUpdateCheckAt: () => Date.now() - 23 * 60 * 60 * 1000,
+      getLastUpdateCheckAt: () => Date.now() - 3 * 60 * 60 * 1000,
       setLastUpdateCheckAt
     })
 
@@ -238,17 +209,16 @@ describe('updater', () => {
 
     expect(setLastUpdateCheckAt).toHaveBeenCalledTimes(1)
     expect(sendMock).toHaveBeenCalledWith('updater:status', {
-      state: 'available',
-      version: '1.0.61',
-      changelog: null
+      state: 'not-available',
+      userInitiated: undefined
     })
 
-    await vi.advanceTimersByTimeAsync(23 * 60 * 60 * 1000)
+    await vi.advanceTimersByTimeAsync(3 * 60 * 60 * 1000)
     expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
 
     await vi.advanceTimersByTimeAsync(60 * 60 * 1000)
     // Why: the boundary tick sweeps the updater's other timers (30-minute nudge poll, 45-second
-    // stall guard) too, so pin the reschedule itself — nothing before 24h, a check once it elapses —
+    // stall guard) too, so pin the reschedule itself — nothing before four hours, then a check —
     // rather than an exact process-wide call total.
     await vi.waitFor(() => {
       expect(autoUpdaterMock.checkForUpdates.mock.calls.length).toBeGreaterThanOrEqual(2)

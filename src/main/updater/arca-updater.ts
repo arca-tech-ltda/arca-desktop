@@ -3,7 +3,6 @@ import type { BrowserWindow } from 'electron'
 import type { UpdateCheckOptions, UpdateStatus } from '../../shared/update-status-types'
 import { UpdaterSetup, type UpdaterSetupOptions } from './updater-setup'
 import { ArcaMacUpdate } from './arca-mac-update'
-import { MEGAMIND_UPDATE_REQUIRED, readArcaUpdateFeed } from './arca-update-feed'
 import { AUTO_UPDATE_CHECK_INTERVAL_MS } from './updater-state'
 
 /** Keeps the upstream status/install machinery, but admits only the ARCA stable feed. */
@@ -31,11 +30,6 @@ export class ArcaUpdater extends UpdaterSetup {
     } else if (process.platform === 'win32') {
       super.setupAutoUpdater(window, options)
     }
-    void readArcaUpdateFeed().then((feed) => {
-      if (!feed && this.currentStatus.state === 'idle') {
-        this.sendStatus({ state: 'error', message: MEGAMIND_UPDATE_REQUIRED, retryable: true })
-      }
-    })
   }
 
   override checkForUpdates(): void {
@@ -102,13 +96,13 @@ export class ArcaUpdater extends UpdaterSetup {
 
   protected override sendStatus(status: UpdateStatus, options?: { force?: boolean }): void {
     super.sendStatus(status, options)
-    if (status.state === 'available' && process.platform === 'win32') {
+    if (
+      status.state === 'available' &&
+      process.platform === 'win32' &&
+      this.updateInstallMode === 'interactive'
+    ) {
       queueMicrotask(() => this.downloadUpdate())
     }
-  }
-
-  protected override scheduleAutomaticUpdateCheck(delay: number): void {
-    super.scheduleAutomaticUpdateCheck(delay === 30_000 ? delay : AUTO_UPDATE_CHECK_INTERVAL_MS)
   }
 
   protected override async checkForUpdateNudge(): Promise<void> {}

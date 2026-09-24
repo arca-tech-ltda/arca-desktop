@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, powerMonitor } from 'electron'
 import type { BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import type { ReleaseBuild, ReleaseChannel } from '../../shared/release-channel'
@@ -20,7 +20,7 @@ import { getServeUpdateHandoffFailure } from '../serve-update-handoff'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
 import { areAutoUpdatesEnabled } from './auto-update-policy'
 import { UpdaterDownloadInstall } from './updater-download-install'
-import type { UpdateInstallMode } from './updater-state'
+import { AUTO_UPDATE_CHECK_INTERVAL_MS, type UpdateInstallMode } from './updater-state'
 
 export type UpdaterSetupOptions = {
   getLastUpdateCheckAt?: () => number | null
@@ -217,6 +217,32 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
       }
     })
 
-    this.scheduleAutomaticUpdateCheck(30_000)
+    const checkOnWake = () => {
+      if (
+        this.backgroundCheckLaunchPending ||
+        this.currentStatus.state === 'checking' ||
+        this.currentStatus.state === 'downloading'
+      ) {
+        return
+      }
+      const lastCheck = this._getLastUpdateCheckAt?.() ?? null
+      const msSince = lastCheck === null ? Number.POSITIVE_INFINITY : Date.now() - lastCheck
+      if (msSince >= AUTO_UPDATE_CHECK_INTERVAL_MS) {
+        this.runBackgroundUpdateCheck()
+        this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
+      }
+    }
+    powerMonitor.on('resume', checkOnWake)
+    app.on('browser-window-focus', checkOnWake)
+
+    const lastUpdateCheckAt = opts?.getLastUpdateCheckAt?.() ?? null
+    const msSinceLastCheck =
+      lastUpdateCheckAt === null ? Number.POSITIVE_INFINITY : Date.now() - lastUpdateCheckAt
+    if (msSinceLastCheck >= AUTO_UPDATE_CHECK_INTERVAL_MS) {
+      this.runBackgroundUpdateCheck()
+      this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
+    } else {
+      this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS - msSinceLastCheck)
+    }
   }
 }

@@ -31,13 +31,19 @@ beforeEach(() => {
   harness.resetUpdaterMocks()
   harness.autoUpdaterMock.downloadUpdate.mockResolvedValue([])
   vi.useFakeTimers()
-  Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
+  Object.defineProperty(process, 'platform', {
+    value: 'win32',
+    configurable: true
+  })
   feedReader.mockResolvedValue(arcaUpdateFeed(undefined, 'device'))
 })
 afterEach(() => {
   vi.clearAllTimers()
   vi.useRealTimers()
-  Object.defineProperty(process, 'platform', { value: platform, configurable: true })
+  Object.defineProperty(process, 'platform', {
+    value: platform,
+    configurable: true
+  })
 })
 
 function setup() {
@@ -52,11 +58,9 @@ function setup() {
 }
 
 describe('ARCA upstream integration', () => {
-  it('waits 30 seconds, configures Bearer auth, downloads in background', async () => {
+  it('checks immediately, configures Bearer auth, and downloads in background', async () => {
     const updater = setup()
-    await vi.advanceTimersByTimeAsync(29_999)
-    expect(harness.autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled()
-    await vi.advanceTimersByTimeAsync(1)
+    await vi.advanceTimersByTimeAsync(0)
     expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenCalledWith(
       arcaUpdateFeed(undefined, 'device')
     )
@@ -79,27 +83,29 @@ describe('ARCA upstream integration', () => {
       state: 'error',
       message: 'arca-updater:megamind-required'
     })
+    await vi.advanceTimersByTimeAsync(1_000)
     feedReader.mockResolvedValue(arcaUpdateFeed(undefined, 'new-device'))
     updater.checkForUpdatesFromMenu({
       channel: 'hourly',
       targetTag: 'v1.0',
       includePrerelease: true
     })
-    await vi.advanceTimersByTimeAsync(0)
-    expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith(
-      arcaUpdateFeed(undefined, 'new-device')
-    )
+    await vi.waitFor(() => {
+      expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith(
+        arcaUpdateFeed(undefined, 'new-device')
+      )
+    })
     expect(await updater.listAvailableReleaseBuilds('hourly')).toEqual([])
   })
 
   it('rechecks after four hours without nudges or upstream release discovery', async () => {
     setup()
-    await vi.advanceTimersByTimeAsync(30_000)
+    await vi.advanceTimersByTimeAsync(0)
     harness.autoUpdaterMock.emit('checking-for-update')
     harness.autoUpdaterMock.emit('update-not-available')
-    await vi.advanceTimersByTimeAsync(4 * 60 * 60_000 - 1)
+    await vi.advanceTimersByTimeAsync(4 * 60 * 60_000 - 60_000)
     expect(harness.autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
-    await vi.advanceTimersByTimeAsync(1)
+    await vi.advanceTimersByTimeAsync(60_000)
     expect(harness.autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(2)
   })
 })

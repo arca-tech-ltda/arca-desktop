@@ -1,9 +1,24 @@
-import { beforeAll, TestRunner } from 'vitest'
+import { beforeAll, TestRunner, vi } from 'vitest'
 import type * as UpdaterModule from './updater'
 import { AUTO_UPDATES_TEST_OVERRIDE_ENV } from './updater/auto-update-policy'
 
-// ARCA disables auto-updates at the public boundary; these suites still cover the flow behind it.
+// Generic updater suites exercise ARCA's Windows electron-updater path on every host.
+Object.defineProperty(process, 'platform', {
+  value: 'win32',
+  configurable: true
+})
 process.env[AUTO_UPDATES_TEST_OVERRIDE_ENV] = '1'
+
+vi.mock('./updater/arca-update-feed', () => ({
+  MEGAMIND_UPDATE_REQUIRED: 'arca-updater:megamind-required',
+  readArcaUpdateFeed: vi.fn(async () => ({
+    provider: 'generic',
+    url: 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/',
+    channel: 'latest',
+    useMultipleRangeRequest: false,
+    requestHeaders: { Authorization: 'Bearer updater-test-device' }
+  }))
+}))
 
 /**
  * Pays `updater.ts`'s transform cost once per file, against `hookTimeout` instead of `testTimeout`.

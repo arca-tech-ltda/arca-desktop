@@ -83,6 +83,7 @@ export abstract class UpdaterScheduling extends UpdaterCheckFailure {
           return
         }
         const wasUserInitiated = this.getSettledCheckUserInitiated()
+        this.finishActiveUpdateCheckAttempt()
         this.backgroundCheckLaunchPending = false
         this.backgroundCheckPromotedToUserInitiated = false
         if (wasUserInitiated) {

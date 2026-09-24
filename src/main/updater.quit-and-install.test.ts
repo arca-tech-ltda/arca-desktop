@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { PRE_COMMIT_INSTALL_FAILURE } from './updater-test-harness'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
 const {
@@ -47,12 +46,16 @@ warmUpdaterModule()
 describe('updater', () => {
   beforeEach(() => {
     resetUpdaterMocks()
+    autoUpdaterMock.downloadUpdate.mockResolvedValue([])
     launchPathScope.active = false
     launchPathScope.calls = 0
   })
 
   it('still surfaces updater error events while a download is in flight', async () => {
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: ['v1.0.61'], state: 'ready' })
+    fetchNewerReleaseTagsMock.mockResolvedValue({
+      tags: ['v1.0.61'],
+      state: 'ready'
+    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -67,21 +70,19 @@ describe('updater', () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
 
-    const { setupAutoUpdater, checkForUpdatesFromMenu, downloadUpdate } = await loadUpdaterModule()
+    const { setupAutoUpdater, checkForUpdatesFromMenu } = await loadUpdaterModule()
 
-    setupAutoUpdater(mainWindow as never, { getLastUpdateCheckAt: () => Date.now() })
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now()
+    })
     checkForUpdatesFromMenu()
 
     await vi.waitFor(() => {
-      expect(sendMock).toHaveBeenCalledWith('updater:status', {
-        state: 'available',
-        version: '1.0.61',
-        changelog: null
-      })
+      expect(sendMock).toHaveBeenCalledWith(
+        'updater:status',
+        expect.objectContaining({ state: 'error', message: 'download failed' })
+      )
     })
-
-    sendMock.mockClear()
-    downloadUpdate()
 
     expect(autoUpdaterMock.downloadUpdate).toHaveBeenCalledTimes(1)
     expect(sendMock).toHaveBeenCalledWith(
@@ -91,7 +92,10 @@ describe('updater', () => {
   })
 
   it('surfaces an accepted retry before electron-updater emits download progress', async () => {
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: ['v1.0.61'], state: 'ready' })
+    fetchNewerReleaseTagsMock.mockResolvedValue({
+      tags: ['v1.0.61'],
+      state: 'ready'
+    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -107,7 +111,9 @@ describe('updater', () => {
 
     const { setupAutoUpdater, checkForUpdatesFromMenu, downloadUpdate } = await loadUpdaterModule()
 
-    setupAutoUpdater(mainWindow as never, { getLastUpdateCheckAt: () => Date.now() })
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now()
+    })
     checkForUpdatesFromMenu()
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
@@ -117,7 +123,6 @@ describe('updater', () => {
       })
     })
 
-    downloadUpdate()
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
@@ -258,7 +263,8 @@ describe('updater', () => {
         // Why: a pre-commit install failure is not fixed by restarting, so the copy must not
         // suggest it — except on macOS, where quitting does re-stage a Squirrel update.
         // The updater's own text is appended because it is the only record of why the install never ran.
-        message: `${PRE_COMMIT_INSTALL_FAILURE} (No update filepath provided, can't quit and install)`
+        message:
+          "Could not start the update installer. ARCA remains open. (No update filepath provided, can't quit and install)"
       })
     )
   })
@@ -266,7 +272,10 @@ describe('updater', () => {
   it('does not recover quit-for-update state from late errors after install commit', async () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: ['v1.0.61'], state: 'ready' })
+    fetchNewerReleaseTagsMock.mockResolvedValue({
+      tags: ['v1.0.61'],
+      state: 'ready'
+    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -278,7 +287,9 @@ describe('updater', () => {
     const { setupAutoUpdater, checkForUpdatesFromMenu, quitAndInstall, isQuittingForUpdate } =
       await loadUpdaterModule()
 
-    setupAutoUpdater(mainWindow as never, { getLastUpdateCheckAt: () => Date.now() })
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now()
+    })
     checkForUpdatesFromMenu()
 
     // Why: reach the downloaded state so a late post-commit error isn't mistaken for a download/install UI failure.
@@ -327,7 +338,10 @@ describe('updater', () => {
   it('arms the forced-exit watchdog once the install commits', async () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: ['v1.0.61'], state: 'ready' })
+    fetchNewerReleaseTagsMock.mockResolvedValue({
+      tags: ['v1.0.61'],
+      state: 'ready'
+    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -338,7 +352,9 @@ describe('updater', () => {
 
     const { setupAutoUpdater, checkForUpdatesFromMenu, quitAndInstall } = await loadUpdaterModule()
 
-    setupAutoUpdater(mainWindow as never, { getLastUpdateCheckAt: () => Date.now() })
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now()
+    })
     checkForUpdatesFromMenu()
 
     await vi.waitFor(() => {

@@ -66,7 +66,10 @@ export abstract class UpdaterMenuChecks extends UpdaterScheduling {
         this.userInitiatedCheck = false
         this.finishActiveUpdateCheckAttempt()
         this.recordCompletedUpdateCheck()
-        this.sendSettledCheckStatus({ state: 'not-available', userInitiated: true })
+        this.sendSettledCheckStatus({
+          state: 'not-available',
+          userInitiated: true
+        })
         return false
       }
       return launch()
@@ -83,6 +86,7 @@ export abstract class UpdaterMenuChecks extends UpdaterScheduling {
           return
         }
         this.userInitiatedCheck = false
+        this.finishActiveUpdateCheckAttempt()
         void this.sendCheckFailureStatus(String(err?.message ?? err), true, 'promise', err)
       })
   }

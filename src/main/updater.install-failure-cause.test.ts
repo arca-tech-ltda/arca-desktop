@@ -147,6 +147,7 @@ function installSpan(): CapturedSpan | undefined {
 async function reachDownloaded(): Promise<typeof UpdaterModule> {
   const mainWindow = { webContents: { send: vi.fn() } }
   autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
+  autoUpdaterMock.downloadUpdate.mockResolvedValue([])
   // Why: resetModules gives each test a fresh module graph, so the sink must be installed on the
   // same tracer instance updater.ts will import.
   tracer = await import('./observability/tracer')
@@ -160,7 +161,6 @@ async function reachDownloaded(): Promise<typeof UpdaterModule> {
   autoUpdaterMock.emit('checking-for-update')
   autoUpdaterMock.emit('update-available', { version: '1.4.163' })
   await new Promise((resolve) => setTimeout(resolve, 0))
-  autoUpdaterMock.downloadUpdate.mockResolvedValue([])
   updater.downloadUpdate()
   autoUpdaterMock.emit('update-downloaded', { version: '1.4.163' })
   expect(updater.getUpdateStatus().state).toBe('downloaded')
@@ -190,7 +190,7 @@ describe('quitAndInstall failure carries the updater cause', () => {
     killAllPtyMock.mockReset()
     recordUpdaterLifecycleMock.mockReset()
     Object.defineProperty(process, 'platform', {
-      value: 'linux',
+      value: 'win32',
       configurable: true
     })
     vi.useRealTimers()

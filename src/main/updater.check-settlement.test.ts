@@ -29,6 +29,7 @@ warmUpdaterModule()
 describe('updater', () => {
   beforeEach(() => {
     resetUpdaterMocks()
+    autoUpdaterMock.downloadUpdate.mockResolvedValue([])
   })
 
   it('leaves a dismissed release update on the release source', async () => {
