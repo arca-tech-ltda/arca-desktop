@@ -19,6 +19,13 @@ export function normalizeArcaRemote(raw: string): string | null {
   return /^[a-z0-9.-]+(?::\d+)?\/[a-z0-9_.-]+\/[a-z0-9_.-]+$/.test(value) ? value : null
 }
 
+function catalogFlag(record: Record<string, unknown>, flag: 'archived' | 'legacy'): boolean {
+  if (record[flag] === true || (flag === 'legacy' && record.legado === true)) {
+    return true
+  }
+  return typeof record.status === 'string' && record.status.toLowerCase() === flag
+}
+
 export function catalogDestination(home: string, relative: string): string {
   const paths = isWindowsAbsolutePathLike(home) ? path.win32 : path
   const root = paths.join(home, 'ARCA')
@@ -65,6 +72,11 @@ export function parseCatalog(
           url: `https://${repoKey}.git`,
           destination: catalogDestination(home, relative),
           pathFromCatalog: typeof record.path === 'string',
+          archived:
+            catalogFlag(project, 'archived') ||
+            catalogFlag(record, 'archived') ||
+            record.isArchived === true,
+          legacy: catalogFlag(project, 'legacy') || catalogFlag(record, 'legacy'),
           source
         }
       ]
@@ -81,8 +93,16 @@ export function unionCatalogs(...catalogs: ArcaCatalogEntry[][]): ArcaCatalogEnt
         result.set(entry.repoKey, entry)
       }
       // Mainframe currently publishes identity only; the file owns the established layout.
-      else if (prior.source === 'mainframe' && !prior.pathFromCatalog && entry.source === 'file') {
-        result.set(entry.repoKey, { ...prior, destination: entry.destination })
+      else {
+        const visibility = {
+          archived: prior.archived === true || entry.archived === true,
+          legacy: prior.legacy === true || entry.legacy === true
+        }
+        if (prior.source === 'mainframe' && !prior.pathFromCatalog && entry.source === 'file') {
+          result.set(entry.repoKey, { ...prior, ...visibility, destination: entry.destination })
+        } else if (visibility.archived !== prior.archived || visibility.legacy !== prior.legacy) {
+          result.set(entry.repoKey, { ...prior, ...visibility })
+        }
       }
     }
   }
@@ -136,7 +156,7 @@ export async function loadArcaCatalog(
   }
   try {
     const { stdout } = await ghExecFileAsync(
-      ['repo', 'list', 'arca-tech-ltda', '--limit', '1000', '--json', 'url'],
+      ['repo', 'list', 'arca-tech-ltda', '--limit', '1000', '--json', 'url,isArchived'],
       { timeout: 30_000 }
     )
     const repos: unknown = JSON.parse(stdout)

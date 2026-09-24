@@ -51,6 +51,26 @@ it('lists outside-org catalog repos and preselects only missing clones', async (
     ]
   })
 })
+it('hides archived, flagged legacy, and named legacy projects by default', async () => {
+  mocks.catalog.mockResolvedValue({
+    sources: ['mainframe'],
+    errors: [],
+    entries: [
+      { name: 'brain', repoKey: 'github.com/arca/brain', url: 'https://github.com/arca/brain.git' },
+      { name: 'old', repoKey: 'github.com/arca/old', url: 'https://github.com/arca/old.git', archived: true },
+      { name: 'legacy', repoKey: 'github.com/arca/legacy', url: 'https://github.com/arca/legacy.git', legacy: true },
+      { name: 'active', repoKey: 'github.com/arca/active', url: 'https://github.com/arca/active.git' }
+    ].map((entry) => ({ ...entry, destination: `/arca/${entry.name}` }))
+  })
+  mocks.scan.mockResolvedValue([])
+  mocks.stat.mockRejectedValue(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+  const result = await listArcaOrgProjects()
+  expect(result).toMatchObject({
+    ok: true,
+    hiddenCount: 3,
+    projects: [{ name: 'active' }]
+  })
+})
 it('rejects a destination containing a different repository even within the org', async () => {
   mocks.stat.mockResolvedValue({ isDirectory: () => true })
   mocks.git.mockResolvedValue({ stdout: 'https://github.com/arca-tech-ltda/other' })

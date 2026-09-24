@@ -1,4 +1,5 @@
 import { isBenignCheckFailure } from '../updater-fallback'
+import { arcaUpdateFeedUnavailableMessage } from './arca-update-feed-failure'
 import { ReleaseFeedPreflightError } from './updater-state'
 import type { CheckFailureSource } from './updater-state'
 import { UpdaterReleaseFeed } from './updater-release-feed'
@@ -70,6 +71,18 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
     }
 
     const handleFailure = async (): Promise<void> => {
+      const feedUnavailableMessage = arcaUpdateFeedUnavailableMessage(sourceError ?? message)
+      if (feedUnavailableMessage) {
+        console.warn('[updater] update feed unavailable:', message)
+        this.clearAvailableUpdateContext()
+        this.scheduleAutomaticUpdateCheck(this.getAutomaticRetryInterval())
+        this.sendSettledCheckStatus(
+          userInitiated
+            ? { state: 'error', message: feedUnavailableMessage, userInitiated: true }
+            : { state: 'idle' }
+        )
+        return
+      }
       if (
         isBenignCheckFailure(message) ||
         this.isRetryableReleaseFeedPreflightFailure(sourceError)

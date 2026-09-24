@@ -39,6 +39,22 @@ describe('ARCA catalog', () => {
       expect.objectContaining({ repoKey: 'github.com/other/mcscala' })
     ])
   })
+  it('preserves archived and legacy flags from project and repository records', () => {
+    const entries = parseCatalog(
+      {
+        projects: [
+          { archived: true, repos: ['github.com/arca/old'] },
+          { repos: [{ repo_key: 'github.com/arca/brain', legado: true }] }
+        ]
+      },
+      'mainframe',
+      '/home/ana'
+    )
+    expect(entries).toEqual([
+      expect.objectContaining({ name: 'old', archived: true }),
+      expect.objectContaining({ name: 'brain', legacy: true })
+    ])
+  })
   it('resolves Windows destinations and rejects escaping paths', () => {
     expect(catalogDestination('C:\\Users\\Ana', 'clientes/mcScala')).toBe(
       'C:\\Users\\Ana\\ARCA\\clientes\\mcScala'

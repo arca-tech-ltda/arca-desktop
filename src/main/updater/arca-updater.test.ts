@@ -46,14 +46,17 @@ afterEach(() => {
   })
 })
 
-function setup() {
+function setup(skipAutomatic = false) {
   const updater = new ArcaUpdater()
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Only this BrowserWindow subset is used by status delivery.
   const window = {
     isDestroyed: () => false,
     webContents: { send: vi.fn() }
   } as unknown as BrowserWindow
-  updater.setupAutoUpdater(window)
+  updater.setupAutoUpdater(
+    window,
+    skipAutomatic ? { getLastUpdateCheckAt: () => Date.now() } : undefined
+  )
   return updater
 }
 
@@ -96,6 +99,26 @@ describe('ARCA upstream integration', () => {
       )
     })
     expect(await updater.listAvailableReleaseBuilds('hourly')).toEqual([])
+  })
+
+  it('keeps automatic feed failures neutral', async () => {
+    harness.autoUpdaterMock.checkForUpdates.mockRejectedValue(new Error('Update feed HTTP 404'))
+    const updater = setup()
+    await vi.advanceTimersByTimeAsync(0)
+    await vi.waitFor(() => expect(updater.getUpdateStatus()).toEqual({ state: 'idle' }))
+  })
+
+  it('shows a clear access message for a manual feed failure', async () => {
+    const updater = setup(true)
+    harness.autoUpdaterMock.checkForUpdates.mockRejectedValue(new Error('Update feed HTTP 403'))
+    updater.checkForUpdatesFromMenu()
+    await vi.waitFor(() =>
+      expect(updater.getUpdateStatus()).toMatchObject({
+        state: 'error',
+        message: 'arca-updater:feed-access-denied',
+        userInitiated: true
+      })
+    )
   })
 
   it('rechecks after four hours without nudges or upstream release discovery', async () => {

@@ -2,6 +2,7 @@ import type { Repo } from '../../shared/repo-types'
 import type { ProjectTimeEntry } from '../../shared/project-time'
 import { aggregateProjectTime } from '../../shared/project-time'
 import type { ArcaPriorityProject } from '../../shared/arca-priorities'
+import { isArcaProjectExcludedByDefault } from '../../shared/arca-product'
 
 export type PriorityNotification = { key: string; title: string; body: string }
 
@@ -28,6 +29,15 @@ export function mergePriorityProjects(
     }
   })
   return [...merged, ...sharedByKey.values()]
+}
+
+export function excludeDefaultPriorityProjects(
+  projects: readonly ArcaPriorityProject[]
+): ArcaPriorityProject[] {
+  return projects.filter(
+    (project) =>
+      !isArcaProjectExcludedByDefault({ name: project.name, repoKey: project.repoKey ?? undefined })
+  )
 }
 
 export function applyLocalHours(

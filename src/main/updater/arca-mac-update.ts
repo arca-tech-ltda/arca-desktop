@@ -9,6 +9,7 @@ import type { UpdateStatus } from '../../shared/update-status-types'
 import { object } from '../arca-megamind/credentials'
 import { compareVersions } from '../updater-fallback'
 import { MEGAMIND_UPDATE_REQUIRED, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
+import { arcaUpdateFeedUnavailableMessage } from './arca-update-feed-failure'
 import {
   extractMacUpdate,
   launchMacInstaller,
@@ -33,6 +34,7 @@ export class ArcaMacUpdate {
       return
     }
     this.busy = true
+    let checkingFeed = true
     try {
       const feed = await readArcaUpdateFeed()
       if (!feed) {
@@ -73,6 +75,7 @@ export class ArcaMacUpdate {
         throw new Error('No update for this Mac architecture')
       }
       const url = updateArtifactUrl(feed, zip.url)
+      checkingFeed = false
       try {
         await writableMacTarget(process.execPath)
       } catch {
@@ -109,11 +112,23 @@ export class ArcaMacUpdate {
         await rm(this.directory, { recursive: true, force: true }).catch(() => {})
       }
       this.directory = null
-      this.send({
-        state: 'error',
-        message: error instanceof Error ? error.message : 'Update failed',
-        userInitiated
-      })
+      const feedUnavailableMessage = checkingFeed
+        ? arcaUpdateFeedUnavailableMessage(error)
+        : null
+      if (feedUnavailableMessage) {
+        console.warn('[updater] update feed unavailable:', error)
+        this.send(
+          userInitiated
+            ? { state: 'error', message: feedUnavailableMessage, userInitiated: true }
+            : { state: 'idle' }
+        )
+      } else {
+        this.send({
+          state: 'error',
+          message: error instanceof Error ? error.message : 'Update failed',
+          userInitiated
+        })
+      }
     } finally {
       this.busy = false
     }

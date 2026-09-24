@@ -28,6 +28,13 @@ describe('update card error model precedence', () => {
     expect(model?.releaseUrl).toBeUndefined()
   })
 
+  it.each([
+    ['arca-updater:server-unavailable', 'Update server unavailable'],
+    ['arca-updater:feed-access-denied', 'No access to the update feed']
+  ])('shows clear manual feed failure %s', (message, summary) => {
+    expect(build({ state: 'error', message })?.summary).toBe(summary)
+  })
+
   it('offers the authenticated DMG feed when the installed bundle is not writable', () => {
     const url =
       'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/arca-macos-1.5.1-arm64.dmg'

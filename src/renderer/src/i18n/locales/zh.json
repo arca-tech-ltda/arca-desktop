@@ -46,7 +46,9 @@
     "updater": {
       "connect": "连接 Megamind 以接收更新",
       "downloadDmg": "下载 DMG 以更新",
-      "readOnly": "无法替换此位置的应用。下载需要设备身份验证。"
+      "readOnly": "无法替换此位置的应用。下载需要设备身份验证。",
+      "serverUnavailable": "更新服务器不可用",
+      "feedAccessDenied": "无法访问更新源"
     }
   },
   "app": {

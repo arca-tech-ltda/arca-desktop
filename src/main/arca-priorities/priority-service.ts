@@ -8,12 +8,14 @@ import {
   type ArcaPriorityProject
 } from '../../shared/arca-priorities'
 import type { MegamindRecord } from '../../shared/arca-megamind'
+import { isArcaProjectExcludedByDefault } from '../../shared/arca-product'
 import { object } from '../arca-megamind/credentials'
 import { listMegamindPriorities, onMegamindPrioritiesChanged } from '../arca-megamind/priorities'
 import { electronRuntimeDesktopSurface } from '../host/electron-runtime-desktop-surface'
 import { readProjectTimeSnapshot } from '../stats/project-time-store'
 import {
   applyLocalHours,
+  excludeDefaultPriorityProjects,
   mergePriorityProjects,
   priorityNotifications,
   repoKey
@@ -39,6 +41,16 @@ function sharedProject(value: unknown): ArcaPriorityProject | null {
   const projectId = stringValue(value.project_id)
   const name = stringValue(value.name)
   if (!projectId || !name) {
+    return null
+  }
+  if (
+    isArcaProjectExcludedByDefault({
+      name,
+      repoKey: stringValue(value.repo_key) ?? undefined,
+      archived: value.archived === true || value.isArchived === true,
+      legacy: value.legacy === true || value.legado === true
+    })
+  ) {
     return null
   }
   const total = numberValue(value.total) ?? 0
@@ -171,7 +183,7 @@ class PriorityService {
       // Local STATUS.md remains authoritative when the optional tool is unavailable.
     }
     projects = applyLocalHours(
-      projects,
+      excludeDefaultPriorityProjects(projects),
       readProjectTimeSnapshot(join(app.getPath('userData'), 'project-time.json'))
     )
     const sorted = sortArcaPriorities(projects)

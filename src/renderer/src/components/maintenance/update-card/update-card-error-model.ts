@@ -47,6 +47,23 @@ export function buildUpdateCardErrorModel({
         }
       : null
   }
+  if (
+    status.message === 'arca-updater:server-unavailable' ||
+    status.message === 'arca-updater:feed-access-denied'
+  ) {
+    const feedAccessDenied = status.message === 'arca-updater:feed-access-denied'
+    const message = feedAccessDenied
+      ? translate('arca.updater.feedAccessDenied', 'No access to the update feed')
+      : translate('arca.updater.serverUnavailable', 'Update server unavailable')
+    return {
+      title: message,
+      summary: message,
+      primaryAction: {
+        label: translate('auto.components.UpdateCard.6b0085010d', 'Re-check'),
+        onClick: onRecheck
+      }
+    }
+  }
   if (status.message === 'arca-updater:megamind-required') {
     return {
       title: translate('arca.updater.connect', 'Connect to Megamind to receive updates'),

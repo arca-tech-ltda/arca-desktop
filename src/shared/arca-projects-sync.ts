@@ -4,6 +4,8 @@ export type ArcaCatalogEntry = {
   url: string
   destination: string
   pathFromCatalog?: boolean
+  archived?: boolean
+  legacy?: boolean
   source: 'mainframe' | 'file' | 'github'
 }
 export type ArcaSyncRow = ArcaCatalogEntry & {

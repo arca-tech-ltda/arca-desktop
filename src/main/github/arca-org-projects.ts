@@ -5,6 +5,7 @@ import type {
   ArcaProjectDestinationInspection,
   ArcaProjectsListResult
 } from '../../shared/arca-projects-types'
+import { isArcaProjectExcludedByDefault } from '../../shared/arca-product'
 import { gitExecFileAsync } from './gh-utils'
 import { loadArcaCatalog, normalizeArcaRemote } from '../arca-projects-sync/catalog'
 import { scanArcaDisk } from '../arca-projects-sync/disk'
@@ -59,21 +60,25 @@ export async function inspectArcaProjectDestination(
   }
 }
 
-export async function listArcaOrgProjects(_includeHidden = false): Promise<ArcaProjectsListResult> {
+export async function listArcaOrgProjects(includeHidden = false): Promise<ArcaProjectsListResult> {
   try {
     const catalog = await loadArcaCatalog()
     if (!catalog.sources.length) {
       return { ok: false, reason: 'catalog', message: catalog.errors.join('\n') }
     }
     const disk = await scanArcaDisk(homedir())
+    const hiddenCount = catalog.entries.filter(isArcaProjectExcludedByDefault).length
+    const entries = includeHidden
+      ? catalog.entries
+      : catalog.entries.filter((entry) => !isArcaProjectExcludedByDefault(entry))
     const projects = await Promise.all(
-      catalog.entries.map(async (entry) => {
+      entries.map(async (entry) => {
         const found = disk.find((repo) => repo.repoKey === entry.repoKey)
         const destination = found?.path ?? entry.destination
         return {
           name: entry.name,
           description: entry.repoKey,
-          isArchived: false,
+          isArchived: entry.archived === true,
           url: entry.url,
           sshUrl: entry.url,
           pushedAt: '',
@@ -84,7 +89,7 @@ export async function listArcaOrgProjects(_includeHidden = false): Promise<ArcaP
         }
       })
     )
-    return { ok: true, projects, hiddenCount: 0 }
+    return { ok: true, projects, hiddenCount }
   } catch (error) {
     return { ok: false, reason: 'unknown', message: String(error) }
   }

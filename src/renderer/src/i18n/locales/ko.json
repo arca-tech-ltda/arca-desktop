@@ -46,7 +46,9 @@
     "updater": {
       "connect": "업데이트를 받으려면 Megamind에 연결하세요",
       "downloadDmg": "업데이트하려면 DMG를 다운로드하세요",
-      "readOnly": "이 위치에서는 앱을 교체할 수 없습니다. 다운로드하려면 기기 인증이 필요합니다."
+      "readOnly": "이 위치에서는 앱을 교체할 수 없습니다. 다운로드하려면 기기 인증이 필요합니다.",
+      "serverUnavailable": "업데이트 서버를 사용할 수 없습니다",
+      "feedAccessDenied": "업데이트 피드에 접근할 수 없습니다"
     }
   },
   "app": {

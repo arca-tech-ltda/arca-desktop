@@ -7,6 +7,7 @@ import { addLocalRepoFromPath } from '../ipc/repos/local-repo-registration'
 import { notifyReposChanged } from '../ipc/repos/repos-changed-notification'
 import { invalidateAuthorizedRootsCache } from '../ipc/registered-worktree-roots-cache'
 import { normalizeRuntimePathForComparison } from '../../shared/cross-platform-path'
+import { isArcaProjectExcludedByDefault } from '../../shared/arca-product'
 import { emptyArcaSyncStatus, type ArcaSyncStatus } from '../../shared/arca-projects-sync'
 import { loadArcaCatalog } from './catalog'
 import { scanArcaDisk } from './disk'
@@ -42,7 +43,10 @@ export class ArcaProjectsSync {
       }
       const disk = await scanArcaDisk(homedir())
       const projects: ArcaSyncStatus['projects'] = []
-      for (const entry of catalog.entries) {
+      const visibleEntries = catalog.entries.filter(
+        (entry) => !isArcaProjectExcludedByDefault(entry)
+      )
+      for (const entry of visibleEntries) {
         const found =
           disk.find(
             (repo) =>

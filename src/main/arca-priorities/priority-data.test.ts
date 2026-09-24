@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { ArcaPriorityProject } from '../../shared/arca-priorities'
-import { applyLocalHours, mergePriorityProjects, priorityNotifications } from './priority-data'
+import {
+  applyLocalHours,
+  excludeDefaultPriorityProjects,
+  mergePriorityProjects,
+  priorityNotifications
+} from './priority-data'
 
 function project(overrides: Partial<ArcaPriorityProject> = {}): ArcaPriorityProject {
   return {
@@ -51,6 +56,15 @@ describe('priority data', () => {
       percent: 60,
       openTasks: [{ text: 'Open', line: 3 }]
     })
+  })
+
+  it('excludes legacy projects from the priority card even when locally registered', () => {
+    expect(
+      excludeDefaultPriorityProjects([
+        project({ name: 'brain', repoKey: 'github.com/arca-tech-ltda/brain' }),
+        project({ name: 'Active', repoKey: 'github.com/arca-tech-ltda/active' })
+      ]).map((item) => item.name)
+    ).toEqual(['Active'])
   })
 
   it('uses seven-day local time only when shared hours are absent', () => {

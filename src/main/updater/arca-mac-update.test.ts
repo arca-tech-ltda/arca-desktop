@@ -84,6 +84,51 @@ describe('ARCA macOS update flow', () => {
     })
   })
 
+  it.each([
+    [404, 'arca-updater:server-unavailable'],
+    [401, 'arca-updater:feed-access-denied'],
+    [403, 'arca-updater:feed-access-denied']
+  ])('keeps automatic HTTP %i feed failures neutral and explains manual failures', async (status, message) => {
+    mocks.netFetch.mockResolvedValue({ ok: false, status })
+    const automaticSend = vi.fn()
+    await new ArcaMacUpdate(automaticSend).check(false)
+    expect(automaticSend).toHaveBeenLastCalledWith({ state: 'idle' })
+
+    const manualSend = vi.fn()
+    await new ArcaMacUpdate(manualSend).check(true)
+    expect(manualSend).toHaveBeenLastCalledWith({ state: 'error', message, userInitiated: true })
+  })
+
+  it.each(['fetch failed', 'getaddrinfo ENOTFOUND mainframe', 'request timed out'])(
+    'keeps automatic transport failure %s neutral',
+    async (message) => {
+      mocks.netFetch.mockRejectedValue(new Error(message))
+      const send = vi.fn()
+      await new ArcaMacUpdate(send).check(false)
+      expect(send).toHaveBeenLastCalledWith({ state: 'idle' })
+    }
+  )
+
+  it('keeps SHA512 failures visible', async () => {
+    const manifest = [
+      'version: 1.5.2',
+      'files:',
+      `  - url: arca-macos-1.5.2-${process.arch}.zip`,
+      '    sha512: digest'
+    ].join('\n')
+    mocks.netFetch
+      .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+      .mockResolvedValueOnce({ ok: true, body: {} })
+    mocks.verify.mockRejectedValue(new Error('sha512 checksum mismatch'))
+    const send = vi.fn()
+    await new ArcaMacUpdate(send).check(false)
+    expect(send).toHaveBeenLastCalledWith({
+      state: 'error',
+      message: 'sha512 checksum mismatch',
+      userInitiated: false
+    })
+  })
+
   it('runs cleanup before launching the staged installer and quitting', async () => {
     const manifest = [
       'version: 1.5.2',

@@ -53,6 +53,20 @@ it('coalesces runs, registers catalog repos only, and preserves the registration
   expect((await service.syncNow()).projects[0].repoId).toBe('registered')
   expect(mocks.add.mock.calls.every(([, directory]) => directory === entry.destination)).toBe(true)
 })
+it('does not auto-register or report default-excluded catalog projects', async () => {
+  mocks.catalog.mockResolvedValue({
+    entries: [{ ...entry, name: 'brain', repoKey: 'github.com/arca-tech-ltda/brain' }],
+    sources: ['mainframe'],
+    errors: []
+  })
+  mocks.scan.mockResolvedValue([
+    { repoKey: 'github.com/arca-tech-ltda/brain', path: '/home/ana/ARCA/plataforma/brain' }
+  ])
+  const status = await new ArcaProjectsSync(new Store(), vi.fn()).syncNow()
+  expect(status.projects).toEqual([])
+  expect(status.outside).toEqual([])
+  expect(mocks.add).not.toHaveBeenCalled()
+})
 it('does not classify local repos outside an unavailable catalog', async () => {
   mocks.catalog.mockResolvedValue({ entries: [], sources: [], errors: ['offline'] })
   const service = new ArcaProjectsSync(new Store(), vi.fn())

@@ -46,7 +46,9 @@
     "updater": {
       "connect": "Connect to Megamind to receive updates",
       "downloadDmg": "Download the DMG to update",
-      "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
+      "readOnly": "The app cannot be replaced in this location. The download requires device authentication.",
+      "serverUnavailable": "Update server unavailable",
+      "feedAccessDenied": "No access to the update feed"
     }
   },
   "sidebar": {

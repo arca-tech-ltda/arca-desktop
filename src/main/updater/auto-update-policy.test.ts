@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 import { arcaUpdateFeed, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
+import {
+  ARCA_UPDATE_FEED_ACCESS_DENIED,
+  ARCA_UPDATE_SERVER_UNAVAILABLE,
+  arcaUpdateFeedUnavailableMessage
+} from './arca-update-feed-failure'
 import { areAutoUpdatesEnabled } from './auto-update-policy'
 import { readCredential } from '../arca-megamind/credentials'
 
@@ -38,6 +43,22 @@ describe('ARCA update policy', () => {
     expect((await readArcaUpdateFeed())?.requestHeaders.Authorization).toBe('Bearer abc')
     vi.stubEnv('ARCA_MAINFRAME_URL', 'https://other.example')
     expect(await readArcaUpdateFeed()).toBeNull()
+  })
+
+  it.each([
+    ['Update feed HTTP 404', ARCA_UPDATE_SERVER_UNAVAILABLE],
+    ['Update feed HTTP 401', ARCA_UPDATE_FEED_ACCESS_DENIED],
+    ['Update feed HTTP 403', ARCA_UPDATE_FEED_ACCESS_DENIED],
+    ['fetch failed: network error', ARCA_UPDATE_SERVER_UNAVAILABLE],
+    ['getaddrinfo ENOTFOUND mainframe', ARCA_UPDATE_SERVER_UNAVAILABLE],
+    ['request timed out', ARCA_UPDATE_SERVER_UNAVAILABLE]
+  ])('classifies unavailable feed failure %s', (message, expected) => {
+    expect(arcaUpdateFeedUnavailableMessage(new Error(message))).toBe(expected)
+  })
+
+  it('does not classify integrity or installation failures as feed availability', () => {
+    expect(arcaUpdateFeedUnavailableMessage(new Error('sha512 checksum mismatch'))).toBeNull()
+    expect(arcaUpdateFeedUnavailableMessage(new Error('installer launch failed'))).toBeNull()
   })
 
   it('rejects external and traversal artifact URLs', () => {
