@@ -26,12 +26,12 @@ ARCA até agora — o projeto está em fase inicial de adaptação/teste, não d
 _Nenhuma._
 
 ### 🟡 Em andamento
+_Nenhuma._
+
+### ⚪ A fazer (priorizado)
 - [ ] Teste manual do build Windows (instalação, Pi via `--extension`, painel Megamind:
       presença, `megamind_request`, fluxo de aprovação) — Responsável: Leonardo Vasconcelos de
       Campos · Ref: `docs/ARCA-TESTE-WINDOWS.md`
-
-### ⚪ A fazer (priorizado)
-_Nenhuma tarefa adicional com evidência no repositório._
 
 ### ✅ Concluído recentemente (últimos ~30 dias)
 - [x] Fork/rebrand ARCA Desktop 1.4.197 a partir do Orca (marca, ícone, CLI `arca`, Pi via
