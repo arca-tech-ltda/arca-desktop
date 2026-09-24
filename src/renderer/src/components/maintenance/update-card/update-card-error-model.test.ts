@@ -22,7 +22,7 @@ describe('update card error model precedence', () => {
   it('shows enrollment guidance without an upstream manual-download link', () => {
     const model = build({
       state: 'error',
-      message: 'Connect to Megamind to receive updates'
+      message: 'arca-updater:megamind-required'
     })
     expect(model?.summary).toBe('Connect to Megamind to receive updates')
     expect(model?.releaseUrl).toBeUndefined()

@@ -47,10 +47,10 @@ export function buildUpdateCardErrorModel({
         }
       : null
   }
-  if (status.message === 'Conecte ao Megamind para receber atualizações') {
+  if (status.message === 'arca-updater:megamind-required') {
     return {
-      title: translate('arca.updater.connect', 'Conecte ao Megamind para receber atualizações'),
-      summary: translate('arca.updater.connect', 'Conecte ao Megamind para receber atualizações'),
+      title: translate('arca.updater.connect', 'Connect to Megamind to receive updates'),
+      summary: translate('arca.updater.connect', 'Connect to Megamind to receive updates'),
       primaryAction: {
         label: translate('auto.components.UpdateCard.6b0085010d', 'Re-check'),
         onClick: onRecheck
@@ -59,13 +59,13 @@ export function buildUpdateCardErrorModel({
   }
   if (status.manualDownloadUrl) {
     return {
-      title: translate('arca.updater.downloadDmg', 'Baixe o DMG para atualizar'),
+      title: translate('arca.updater.downloadDmg', 'Download the DMG to update'),
       summary: translate(
         'arca.updater.readOnly',
         'O app não pode ser substituído neste local. O download requer autenticação de dispositivo.'
       ),
       releaseUrl: status.manualDownloadUrl,
-      manualLabel: translate('arca.updater.downloadDmg', 'Baixe o DMG para atualizar')
+      manualLabel: translate('arca.updater.downloadDmg', 'Download the DMG to update')
     }
   }
   if (isLocalBuild) {

@@ -80,7 +80,7 @@ export class ArcaMacUpdate {
           object(dmg) && typeof dmg.url === 'string' ? updateArtifactUrl(feed, dmg.url) : feed.url
         this.send({
           state: 'error',
-          message: 'Baixe o DMG para atualizar',
+          message: 'arca-updater:download-dmg',
           manualDownloadUrl: link,
           retryable: false,
           userInitiated

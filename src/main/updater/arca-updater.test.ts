@@ -77,7 +77,7 @@ describe('ARCA upstream integration', () => {
     expect(harness.autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled()
     expect(updater.getUpdateStatus()).toMatchObject({
       state: 'error',
-      message: 'Conecte ao Megamind para receber atualizações'
+      message: 'arca-updater:megamind-required'
     })
     feedReader.mockResolvedValue(arcaUpdateFeed(undefined, 'new-device'))
     updater.checkForUpdatesFromMenu({

@@ -1,7 +1,8 @@
 import { ARCA_MAINFRAME_DEFAULT_URL } from '../../shared/arca-mainframe'
 import { megamindConfigPath, readCredential } from '../arca-megamind/credentials'
 
-export const MEGAMIND_UPDATE_REQUIRED = 'Conecte ao Megamind para receber atualizações'
+// Why: stable code shared with the renderer, which shows the localized text.
+export const MEGAMIND_UPDATE_REQUIRED = 'arca-updater:megamind-required'
 
 export function arcaUpdateFeed(base = ARCA_MAINFRAME_DEFAULT_URL, token?: string) {
   const url = new URL(base)
