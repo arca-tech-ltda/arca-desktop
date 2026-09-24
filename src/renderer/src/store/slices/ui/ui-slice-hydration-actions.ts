@@ -202,6 +202,7 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
           syncTaskStatusFromWorkspaceBoard: ui.syncTaskStatusFromWorkspaceBoard === true,
           statusBarItems: statusBarItemsWithGrok,
           statusBarVisible: ui.statusBarVisible ?? true,
+          priorityCardVisible: ui.priorityCardVisible ?? true,
           usagePercentageDisplay: normalizeUsagePercentageDisplay(ui.usagePercentageDisplay),
           statusBarUsageMode: normalizeStatusBarUsageMode(ui.statusBarUsageMode),
           // Why: default true so existing users see the pet on first enabling the flag; only an explicit Hide persists false.

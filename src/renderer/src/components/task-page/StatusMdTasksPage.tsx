@@ -10,6 +10,7 @@ import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
 import { filterStatusMdTasks, groupStatusMdTasksBySection } from '../../../../shared/status-md-tasks'
 import type { StatusMdTask } from '../../../../shared/status-md-tasks'
 import type { StatusMdTaskProject } from '../../../../preload/api/status-md-tasks-api'
+import { PrioritiesSection } from '@/components/arca-priorities/PrioritiesSection'
 
 function getClientPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Windows')) {
@@ -215,6 +216,8 @@ export function StatusMdTasksPage({
             {translate('auto.components.TaskPage.closeTasks', 'Close')}
           </Button>
         </header>
+
+        <PrioritiesSection />
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-2">
           <div className="relative min-w-52 flex-1">

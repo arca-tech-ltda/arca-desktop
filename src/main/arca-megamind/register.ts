@@ -8,6 +8,7 @@ import { pendingApprovals, decideApproval } from './human-approvals'
 import { takeArcaDeepLinks } from './deep-links'
 import { megamindPrerequisites } from './prerequisites'
 import { isTrustedUIRenderer } from '../ipc/ui'
+import { notifyMegamindPrioritiesChanged, setMegamindPriorityProvider } from './priorities'
 
 function requireRenderer(sender: WebContents): void {
   if (!isTrustedUIRenderer(sender)) {
@@ -36,6 +37,9 @@ export function registerMegamind(): void {
     !app.isPackaged,
     join(app.getPath('userData'), 'megamind-sessions.json'),
     (item) => {
+      if (typeof item.kind === 'string' && item.kind.toLowerCase().includes('priority')) {
+        notifyMegamindPrioritiesChanged()
+      }
       const target = [...subscribers].find((sender) => !sender.isDestroyed())
       if (!target) {
         return false
@@ -45,6 +49,7 @@ export function registerMegamind(): void {
     },
     (connected) => enrollment.connectionChanged(connected)
   )
+  setMegamindPriorityProvider(() => client.priorities())
   const enrollment = new MegamindEnrollment({
     path: megamindConfigPath(),
     endpoint: new URL('/api/arca/mcp', getArcaMainframeEndpoint().origin).href,
@@ -108,6 +113,7 @@ export function registerMegamind(): void {
     return takeArcaDeepLinks()
   })
   app.once('before-quit', () => {
+    setMegamindPriorityProvider(null)
     client.stop()
     enrollment.stop()
   })

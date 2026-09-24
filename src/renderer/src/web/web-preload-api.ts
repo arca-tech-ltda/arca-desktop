@@ -70,6 +70,10 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     ...createWebOrcaProfilesApi(),
     ...createWebE2EApi(),
     ...createWebSettingsApi(),
+    arcaPriorities: {
+      list: async () => [],
+      onChange: () => () => {}
+    },
     arcaMegamind: {
       prerequisites: async () => ({ pi: false, installer: false, extension: false, windows: false }),
       status: async () => ({ state: 'disconnected' }),

@@ -17226,6 +17226,25 @@
         "9a4c6b2d7e": "Skill sharing",
         "3d8e5f1b9c": "Share skills behind an unlisted link and install them on any machine you use.",
         "c5b3e8a17d": "Sign in to ARCA"
+      },
+      "priorities": {
+        "title": "Priorities",
+        "expand": "Expand priorities",
+        "collapse": "Collapse priorities",
+        "sharedSource": "shared",
+        "localSource": "local",
+        "noPriority": "No priority defined",
+        "noTasks": "no tasks",
+        "of": "of",
+        "blockedBy": "Blocked by",
+        "queue": "Queue",
+        "yourTime": "your time",
+        "teamTime": "team time",
+        "workOnThis": "Work on this",
+        "openStatus": "Open STATUS.md",
+        "piLaunchError": "Could not start Pi for this priority.",
+        "showCard": "Show priority card",
+        "showCardDescription": "Show the current priority above the status bar."
       }
     },
     "i18n": {

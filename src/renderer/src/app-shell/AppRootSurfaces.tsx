@@ -32,6 +32,11 @@ const WorktreeJumpPalette = lazy(() => import('../components/WorktreeJumpPalette
 const WorkspaceCleanupDialog = lazy(
   () => import('../components/workspace-cleanup/WorkspaceCleanupDialog')
 )
+const PriorityCard = lazy(() =>
+  import('../components/arca-priorities/PriorityCard').then((module) => ({
+    default: module.PriorityCard
+  }))
+)
 const StatusBar = lazy(() =>
   import('../components/status-bar/StatusBar').then((module) => ({ default: module.StatusBar }))
 )
@@ -147,6 +152,7 @@ export function AppRootSurfaces(props: {
   const updateStatus = useAppStore((s) => s.updateStatus)
   const activeContextualTourId = useAppStore((s) => s.activeContextualTourId)
   const hasSshCredentialRequest = useAppStore((s) => s.sshCredentialQueue.length > 0)
+  const priorityCardVisible = useAppStore((s) => s.priorityCardVisible)
 
   const shouldMountSetupGuideTelemetryObserver = persistedUIReady
   const shouldMountUpdateCard = shouldMountUpdateCardForStatus(updateStatus)
@@ -172,6 +178,11 @@ export function AppRootSurfaces(props: {
               tourInteractionSnapshot={floatingWorkspace.tourInteractionSnapshotRef.current}
             />
           </OverlayBoundary>
+        </Suspense>
+      ) : null}
+      {priorityCardVisible ? (
+        <Suspense fallback={null}>
+          <PriorityCard />
         </Suspense>
       ) : null}
       {statusBarVisible ? (

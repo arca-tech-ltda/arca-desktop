@@ -51,6 +51,9 @@ export class MegamindDeviceClient {
       )
       .map((agent) => ({ ...agent, id: agent.session_id }))
   }
+  priorities(): Promise<MegamindRecord> {
+    return this.tool('priorities_list', {})
+  }
   async requests(): Promise<MegamindRecord[]> {
     await this.loadSessions()
     const result: MegamindRecord[] = []
@@ -144,7 +147,10 @@ export class MegamindDeviceClient {
       }
       if (!this.closeEvents && this.credential && this.running) {
         this.closeEvents = startMegamindEvents(this.credential, this.development, (event) => {
-          if (event?.kind === 'approval_decision') {
+          if (
+            event?.kind === 'approval_decision' ||
+            (typeof event?.kind === 'string' && event.kind.toLowerCase().includes('priority'))
+          ) {
             this.notify(event)
           }
           void this.poll()

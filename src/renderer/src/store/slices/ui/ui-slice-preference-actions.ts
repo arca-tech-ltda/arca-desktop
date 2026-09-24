@@ -280,6 +280,11 @@ export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Par
       window.api.ui.set({ statusBarVisible: v }).catch(console.error)
       set({ statusBarVisible: v })
     },
+    priorityCardVisible: true,
+    setPriorityCardVisible: (visible) => {
+      window.api.ui.set({ priorityCardVisible: visible }).catch(console.error)
+      set({ priorityCardVisible: visible })
+    },
     usagePercentageDisplay: DEFAULT_USAGE_PERCENTAGE_DISPLAY,
     setUsagePercentageDisplay: (display) => {
       const normalized = normalizeUsagePercentageDisplay(display)

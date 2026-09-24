@@ -14680,6 +14680,25 @@
         "description": "このワークスペースをサイドバー内の別のワークスペースの配下にネストします。ベースブランチは変更されません。",
         "searchPlaceholder": "ワークスペースを検索...",
         "noMatches": "一致する項目がありません。"
+      },
+      "priorities": {
+        "title": "優先事項",
+        "expand": "優先事項を展開",
+        "collapse": "優先事項を折りたたむ",
+        "sharedSource": "共有",
+        "localSource": "ローカル",
+        "noPriority": "優先事項が未定義です",
+        "noTasks": "タスクなし",
+        "of": "/",
+        "blockedBy": "ブロック元",
+        "queue": "キュー",
+        "yourTime": "自分の時間",
+        "teamTime": "チーム時間",
+        "workOnThis": "これに取り組む",
+        "openStatus": "STATUS.md を開く",
+        "piLaunchError": "この優先事項の Pi を開始できませんでした。",
+        "showCard": "優先事項カードを表示",
+        "showCardDescription": "現在の優先事項をステータスバーの上に表示します。"
       }
     },
     "i18n": {

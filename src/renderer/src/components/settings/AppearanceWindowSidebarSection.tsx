@@ -67,6 +67,8 @@ export function AppearanceWindowSidebarSection({
   const searchQuery = useAppStore((state) => state.settingsSearchQuery)
   const isSearching = normalizeSettingsSearchQuery(searchQuery).length > 0
   const statusBarItems = useAppStore((state) => state.statusBarItems)
+  const priorityCardVisible = useAppStore((state) => state.priorityCardVisible)
+  const setPriorityCardVisible = useAppStore((state) => state.setPriorityCardVisible)
   const toggleStatusBarItem = useAppStore((state) => state.toggleStatusBarItem)
   const usagePercentageDisplay = useAppStore((state) => state.usagePercentageDisplay)
   const setUsagePercentageDisplay = useAppStore((state) => state.setUsagePercentageDisplay)
@@ -166,6 +168,17 @@ export function AppearanceWindowSidebarSection({
                   }
                 />
               </SearchableSetting>
+
+              <SettingsSwitchRow
+                label={translate('auto.components.priorities.showCard', 'Show priority card')}
+                description={translate(
+                  'auto.components.priorities.showCardDescription',
+                  'Show the current priority above the status bar.'
+                )}
+                checked={priorityCardVisible}
+                onChange={() => setPriorityCardVisible(!priorityCardVisible)}
+                ariaLabel={translate('auto.components.priorities.showCard', 'Show priority card')}
+              />
 
               {visibleStatusBarToggles.map((toggle) => {
                 const enabled = statusBarItems.includes(toggle.id)

@@ -14680,6 +14680,25 @@
         "description": "Anida este espacio de trabajo bajo otro en la barra lateral. No cambia la rama base.",
         "searchPlaceholder": "Buscar espacios de trabajo...",
         "noMatches": "No hay coincidencias."
+      },
+      "priorities": {
+        "title": "Prioridades",
+        "expand": "Expandir prioridades",
+        "collapse": "Contraer prioridades",
+        "sharedSource": "compartido",
+        "localSource": "local",
+        "noPriority": "Sin prioridad definida",
+        "noTasks": "sin tareas",
+        "of": "de",
+        "blockedBy": "Bloqueado por",
+        "queue": "Cola",
+        "yourTime": "tu tiempo",
+        "teamTime": "tiempo del equipo",
+        "workOnThis": "Trabajar en esto",
+        "openStatus": "Abrir STATUS.md",
+        "piLaunchError": "No se pudo iniciar Pi para esta prioridad.",
+        "showCard": "Mostrar tarjeta de prioridades",
+        "showCardDescription": "Mostrar la prioridad actual encima de la barra de estado."
       }
     },
     "i18n": {

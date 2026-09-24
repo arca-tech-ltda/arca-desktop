@@ -6,6 +6,7 @@ import type { Repo } from '../../shared/repo-types'
 import { parseStatusMd } from '../../shared/status-md-tasks'
 import type { StatusMdTaskProject } from '../../preload/api/status-md-tasks-api'
 import type { Store } from '../persistence'
+import { registerArcaPriorityHandlers } from '../arca-priorities/priority-service'
 
 const STATUS_FILE = 'STATUS.md'
 
@@ -72,17 +73,23 @@ function isMissingFile(error: unknown): boolean {
 }
 
 export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: Store): void {
+  const refreshPriorities = registerArcaPriorityHandlers(mainWindow, store)
+  syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
   ipcMain.removeHandler('status-md-tasks:list')
   ipcMain.handle('status-md-tasks:list', async (): Promise<StatusMdTaskProject[]> => {
     const repos = store.getRepos()
-    syncStatusWatchers(mainWindow, repos)
+    syncStatusWatchers(mainWindow, repos, refreshPriorities)
     return readStatusMdTasksForRepos(repos)
   })
 }
 
 const watchers = new Map<string, { watcher: FSWatcher; timer: NodeJS.Timeout | null }>()
 
-function syncStatusWatchers(mainWindow: BrowserWindow, repos: readonly Repo[]): void {
+function syncStatusWatchers(
+  mainWindow: BrowserWindow,
+  repos: readonly Repo[],
+  refreshPriorities: () => void
+): void {
   const localRepos = repos.filter(
     (repo) => !repo.connectionId && (!repo.executionHostId || repo.executionHostId === 'local')
   )
@@ -117,6 +124,7 @@ function syncStatusWatchers(mainWindow: BrowserWindow, repos: readonly Repo[]): 
           current.timer = null
           if (!mainWindow.isDestroyed()) {
             mainWindow.webContents.send('status-md-tasks:changed', { repoId: repo.id })
+            refreshPriorities()
           }
         }, 120)
       })

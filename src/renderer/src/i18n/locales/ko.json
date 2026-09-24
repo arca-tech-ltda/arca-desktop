@@ -14757,6 +14757,25 @@
         "description": "이 워크스페이스를 사이드바의 다른 워크스페이스 아래에 중첩합니다. 기준 브랜치는 변경되지 않습니다.",
         "searchPlaceholder": "워크스페이스 검색...",
         "noMatches": "일치하는 항목이 없습니다."
+      },
+      "priorities": {
+        "title": "우선순위",
+        "expand": "우선순위 펼치기",
+        "collapse": "우선순위 접기",
+        "sharedSource": "공유",
+        "localSource": "로컬",
+        "noPriority": "정의된 우선순위 없음",
+        "noTasks": "작업 없음",
+        "of": "중",
+        "blockedBy": "차단 요인",
+        "queue": "대기열",
+        "yourTime": "내 시간",
+        "teamTime": "팀 시간",
+        "workOnThis": "이 작업 시작",
+        "openStatus": "STATUS.md 열기",
+        "piLaunchError": "이 우선순위에 대해 Pi를 시작할 수 없습니다.",
+        "showCard": "우선순위 카드 표시",
+        "showCardDescription": "현재 우선순위를 상태 표시줄 위에 표시합니다."
       }
     },
     "i18n": {

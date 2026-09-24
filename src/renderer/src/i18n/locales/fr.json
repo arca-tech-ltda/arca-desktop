@@ -16021,6 +16021,25 @@
         "expiredCompact": "Expiré",
         "typeMarkdown": "Markdown",
         "typeHtml": "HTML"
+      },
+      "priorities": {
+        "title": "Priorités",
+        "expand": "Développer les priorités",
+        "collapse": "Réduire les priorités",
+        "sharedSource": "partagé",
+        "localSource": "local",
+        "noPriority": "Aucune priorité définie",
+        "noTasks": "aucune tâche",
+        "of": "sur",
+        "blockedBy": "Bloqué par",
+        "queue": "File d’attente",
+        "yourTime": "votre temps",
+        "teamTime": "temps de l’équipe",
+        "workOnThis": "Travailler dessus",
+        "openStatus": "Ouvrir STATUS.md",
+        "piLaunchError": "Impossible de démarrer Pi pour cette priorité.",
+        "showCard": "Afficher la carte des priorités",
+        "showCardDescription": "Afficher la priorité actuelle au-dessus de la barre d’état."
       }
     },
     "i18n": {

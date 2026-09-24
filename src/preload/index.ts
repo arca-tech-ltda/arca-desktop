@@ -63,6 +63,7 @@ import { updaterApi } from './api/updater-bridge'
 import { docPreviewApi } from './api/doc-preview-bridge'
 import { arcaMainframeApi } from './api/arca-mainframe-bridge'
 import { arcaMegamindApi } from './api/arca-megamind-bridge'
+import { arcaPrioritiesApi } from './api/arca-priorities-bridge'
 import { notebookApi } from './api/notebook-bridge'
 import { fsApi } from './api/fs-bridge'
 import { gitApi } from './api/git-bridge'
@@ -165,6 +166,7 @@ const api = {
   docPreview: docPreviewApi,
   arcaMainframe: arcaMainframeApi,
   arcaMegamind: arcaMegamindApi,
+  arcaPriorities: arcaPrioritiesApi,
   notebook: notebookApi,
   fs: fsApi,
   git: gitApi,

@@ -14760,6 +14760,25 @@
         "description": "在侧边栏中将此工作区嵌套到另一个工作树下。不会更改基础分支。",
         "searchPlaceholder": "搜索工作树...",
         "noMatches": "无匹配项。"
+      },
+      "priorities": {
+        "title": "优先事项",
+        "expand": "展开优先事项",
+        "collapse": "收起优先事项",
+        "sharedSource": "共享",
+        "localSource": "本地",
+        "noPriority": "未定义优先事项",
+        "noTasks": "无任务",
+        "of": "共",
+        "blockedBy": "阻塞方",
+        "queue": "队列",
+        "yourTime": "你的时间",
+        "teamTime": "团队时间",
+        "workOnThis": "处理此项",
+        "openStatus": "打开 STATUS.md",
+        "piLaunchError": "无法为此优先事项启动 Pi。",
+        "showCard": "显示优先事项卡片",
+        "showCardDescription": "在状态栏上方显示当前优先事项。"
       }
     },
     "i18n": {

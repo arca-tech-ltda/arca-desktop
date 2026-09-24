@@ -22,6 +22,15 @@ const schema = z.array(
   })
 )
 
+export function readProjectTimeSnapshot(file: string): ProjectTimeEntry[] {
+  try {
+    return schema.parse(JSON.parse(readFileSync(file, 'utf8')))
+  } catch {
+    // Missing or corrupt local history must not block startup.
+    return []
+  }
+}
+
 export class ProjectTimeStore {
   private entries: ProjectTimeEntry[] = []
   private writer: StatsSnapshotWriter
@@ -29,11 +38,7 @@ export class ProjectTimeStore {
 
   constructor(file: string) {
     this.writer = new StatsSnapshotWriter(() => file)
-    try {
-      this.entries = schema.parse(JSON.parse(readFileSync(file, 'utf8')))
-    } catch {
-      // Missing or corrupt local history must not block startup.
-    }
+    this.entries = readProjectTimeSnapshot(file)
     this.entries = retainProjectTime(this.entries, new Date())
   }
 
