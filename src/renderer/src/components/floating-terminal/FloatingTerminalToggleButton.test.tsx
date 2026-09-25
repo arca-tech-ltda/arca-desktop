@@ -280,18 +280,18 @@ describe('FloatingTerminalToggleButton attention dot', () => {
   it('renders the attention dot when closed with pending floating activity', async () => {
     storeState.hasFloatingUnread = true
     const element = await renderToggle(false)
-    expect(hasProp(element, 'data-floating-terminal-attention')).toBe(true)
+    expect(hasProp(element, 'showAttentionDot')).toBe(true)
   })
 
   it('hides the dot when the panel is open even with pending activity', async () => {
     storeState.hasFloatingUnread = true
     const element = await renderToggle(true)
-    expect(hasProp(element, 'data-floating-terminal-attention')).toBe(false)
+    expect(hasProp(element, 'showAttentionDot')).toBe(false)
   })
 
   it('hides the dot when there is no pending activity', async () => {
     storeState.hasFloatingUnread = false
     const element = await renderToggle(false)
-    expect(hasProp(element, 'data-floating-terminal-attention')).toBe(false)
+    expect(hasProp(element, 'showAttentionDot')).toBe(false)
   })
 })

@@ -1,6 +1,6 @@
 import { subscribeStatusMdChanges } from '@/components/task-page/status-md-subscription'
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronUp, ListTodo } from 'lucide-react'
+import { ChevronDown, ListTodo } from 'lucide-react'
 import type {
   StatusMdRecentTasks,
   StatusMdTaskProject
@@ -8,6 +8,7 @@ import type {
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
 import { translate } from '@/i18n/i18n'
 import { Button } from '@/components/ui/button'
+import { FloatingLauncherButton } from '@/components/floating-launcher/FloatingLauncherButton'
 import { cn } from '@/lib/utils'
 import { useActiveWorktree } from '@/store/selectors'
 import { useStatusMdTaskActions } from '@/components/task-page/useStatusMdTaskActions'
@@ -38,6 +39,7 @@ export function PriorityCard(): React.JSX.Element | null {
   const [tasksLoaded, setTasksLoaded] = useState(false)
   const [agents, setAgents] = useState<Record<string, unknown>[]>([])
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === 'true')
+  const [taskUpdateWhileCollapsed, setTaskUpdateWhileCollapsed] = useState(false)
   const [tab, setTab] = useState<CardTab>(() => savedTab(Boolean(activeWorktree)))
   const priorityActions = usePriorityActions()
   const taskActions = useStatusMdTaskActions()
@@ -77,7 +79,10 @@ export function PriorityCard(): React.JSX.Element | null {
       .then(setAgents)
       .catch(() => setAgents([]))
     const stopPriorities = window.api.arcaPriorities.onChange(refreshPriorities)
-    const stopTasks = subscribeStatusMdChanges(refreshTasks)
+    const stopTasks = subscribeStatusMdChanges(() => {
+      refreshTasks()
+      setTaskUpdateWhileCollapsed(true)
+    })
     return () => {
       stopPriorities()
       stopTasks()
@@ -100,10 +105,41 @@ export function PriorityCard(): React.JSX.Element | null {
     localStorage.setItem(TAB_KEY, next)
   }
   const toggle = (): void => {
+    // Either direction acknowledges the pending updates, so the dot only ever
+    // reflects task changes that landed while the card was parked.
+    setTaskUpdateWhileCollapsed(false)
     setCollapsed((value) => {
       localStorage.setItem(COLLAPSED_KEY, String(!value))
       return !value
     })
+  }
+
+  if (collapsed) {
+    return (
+      <div
+        data-arca-priority-card
+        // Parked above the floating-workspace launcher (24px right gap, 72px
+        // bottom gap, 36px control) with the same 8px stacking gap.
+        className="fixed right-6 bottom-[116px] z-[46]"
+      >
+        <FloatingLauncherButton
+          data-arca-priority-launcher
+          icon={<ListTodo className="size-4" />}
+          showAttentionDot={taskUpdateWhileCollapsed}
+          aria-pressed={false}
+          label={
+            taskUpdateWhileCollapsed
+              ? translate(
+                  'auto.components.priorities.launcherLabelAttention',
+                  'Show project tasks, new updates'
+                )
+              : translate('auto.components.priorities.launcherLabel', 'Show project tasks')
+          }
+          tooltip={translate('auto.components.priorities.launcherLabel', 'Show project tasks')}
+          onClick={toggle}
+        />
+      </div>
+    )
   }
 
   const taskActionProps = {
@@ -127,81 +163,73 @@ export function PriorityCard(): React.JSX.Element | null {
           variant="ghost"
           size="icon-xs"
           onClick={toggle}
-          aria-label={
-            collapsed
-              ? translate('auto.components.priorities.expand', 'Expand priorities')
-              : translate('auto.components.priorities.collapse', 'Collapse priorities')
-          }
+          aria-label={translate('auto.components.priorities.collapse', 'Collapse priorities')}
         >
-          {collapsed ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          <ChevronDown className="size-3.5" />
         </Button>
       </div>
-      {!collapsed ? (
-        <>
-          <div className="flex gap-1 border-y border-border px-2 py-1">
-            {currentProject ? (
-              <button
-                type="button"
-                className={cn(
-                  'rounded-md px-2 py-1 text-xs',
-                  tab === 'current' ? 'bg-accent font-medium' : 'text-muted-foreground'
-                )}
-                onClick={() => chooseTab('current')}
-              >
-                {translate('auto.components.priorities.currentProject', 'This project')}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={cn(
-                'rounded-md px-2 py-1 text-xs',
-                tab === 'recent' ? 'bg-accent font-medium' : 'text-muted-foreground'
-              )}
-              onClick={() => chooseTab('recent')}
-            >
-              {translate('auto.components.priorities.recent', 'Recent')}
-            </button>
-            <button
-              type="button"
-              className={cn(
-                'rounded-md px-2 py-1 text-xs',
-                tab === 'priorities' ? 'bg-accent font-medium' : 'text-muted-foreground'
-              )}
-              onClick={() => chooseTab('priorities')}
-            >
-              {translate('auto.components.priorities.title', 'Priorities')}
-            </button>
-          </div>
-          <div className="scrollbar-sleek max-h-[min(60vh,520px)] overflow-y-auto">
-            {tab === 'current' && currentProject ? (
-              <CurrentProjectPane
-                project={currentProject}
-                priority={currentPriority}
+      <div className="flex gap-1 border-y border-border px-2 py-1">
+        {currentProject ? (
+          <button
+            type="button"
+            className={cn(
+              'rounded-md px-2 py-1 text-xs',
+              tab === 'current' ? 'bg-accent font-medium' : 'text-muted-foreground'
+            )}
+            onClick={() => chooseTab('current')}
+          >
+            {translate('auto.components.priorities.currentProject', 'This project')}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className={cn(
+            'rounded-md px-2 py-1 text-xs',
+            tab === 'recent' ? 'bg-accent font-medium' : 'text-muted-foreground'
+          )}
+          onClick={() => chooseTab('recent')}
+        >
+          {translate('auto.components.priorities.recent', 'Recent')}
+        </button>
+        <button
+          type="button"
+          className={cn(
+            'rounded-md px-2 py-1 text-xs',
+            tab === 'priorities' ? 'bg-accent font-medium' : 'text-muted-foreground'
+          )}
+          onClick={() => chooseTab('priorities')}
+        >
+          {translate('auto.components.priorities.title', 'Priorities')}
+        </button>
+      </div>
+      <div className="scrollbar-sleek max-h-[min(60vh,520px)] overflow-y-auto">
+        {tab === 'current' && currentProject ? (
+          <CurrentProjectPane
+            project={currentProject}
+            priority={currentPriority}
+            agents={agents}
+            {...taskActionProps}
+          />
+        ) : null}
+        {tab === 'recent' ? <RecentTasksPane recent={recent} {...taskActionProps} /> : null}
+        {tab === 'priorities' ? (
+          <div className="space-y-2 p-2">
+            {priorities.map((priority) => (
+              <PriorityRow
+                key={priority.projectId}
+                project={priority}
+                statusProject={projects.find((project) => project.repoId === priority.repoId)}
+                onOpenStatus={priorityActions.openStatus}
+                onWork={(item) => void priorityActions.work(item)}
+                onOpenTask={taskActions.openStatusTask}
+                onWorkTask={taskActions.workWithPi}
+                onCopyTask={taskActions.copyTask}
                 agents={agents}
-                {...taskActionProps}
               />
-            ) : null}
-            {tab === 'recent' ? <RecentTasksPane recent={recent} {...taskActionProps} /> : null}
-            {tab === 'priorities' ? (
-              <div className="space-y-2 p-2">
-                {priorities.map((priority) => (
-                  <PriorityRow
-                    key={priority.projectId}
-                    project={priority}
-                    statusProject={projects.find((project) => project.repoId === priority.repoId)}
-                    onOpenStatus={priorityActions.openStatus}
-                    onWork={(item) => void priorityActions.work(item)}
-                    onOpenTask={taskActions.openStatusTask}
-                    onWorkTask={taskActions.workWithPi}
-                    onCopyTask={taskActions.copyTask}
-                    agents={agents}
-                  />
-                ))}
-              </div>
-            ) : null}
+            ))}
           </div>
-        </>
-      ) : null}
+        ) : null}
+      </div>
     </aside>
   )
 }

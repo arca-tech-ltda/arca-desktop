@@ -118,6 +118,7 @@
   --color-git-graph-lane-4: var(--git-graph-lane-4);
   --color-git-graph-lane-5: var(--git-graph-lane-5);
   --color-annotation-highlight: var(--annotation-highlight);
+  --color-attention-dot: var(--attention-dot);
   --shadow-floating: 0 10px 24px rgb(0 0 0 / 0.18);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -243,6 +244,9 @@
   --git-graph-lane-4: #40b0a6;
   --git-graph-lane-5: #b66dff;
   --annotation-highlight: #f59e0b;
+  /* Unread/needs-attention dot on floating launchers; same tone in both themes so
+     the affordance keeps its identity when the theme flips. */
+  --attention-dot: #f59e0b;
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
   /* Why: tab-group splits use a dedicated divider — `--border` is too faint on
@@ -359,6 +363,7 @@
   --git-graph-lane-4: #40b0a6;
   --git-graph-lane-5: #b66dff;
   --annotation-highlight: #fbbf24;
+  --attention-dot: #f59e0b;
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
   /* Brighter than terminal defaults so the always-visible line clears 3:1 on `--card`. */
