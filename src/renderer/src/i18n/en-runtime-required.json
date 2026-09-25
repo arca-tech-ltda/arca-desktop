@@ -2788,6 +2788,15 @@
       "title": "Agent dashboard"
     }
   },
+  "piAccounts": {
+    "addClaude": "Add Claude account",
+    "addCodex": "Add Codex account",
+    "addFailed": "Sign-in did not finish. Try again.",
+    "added": "Saved as {{value0}}.",
+    "duplicate": "That account is already saved as {{value0}}.",
+    "nameInvalid": "Use letters, numbers and . _ @ + - without spaces.",
+    "nameTaken": "That name is already used."
+  },
   "runtimeRpc": {
     "startupFailure": {
       "guidance": {

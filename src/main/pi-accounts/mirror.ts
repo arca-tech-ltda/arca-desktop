@@ -12,13 +12,10 @@ import {
 } from '../claude-accounts/keychain'
 import { ClaudeRuntimePathResolver } from '../claude-accounts/runtime-paths'
 import { readJson, writeJson, type Credential } from './files'
+import { readCodexIdToken, rememberCodexIdToken } from './codex-id-token-cache'
 import type { PiAccountProvider } from '../../shared/pi-accounts'
 
 const objectSchema = z.record(z.string(), z.unknown())
-const cacheSchema = z.object({
-  version: z.literal(1),
-  codexIdTokens: z.record(z.string(), z.string())
-})
 const tokenSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string(),
@@ -147,8 +144,7 @@ export function createAccountMirror(options: MirrorOptions = {}) {
     if (!cred.accountId) {
       throw new Error('Incomplete Pi Codex credential')
     }
-    const state = cacheSchema.parse(await readJson(statePath, { version: 1, codexIdTokens: {} }))
-    let idToken = state.codexIdTokens[key]
+    let idToken = await readCodexIdToken(statePath, key)
     let next = cred
     let error: string | undefined
     let expires: number | undefined
@@ -185,9 +181,8 @@ export function createAccountMirror(options: MirrorOptions = {}) {
         refresh: fresh.refresh_token,
         expires: Date.now() + fresh.expires_in * 1000
       }
-      state.codexIdTokens[key] = idToken
       try {
-        await writeJson(statePath, state)
+        await rememberCodexIdToken(statePath, key, idToken)
       } catch {
         error = 'mirror-failed'
       }

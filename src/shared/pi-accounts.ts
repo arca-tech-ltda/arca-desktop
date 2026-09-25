@@ -6,9 +6,29 @@ export type PiAccount = {
   drift: boolean
 }
 export type PiAccountsState = { accounts: PiAccount[]; error?: string }
+/** Every mutation answers with the fresh list; credentials never leave the main process. */
+export type PiAccountAddResult = {
+  status: 'added' | 'duplicate' | 'cancelled' | 'failed'
+  /** The saved (or already existing) account name. Login failures carry no detail: CLI output can quote a token. */
+  name?: string
+  state: PiAccountsState
+}
+export type PiAccountRemoveResult = {
+  status: 'removed' | 'missing' | 'active-in-use'
+  state: PiAccountsState
+}
+export type PiAccountRenameResult = {
+  status: 'renamed' | 'missing' | 'name-taken' | 'invalid-name'
+  state: PiAccountsState
+}
 export type PiAccountsApi = {
   list: () => Promise<PiAccountsState>
   use: (provider: PiAccountProvider, name: string) => Promise<PiAccountsState>
   remirror: (provider: PiAccountProvider) => Promise<PiAccountsState>
+  add: (provider: PiAccountProvider) => Promise<PiAccountAddResult>
+  cancelAdd: () => Promise<boolean>
+  remove: (provider: PiAccountProvider, name: string) => Promise<PiAccountRemoveResult>
+  rename: (provider: PiAccountProvider, from: string, to: string) => Promise<PiAccountRenameResult>
   onChange: (callback: (state: PiAccountsState) => void) => () => void
+  onLoginUrl: (callback: (url: string | null) => void) => () => void
 }

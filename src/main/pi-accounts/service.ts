@@ -1,6 +1,12 @@
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { PiAccountProvider, PiAccountsState } from '../../shared/pi-accounts'
+import type {
+  PiAccountAddResult,
+  PiAccountProvider,
+  PiAccountRemoveResult,
+  PiAccountRenameResult,
+  PiAccountsState
+} from '../../shared/pi-accounts'
 import { withAuthLock } from './auth-lock'
 import {
   authSchema,
@@ -12,6 +18,7 @@ import {
   type Credential
 } from './files'
 import { createAccountMirror, type MirrorResult } from './mirror'
+import { PiAccountEditor } from './pi-account-editor'
 
 const providers = ['anthropic', 'openai-codex'] as const
 
@@ -53,17 +60,23 @@ function captureSlots(
 
 export class PiAccountsService {
   private readonly agentDir: string
+  private readonly editor: PiAccountEditor
   private pending: Promise<unknown> = Promise.resolve()
+  private cancelPendingLogin: (() => boolean) | null = null
+  private loginUrl: string | null = null
+  private readonly loginUrlListeners = new Set<(url: string | null) => void>()
 
   constructor(
     private readonly options: {
       agentDir?: string
       mirror?: ReturnType<typeof createAccountMirror>
       mirrorEnabled?: boolean
+      editor?: PiAccountEditor
     } = {}
   ) {
     this.agentDir =
       options.agentDir ?? process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent')
+    this.editor = options.editor ?? new PiAccountEditor(this.agentDir)
   }
 
   private get bucketPath(): string {
@@ -107,6 +120,56 @@ export class PiAccountsService {
   /** Re-pushes the active Pi credential to the CLI sources (after something else overwrote them). */
   remirror(provider: PiAccountProvider): Promise<PiAccountsState> {
     return this.enqueue(() => this.remirrorActive(provider))
+  }
+
+  /** Signs in through the provider's own CLI and saves the result as a named Pi account. */
+  async add(provider: PiAccountProvider): Promise<PiAccountAddResult> {
+    // Why outside the queue: the login waits on a browser for minutes, and every other account
+    // action would queue behind it. The bucket write it ends with takes the auth lock.
+    this.abandonPendingLogin()
+    const outcome = await this.editor.add(provider, {
+      setCancel: (cancel) => {
+        this.cancelPendingLogin = cancel
+      },
+      onAuthUrl: (url) => this.publishLoginUrl(url)
+    })
+    this.cancelPendingLogin = null
+    this.publishLoginUrl(null)
+    return { ...outcome, state: await this.list() }
+  }
+
+  /** Abandons the sign-in waiting on a browser, if any. True when one was stopped. */
+  abandonPendingLogin(): boolean {
+    return this.cancelPendingLogin?.() ?? false
+  }
+
+  onLoginUrlChanged(listener: (url: string | null) => void): () => void {
+    this.loginUrlListeners.add(listener)
+    return () => this.loginUrlListeners.delete(listener)
+  }
+
+  private publishLoginUrl(url: string | null): void {
+    if (this.loginUrl === url) {
+      return
+    }
+    this.loginUrl = url
+    for (const listener of this.loginUrlListeners) {
+      listener(url)
+    }
+  }
+
+  async remove(provider: PiAccountProvider, name: string): Promise<PiAccountRemoveResult> {
+    const status = await this.enqueue(() => this.editor.remove(provider, name))
+    return { status, state: await this.list() }
+  }
+
+  async rename(
+    provider: PiAccountProvider,
+    from: string,
+    to: string
+  ): Promise<PiAccountRenameResult> {
+    const status = await this.enqueue(() => this.editor.rename(provider, from, to))
+    return { status, state: await this.list() }
   }
 
   private enqueue<T>(operation: () => Promise<T>): Promise<T> {
