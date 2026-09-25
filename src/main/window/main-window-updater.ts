@@ -76,13 +76,22 @@ export function scheduleMainWindowAutoUpdaterSetup(
     logStartupMilestone('updater-setup-done')
   }
   pendingAutoUpdaterSetup = setupAutoUpdaterDeferred
+  let backupCleanupDone = false
+  // Why: a rendered window proves the new bundle works; background launches never emit
+  // ready-to-show, so a finished renderer load counts too. The timer fallback does not.
+  const removeBackupOnce = (): void => {
+    if (backupCleanupDone || !app.isPackaged || process.platform !== 'darwin') {
+      return
+    }
+    backupCleanupDone = true
+    void removeHealthyMacUpdateBackup(process.execPath).catch((error) => {
+      console.warn('[updater] Could not remove update backup:', error)
+    })
+  }
+  mainWindow.webContents?.once('did-finish-load', removeBackupOnce)
   mainWindow.once('ready-to-show', () => {
     setImmediate(setupAutoUpdaterDeferred)
-    if (app.isPackaged && process.platform === 'darwin') {
-      void removeHealthyMacUpdateBackup(process.execPath).catch((error) => {
-        console.warn('[updater] Could not remove update backup:', error)
-      })
-    }
+    removeBackupOnce()
   })
   const updaterSetupFallback = setTimeout(setupAutoUpdaterDeferred, UPDATER_SETUP_FALLBACK_MS)
   updaterSetupFallback.unref?.()

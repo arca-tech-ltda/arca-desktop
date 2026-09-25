@@ -1,3 +1,4 @@
+import type { EventEmitter } from 'node:events'
 import { afterEach, expect, it, vi } from 'vitest'
 import { BrowserWindow } from 'electron'
 import { Store } from '../persistence'
@@ -15,6 +16,7 @@ vi.mock('electron', async () => {
     app: { isPackaged: true },
     BrowserWindow: class extends EventEmitter {
       isDestroyed = () => false
+      webContents = new EventEmitter()
     }
   }
 })
@@ -35,4 +37,15 @@ it.each(['darwin', 'win32'])('waits for a ready window before cleanup on %s', as
   expect(cleanup).not.toHaveBeenCalled()
   window.emit('ready-to-show')
   expect(cleanup).toHaveBeenCalledTimes(host === 'darwin' ? 1 : 0)
+})
+
+it('cleans up once after a background launch finishes loading', async () => {
+  Object.defineProperty(process, 'platform', { value: 'darwin' })
+  const window = new BrowserWindow() as unknown as InstanceType<typeof BrowserWindow> & {
+    webContents: EventEmitter
+  }
+  scheduleMainWindowAutoUpdaterSetup(window, new Store())
+  window.webContents.emit('did-finish-load')
+  window.emit('ready-to-show')
+  expect(cleanup).toHaveBeenCalledTimes(1)
 })
