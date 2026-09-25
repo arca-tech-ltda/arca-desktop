@@ -21,6 +21,8 @@ async function fixture() {
   await cp(join(agentDir, 'bucket.json'), join(agentDir, 'accounts.json'))
   vi.stubEnv('PI_CODING_AGENT_DIR', agentDir)
   vi.stubEnv('PI_ACCOUNTS_MIRROR', '1')
+  // Never let an ambient CLAUDE_CONFIG_DIR point these writes at the developer's real credentials.
+  vi.stubEnv('CLAUDE_CONFIG_DIR', '')
   const security = vi.fn(async (): Promise<{ code: number; stdout: string }> => {
     throw new Error('Unexpected Keychain access')
   })

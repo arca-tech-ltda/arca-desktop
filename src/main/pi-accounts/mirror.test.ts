@@ -12,6 +12,8 @@ afterEach(async () => {
 })
 
 async function home(): Promise<string> {
+  // Never let an ambient CLAUDE_CONFIG_DIR point these writes at the developer's real credentials.
+  vi.stubEnv('CLAUDE_CONFIG_DIR', '')
   const path = await mkdtemp(join(tmpdir(), 'pi-mirror-'))
   homes.push(path)
   return path
