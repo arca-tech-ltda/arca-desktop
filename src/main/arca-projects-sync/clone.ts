@@ -1,3 +1,4 @@
+import { isTransientReviewHeadFetchError } from '../git/fetch-error-classification'
 import { lstat, mkdir, readdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { gitExecFileAsync, gitSpawnAfterWindowsEnvironmentReady, nonInteractiveGitEnv } from '../git/runner'
@@ -28,10 +29,14 @@ function sameRemote(left: string, right: string): boolean {
 }
 
 export function isCloneAccessError(error: unknown): boolean {
+  // SSH appends an access hint even when the connection itself failed.
+  if (isTransientReviewHeadFetchError(error)) {
+    return false
+  }
   const message = String(error).toLowerCase()
   return (
     /\b(401|403)\b/.test(message) ||
-    /repository not found|not found|access denied|authentication failed|could not read from remote/.test(
+    /repository not found|access denied|authentication failed|permission denied \(publickey\)/.test(
       message
     )
   )

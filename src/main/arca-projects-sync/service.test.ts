@@ -128,3 +128,21 @@ it('throttles focus-triggered syncs for two minutes', () => {
   expect(shouldRunFocusedArcaSync(100_000, 219_999)).toBe(false)
   expect(shouldRunFocusedArcaSync(100_000, 220_000)).toBe(true)
 })
+
+it('keeps the repo identity and cause on transient errors, then clears them on next sync', async () => {
+  mocks.catalog.mockResolvedValue({ entries: [entry], sources: ['file'], errors: [] })
+  mocks.scan.mockResolvedValue([{ repoKey: entry.repoKey, path: entry.destination }])
+  mocks.add.mockResolvedValue({ repo: { id: 'registered' }, alreadyExisted: true })
+  mocks.sync
+    .mockRejectedValueOnce(new Error('Could not resolve host: github.com'))
+    .mockResolvedValue({ state: 'updated' })
+  const service = new ArcaProjectsSync(new Store(), vi.fn())
+  expect((await service.syncNow(false)).projects[0]).toMatchObject({
+    repoId: 'registered',
+    state: 'error',
+    error: 'Could not resolve host: github.com'
+  })
+  const row = (await service.syncNow(false)).projects[0]
+  expect(row.state).toBe('updated')
+  expect(row.error).toBeUndefined()
+})

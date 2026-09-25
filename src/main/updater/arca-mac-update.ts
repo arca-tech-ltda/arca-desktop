@@ -10,7 +10,10 @@ import type { UpdateStatus } from '../../shared/update-status-types'
 import { object } from '../arca-megamind/credentials'
 import { compareVersions } from '../updater-fallback'
 import { MEGAMIND_UPDATE_REQUIRED, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
-import { arcaUpdateFeedUnavailableMessage } from './arca-update-feed-failure'
+import {
+  arcaUpdateFeedUnavailableMessage,
+  retryArcaUpdateNetwork
+} from './arca-update-feed-failure'
 import {
   extractMacUpdate,
   launchMacInstaller,
@@ -19,6 +22,7 @@ import {
 } from './arca-mac-install'
 
 export class ArcaMacUpdate {
+  private manifestCache: { manifest: unknown; at: number; url: string } | null = null
   private busy = false
   private staged: string | null = null
   private directory: string | null = null
@@ -44,22 +48,30 @@ export class ArcaMacUpdate {
       return
     }
     this.busy = true
-    let checkingFeed = true
     try {
       const feed = await readArcaUpdateFeed()
       if (!feed) {
         throw new Error(MEGAMIND_UPDATE_REQUIRED)
       }
       this.send({ state: 'checking', userInitiated })
-      const response = await net.fetch(updateArtifactUrl(feed, 'latest-mac.yml'), {
-        headers: feed.requestHeaders,
-        redirect: 'error',
-        signal: AbortSignal.timeout(30_000)
-      })
-      if (!response.ok) {
-        throw new Error(`Update feed HTTP ${response.status}`)
-      }
-      const manifest: unknown = parse(await response.text())
+      const cached = this.manifestCache
+      const manifest: unknown =
+        downloadRequested &&
+        cached &&
+        cached.url === feed.url &&
+        Date.now() - cached.at < 10 * 60_000
+          ? cached.manifest
+          : await retryArcaUpdateNetwork(async () => {
+              const response = await net.fetch(updateArtifactUrl(feed, 'latest-mac.yml'), {
+                headers: feed.requestHeaders,
+                redirect: 'error',
+                signal: AbortSignal.timeout(30_000)
+              })
+              if (!response.ok) {
+                throw new Error(`Update feed HTTP ${response.status}`)
+              }
+              return parse(await response.text())
+            })
       if (
         !object(manifest) ||
         typeof manifest.version !== 'string' ||
@@ -84,6 +96,11 @@ export class ArcaMacUpdate {
       if (!object(zip) || typeof zip.url !== 'string' || typeof zip.sha512 !== 'string') {
         throw new Error('No update for this Mac architecture')
       }
+      this.manifestCache = {
+        manifest,
+        at: cached?.manifest === manifest ? cached.at : Date.now(),
+        url: feed.url
+      }
       const url = updateArtifactUrl(feed, zip.url)
       this.version = manifest.version
       this.send({
@@ -95,7 +112,6 @@ export class ArcaMacUpdate {
       if (!downloadRequested) {
         return
       }
-      checkingFeed = false
       try {
         await writableMacTarget(process.execPath)
       } catch {
@@ -114,30 +130,34 @@ export class ArcaMacUpdate {
       this.cancellation = new AbortController()
       this.directory = await mkdtemp(join(tmpdir(), 'arca-update-'))
       const archive = join(this.directory, 'update.zip')
-      const download = await net.fetch(url, {
-        headers: feed.requestHeaders,
-        redirect: 'error',
-        signal: AbortSignal.any([this.cancellation.signal, AbortSignal.timeout(30 * 60_000)])
-      })
-      if (!download.ok || !download.body) {
-        throw new Error(`Update download HTTP ${download.status}`)
-      }
-      let transferred = 0
-      const total = Number(download.headers?.get('content-length')) || 0
-      const progress = new Transform({
-        transform: (chunk, _encoding, callback) => {
-          transferred += chunk.length
-          this.send({
-            state: 'downloading',
-            version: this.version,
-            transferred,
-            total,
-            percent: total > 0 ? Math.min(100, Math.round((transferred / total) * 100)) : 0
-          })
-          callback(null, chunk)
+      const cancellation = this.cancellation
+      await retryArcaUpdateNetwork(async () => {
+        cancellation.signal.throwIfAborted()
+        const download = await net.fetch(url, {
+          headers: feed.requestHeaders,
+          redirect: 'error',
+          signal: AbortSignal.any([cancellation.signal, AbortSignal.timeout(30 * 60_000)])
+        })
+        if (!download.ok || !download.body) {
+          throw new Error(`Update download HTTP ${download.status}`)
         }
+        let transferred = 0
+        const total = Number(download.headers?.get('content-length')) || 0
+        const progress = new Transform({
+          transform: (chunk, _encoding, callback) => {
+            transferred += chunk.length
+            this.send({
+              state: 'downloading',
+              version: this.version,
+              transferred,
+              total,
+              percent: total > 0 ? Math.min(100, Math.round((transferred / total) * 100)) : 0
+            })
+            callback(null, chunk)
+          }
+        })
+        await pipeline(download.body, progress, createWriteStream(archive, { mode: 0o600 }))
       })
-      await pipeline(download.body, progress, createWriteStream(archive, { mode: 0o600 }))
       await verifyUpdateSha512(archive, zip.sha512)
       const staged = await extractMacUpdate(archive, this.directory)
       this.cancellation.signal.throwIfAborted()
@@ -152,9 +172,9 @@ export class ArcaMacUpdate {
         this.send({ state: 'available', version: this.version, changelog: null })
         return
       }
-      const feedUnavailableMessage = checkingFeed ? arcaUpdateFeedUnavailableMessage(error) : null
+      const feedUnavailableMessage = arcaUpdateFeedUnavailableMessage(error)
       if (feedUnavailableMessage) {
-        console.warn('[updater] update feed unavailable:', error)
+        console.warn('[updater] update request unavailable:', error)
         this.send(
           userInitiated
             ? { state: 'error', message: feedUnavailableMessage, userInitiated: true }

@@ -1,3 +1,4 @@
+import { removeHealthyMacUpdateBackup } from '../updater/arca-mac-install'
 import { app, ipcMain } from 'electron'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import type { ReleaseBuildListResult, UpdateCheckOptions } from '../../shared/update-status-types'
@@ -75,7 +76,14 @@ export function scheduleMainWindowAutoUpdaterSetup(
     logStartupMilestone('updater-setup-done')
   }
   pendingAutoUpdaterSetup = setupAutoUpdaterDeferred
-  mainWindow.once('ready-to-show', () => setImmediate(setupAutoUpdaterDeferred))
+  mainWindow.once('ready-to-show', () => {
+    setImmediate(setupAutoUpdaterDeferred)
+    if (app.isPackaged && process.platform === 'darwin') {
+      void removeHealthyMacUpdateBackup(process.execPath).catch((error) => {
+        console.warn('[updater] Could not remove update backup:', error)
+      })
+    }
+  })
   const updaterSetupFallback = setTimeout(setupAutoUpdaterDeferred, UPDATER_SETUP_FALLBACK_MS)
   updaterSetupFallback.unref?.()
 }

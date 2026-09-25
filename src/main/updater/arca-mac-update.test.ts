@@ -73,13 +73,11 @@ describe('ARCA macOS update flow', () => {
     expect(mocks.netFetch).toHaveBeenCalledTimes(1)
     expect(mocks.verify).not.toHaveBeenCalled()
     mocks.netFetch.mockReset()
-    mocks.netFetch
-      .mockResolvedValueOnce({ ok: true, text: async () => manifest })
-      .mockResolvedValueOnce({
-        ok: true,
-        body: {},
-        headers: new Headers({ 'content-length': '10' })
-      })
+    mocks.netFetch.mockResolvedValueOnce({
+      ok: true,
+      body: {},
+      headers: new Headers({ 'content-length': '10' })
+    })
     mocks.pipeline.mockImplementationOnce(async (_body: unknown, progress: Transform) => {
       progress.write(Buffer.alloc(5))
     })
@@ -93,7 +91,7 @@ describe('ARCA macOS update flow', () => {
     })
 
     expect(mocks.netFetch).toHaveBeenNthCalledWith(
-      2,
+      1,
       `https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/arca-macos-1.5.2-${process.arch}.zip`,
       expect.objectContaining({
         headers: { Authorization: 'Bearer device' },
@@ -201,9 +199,7 @@ it('retries a failed download only when requested again', async () => {
     userInitiated: true
   })
   expect(mocks.netFetch).toHaveBeenCalledTimes(2)
-  mocks.netFetch
-    .mockResolvedValueOnce({ ok: true, text: async () => manifest })
-    .mockResolvedValueOnce({ ok: true, body: {} })
+  mocks.netFetch.mockResolvedValueOnce({ ok: true, body: {} })
   mocks.pipeline.mockResolvedValue(undefined)
   mocks.verify.mockResolvedValue(undefined)
   mocks.extract.mockResolvedValue('/tmp/arca-update-test/extracted/ARCA.app')
@@ -228,4 +224,44 @@ it('cancels the ZIP request and retains the offer for retry', async () => {
   await updater.download()
   expect(send).toHaveBeenLastCalledWith({ state: 'available', version: '1.5.2', changelog: null })
   expect(mocks.extract).not.toHaveBeenCalled()
+})
+
+it('retries a feed timeout once and never quits on check, including staged updates', async () => {
+  mocks.netFetch.mockReset()
+  mocks.appQuit.mockClear()
+  mocks.launch.mockClear()
+  const manifest = `version: 1.5.2\nfiles:\n  - url: arca-${process.arch}.zip\n    sha512: digest`
+  mocks.netFetch
+    .mockRejectedValueOnce(new DOMException('timed out', 'TimeoutError'))
+    .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+    .mockResolvedValueOnce({ ok: true, body: {} })
+  const updater = new ArcaMacUpdate(vi.fn())
+  await updater.check(true)
+  expect(mocks.netFetch).toHaveBeenCalledTimes(2)
+  await updater.download()
+  await updater.check(true)
+  expect(mocks.netFetch).toHaveBeenCalledTimes(3)
+  expect(mocks.appQuit).not.toHaveBeenCalled()
+  expect(mocks.launch).not.toHaveBeenCalled()
+})
+
+it('rechecks an expired manifest instead of downloading its ZIP', async () => {
+  mocks.netFetch.mockReset()
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(1000)
+  try {
+    const manifest = `version: 1.5.2\nfiles:\n  - url: arca-${process.arch}.zip\n    sha512: digest`
+    mocks.netFetch
+      .mockResolvedValueOnce({ ok: true, text: async () => manifest })
+      .mockResolvedValueOnce({ ok: true, text: async () => 'version: 1.5.1\nfiles: []' })
+    const send = vi.fn()
+    const updater = new ArcaMacUpdate(send)
+    await updater.check(true)
+    clock.mockReturnValue(601000)
+    await updater.download()
+    expect(mocks.netFetch).toHaveBeenCalledTimes(2)
+    expect(mocks.netFetch.mock.calls.every(([url]) => url.endsWith('latest-mac.yml'))).toBe(true)
+    expect(send).toHaveBeenLastCalledWith({ state: 'not-available', userInitiated: true })
+  } finally {
+    clock.mockRestore()
+  }
 })

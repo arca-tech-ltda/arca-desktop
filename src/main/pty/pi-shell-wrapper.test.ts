@@ -78,3 +78,26 @@ it.skipIf(!existsSync('/opt/homebrew/bin/pwsh'))(
     }
   }
 )
+
+it.skipIf(process.platform !== 'win32')(
+  'prefers npm pi.cmd over pi.ps1 on native Windows',
+  async () => {
+    const { getPowerShellPiShellWrapper } = await import('./pi-shell-wrapper')
+    const root = mkdtempSync(join(tmpdir(), 'arca pi shims '))
+    roots.push(root)
+    writeFileSync(join(root, 'pi.cmd'), '@echo off\r\necho CMD_SHIM\r\n')
+    writeFileSync(join(root, 'pi.ps1'), 'throw "PS1 must not run"')
+    const result = await runProcess({
+      program: 'powershell.exe',
+      args: ['-NoProfile', '-NonInteractive', '-Command', `${getPowerShellPiShellWrapper()}\npi`],
+      env: {
+        ...process.env,
+        PATH: root + delimiter + process.env.PATH,
+        ORCA_PI_EXT_STATUS: 'enabled',
+        ORCA_PANE_KEY: ''
+      }
+    })
+    expect(result.code, result.stderr).toBe(0)
+    expect(result.stdout.trim()).toBe('CMD_SHIM')
+  }
+)

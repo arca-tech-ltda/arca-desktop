@@ -227,30 +227,7 @@ export function UpdateCard(): React.JSX.Element | null {
     !reassuranceSeen &&
     ((status.state === 'available' && !status.externallyManaged) || status.state === 'downloading')
   return (
-    <div ref={cardRootRef} className="flex flex-col gap-2">
-      {showReassurance && (
-        <Card className={`py-0 gap-0 ${animationClass}`}>
-          <div className="flex items-center gap-3 p-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground">
-                {translate(
-                  'auto.components.UpdateCard.b1d867f4fb',
-                  "Your terminal sessions won't be interrupted during the update."
-                )}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              onClick={markReassuranceSeen}
-              aria-label={translate('auto.components.UpdateCard.7274ef6e59', 'Dismiss tip')}
-            >
-              <X className="size-3.5" />
-            </Button>
-          </div>
-        </Card>
-      )}
+    <div data-arca-update-card ref={cardRootRef} className="flex flex-col gap-2">
       <Card
         role="complementary"
         aria-label={getUpdateCardAriaLabel(status)}
@@ -260,6 +237,29 @@ export function UpdateCard(): React.JSX.Element | null {
         className={`py-0 gap-0 ${animationClass}`}
       >
         {cardContent}
+        {showReassurance && (
+          <div className="border-t border-border">
+            <div className="flex items-center gap-3 p-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {translate(
+                    'auto.components.UpdateCard.b1d867f4fb',
+                    "Your terminal sessions won't be interrupted during the update."
+                  )}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                onClick={markReassuranceSeen}
+                aria-label={translate('auto.components.UpdateCard.7274ef6e59', 'Dismiss tip')}
+              >
+                <X className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   )

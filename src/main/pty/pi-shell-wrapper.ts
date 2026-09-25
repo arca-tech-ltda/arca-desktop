@@ -38,7 +38,10 @@ end
 export function getPowerShellPiShellWrapper(): string {
   return `if ($env:ORCA_PI_EXT_TITLEBAR -or $env:ORCA_PI_EXT_PREFILL -or $env:ORCA_PI_EXT_STATUS) {
 function Global:pi {
-    $orcaCommand = Get-Command pi -CommandType Application,ExternalScript -ErrorAction SilentlyContinue | Select-Object -First 1
+    $orcaCommand = Get-Command pi.cmd -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $orcaCommand) {
+        $orcaCommand = Get-Command pi -CommandType Application,ExternalScript -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
     if (-not $orcaCommand) { Write-Error "pi executable not found"; $global:LASTEXITCODE = 127; return }
     $orcaExtensions = @()
     if ($env:ORCA_PANE_KEY) {

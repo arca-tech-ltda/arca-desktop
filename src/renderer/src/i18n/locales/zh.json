@@ -54,7 +54,8 @@
       "cancel": "取消",
       "later": "稍后",
       "megabytes": "{{received}} / {{total}} MB",
-      "downloadHint": "已可用。准备好后即可下载。"
+      "downloadHint": "已可用。准备好后即可下载。",
+      "networkUnavailable": "网络不可用或请求超时。请重试。"
     }
   },
   "app": {

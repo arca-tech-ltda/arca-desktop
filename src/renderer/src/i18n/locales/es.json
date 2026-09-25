@@ -54,7 +54,8 @@
       "cancel": "Cancelar",
       "later": "Después",
       "megabytes": "{{received}} / {{total}} MB",
-      "downloadHint": "está disponible. Descárgala cuando quieras."
+      "downloadHint": "está disponible. Descárgala cuando quieras.",
+      "networkUnavailable": "Red no disponible o tiempo de espera agotado. Inténtalo de nuevo."
     }
   },
   "app": {

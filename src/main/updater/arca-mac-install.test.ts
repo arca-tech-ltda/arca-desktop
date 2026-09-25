@@ -1,9 +1,13 @@
 import { createHash } from 'node:crypto'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile, mkdir, access } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { macInstallScript, verifyUpdateSha512 } from './arca-mac-install'
+import {
+  macInstallScript,
+  verifyUpdateSha512,
+  removeHealthyMacUpdateBackup
+} from './arca-mac-install'
 import { runProcess } from '../../shared/child-process/run-process'
 
 describe('unsigned macOS update', () => {
@@ -68,4 +72,25 @@ it('preserves the isolated profile and hidden launch across an E2E restart', () 
   expect(script).toContain("'--remote-debugging-port=9339'")
   expect(script).not.toContain('/usr/bin/open')
   expect(script).toContain('"$target/Contents/MacOS/ARCA"')
+})
+
+it('removes only a bundle backup on healthy startup, including legacy installers', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'arca-backup-'))
+  const target = join(root, 'ARCA.app')
+  const backup = `${target}.bak`
+  try {
+    await mkdir(target)
+    await mkdir(backup)
+    const exec = join(target, 'Contents', 'MacOS', 'ARCA')
+    await removeHealthyMacUpdateBackup(exec)
+    await expect(access(backup)).resolves.toBeUndefined()
+    await mkdir(join(backup, 'Contents'))
+    await writeFile(join(backup, 'Contents', 'Info.plist'), '<plist/>')
+    await removeHealthyMacUpdateBackup(exec)
+    await expect(access(backup)).rejects.toThrow()
+    await expect(access(target)).resolves.toBeUndefined()
+    await removeHealthyMacUpdateBackup(exec)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

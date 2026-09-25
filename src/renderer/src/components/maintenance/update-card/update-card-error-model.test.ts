@@ -29,6 +29,7 @@ describe('update card error model precedence', () => {
   })
 
   it.each([
+    ['arca-updater:network-unavailable', 'Network unavailable or request timed out. Try again.'],
     ['arca-updater:server-unavailable', 'Update server unavailable'],
     ['arca-updater:feed-access-denied', 'No access to the update feed']
   ])('shows clear manual feed failure %s', (message, summary) => {

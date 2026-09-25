@@ -35,7 +35,10 @@ em diretório temporário privado. Os nomes publicados incluem versão e arquite
 PID antigo. Só então ele move o bundle para `<app>.app.bak`, copia o novo com
 `ditto`, remove `com.apple.quarantine` e relança sem ativação de foco (`open -g`).
 Falha de cópia, remoção de quarentena ou relançamento restaura o backup. O backup
-anterior é substituído no próximo update; o mais recente permanece para recuperação.
+é removido na primeira execução em que a janela da nova versão fica pronta (`ready-to-show`).
+A limpeza exige um diretório `.app.bak` com `Contents/Info.plist`, sem seguir
+symlinks; inclui backups deixados pelo instalador anterior.
+Se a nova versão não chegar a esse ponto, o backup permanece para recuperação.
 
 Limitações:
 
@@ -54,7 +57,8 @@ Limitações:
 - SHA512 protege integridade, não autoria. HTTPS, token de dispositivo e segredo
   de publicação são a fronteira de confiança; não há notarização/assinatura Apple.
 - Rollback cobre falhas dos comandos, não falta de energia, SIGKILL ou crash do
-  novo app depois que `open` aceitou o lançamento. Nesse caso restaure `.app.bak`.
+  novo app depois que `open` aceitou o lançamento. Antes de a janela ficar pronta,
+  restaure `.app.bak`; após a limpeza saudável, esse rollback já não está disponível.
 - Não há auto-instalação macOS em servidor headless. A atualização é da máquina
   que executa o Desktop, não do host SSH nem dos projetos/worktrees/pastas.
   O callback de encerramento existente é preservado; nenhuma sessão remota é morta
@@ -131,3 +135,17 @@ background, herda o ambiente sem usar Launch Services para não perder essa pol�
 Publicação, execução do app e troca real do bundle não foram realizadas neste trabalho;
 a prova instalada fica para o orquestrador com credenciais. Testes unitários não a
 substituem. Os seis catálogos incluem os novos textos; não há catálogo pt no projeto.
+
+## Confiança no Windows sem certificado
+
+`verifyUpdateCodeSignature: false` permanece intencional: não há certificado de
+assinatura disponível. O Windows não verifica a identidade do publicador do NSIS.
+HTTPS autentica o servidor e protege o transporte; o Bearer de dispositivo controla
+acesso ao feed e aos artefatos; o SHA512 do manifesto detecta corrupção ou troca
+do artefato sem mudança correspondente no manifesto. Nenhum desses controles
+substitui assinatura: comprometer o servidor ou a publicação permite substituir
+manifesto e binário juntos. Não se deve tratar o token como prova de autoria.
+
+Downloads macOS reutilizam um manifesto validado por menos de dez minutos,
+relendo credenciais a cada ação. “Re-check” faz uma consulta nova, mas não instala.
+Windows já usa o manifesto guardado pelo electron-updater ao baixar.

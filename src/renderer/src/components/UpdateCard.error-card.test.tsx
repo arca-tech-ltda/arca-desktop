@@ -491,3 +491,29 @@ it('downloads only on click and waits for a separate restart confirmation', asyn
   fireEvent.click(screen.getByTestId('update-restart'))
   expect(quitAndInstall).toHaveBeenCalledTimes(1)
 })
+
+it('keeps session reassurance inside the update card', () => {
+  const { container } = renderAfterAvailableStatus()
+  act(() => useAppStore.setState({ updateReassuranceSeen: false }))
+  const tip = screen.getByText("Your terminal sessions won't be interrupted during the update.")
+  expect(tip.closest('[role="complementary"]')).not.toBeNull()
+  expect(container.querySelectorAll('[data-slot="card"]')).toHaveLength(1)
+})
+
+it('Re-check only checks; an available response does not restart or install', () => {
+  renderWithInitialStatus({
+    state: 'error',
+    message: 'arca-updater:network-unavailable',
+    userInitiated: true
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Re-check' }))
+  expect(check).toHaveBeenCalledOnce()
+  act(() =>
+    useAppStore.setState({
+      updateStatus: { state: 'available', version: '1.5.901', changelog: null }
+    })
+  )
+  expect(quitAndInstall).not.toHaveBeenCalled()
+  expect(relaunch).not.toHaveBeenCalled()
+  expect(download).not.toHaveBeenCalled()
+})

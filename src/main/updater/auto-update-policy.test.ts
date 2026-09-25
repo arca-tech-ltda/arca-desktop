@@ -49,9 +49,9 @@ describe('ARCA update policy', () => {
     ['Update feed HTTP 404', ARCA_UPDATE_SERVER_UNAVAILABLE],
     ['Update feed HTTP 401', ARCA_UPDATE_FEED_ACCESS_DENIED],
     ['Update feed HTTP 403', ARCA_UPDATE_FEED_ACCESS_DENIED],
-    ['fetch failed: network error', ARCA_UPDATE_SERVER_UNAVAILABLE],
-    ['getaddrinfo ENOTFOUND mainframe', ARCA_UPDATE_SERVER_UNAVAILABLE],
-    ['request timed out', ARCA_UPDATE_SERVER_UNAVAILABLE]
+    ['fetch failed: network error', 'arca-updater:network-unavailable'],
+    ['getaddrinfo ENOTFOUND mainframe', 'arca-updater:network-unavailable'],
+    ['request timed out', 'arca-updater:network-unavailable']
   ])('classifies unavailable feed failure %s', (message, expected) => {
     expect(arcaUpdateFeedUnavailableMessage(new Error(message))).toBe(expected)
   })

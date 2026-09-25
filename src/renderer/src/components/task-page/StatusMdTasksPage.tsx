@@ -1,3 +1,4 @@
+import { subscribeStatusMdChanges } from './status-md-subscription'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, CheckCircle2, Clipboard, ExternalLink, Play, Search, Send } from 'lucide-react'
 import { toast } from 'sonner'
@@ -74,7 +75,7 @@ export function StatusMdTasksPage({
 
   useEffect(() => {
     void refresh()
-    return window.api.statusMdTasks.onChanged(() => void refresh())
+    return subscribeStatusMdChanges(() => void refresh())
   }, [refresh])
 
   const visibleProjects = useMemo(

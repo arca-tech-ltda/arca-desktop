@@ -109,6 +109,32 @@ export function unionCatalogs(...catalogs: ArcaCatalogEntry[][]): ArcaCatalogEnt
   return [...result.values()]
 }
 
+let githubCache: { stdout: string; expires: number } | undefined
+let githubPending: Promise<string> | undefined
+
+async function githubCatalog(): Promise<string> {
+  if (githubCache && githubCache.expires > Date.now()) {
+    return githubCache.stdout
+  }
+  githubPending ??= ghExecFileAsync(
+    ['repo', 'list', 'arca-tech-ltda', '--limit', '100', '--json', 'url,isArchived'],
+    { timeout: 5_000 }
+  )
+    .then(({ stdout }) => {
+      const repos: unknown = JSON.parse(stdout)
+      return Array.isArray(repos) ? stdout : '[]'
+    })
+    .catch(() => '[]')
+    .then((stdout) => {
+      githubCache = { stdout, expires: Date.now() + 10 * 60_000 }
+      return stdout
+    })
+    .finally(() => {
+      githubPending = undefined
+    })
+  return githubPending
+}
+
 export async function loadArcaCatalog(
   home = homedir()
 ): Promise<{ entries: ArcaCatalogEntry[]; sources: string[]; errors: string[] }> {
@@ -155,16 +181,14 @@ export async function loadArcaCatalog(
   } catch (error) {
     errors.push(`projects.json: ${String(error)}`)
   }
-  try {
-    const { stdout } = await ghExecFileAsync(
-      ['repo', 'list', 'arca-tech-ltda', '--limit', '1000', '--json', 'url,isArchived'],
-      { timeout: 30_000 }
-    )
-    const repos: unknown = JSON.parse(stdout)
-    catalogs.push(parseCatalog({ projects: [{ repos }] }, 'github', home))
-    sources.push('github')
-  } catch (error) {
-    errors.push(`GitHub: ${String(error)}`)
+  // Authoritative catalogs suffice; optional discovery must not delay normal sync.
+  if (!sources.length) {
+    const repos: unknown = JSON.parse(await githubCatalog())
+    const entries = parseCatalog({ projects: [{ repos }] }, 'github', home)
+    if (entries.length) {
+      catalogs.push(entries)
+      sources.push('github')
+    }
   }
   return { entries: unionCatalogs(...catalogs), sources, errors }
 }

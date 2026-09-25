@@ -54,11 +54,13 @@ export function ArcaSyncBadge({ repo }: { repo: Repo }): React.JSX.Element | nul
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span>
+        <span tabIndex={0}>
           <Badge variant="outline">{arcaSyncLabel(row)}</Badge>
         </span>
       </TooltipTrigger>
-      <TooltipContent>{row.error ?? `${row.repoKey} — ${arcaSyncLabel(row)}`}</TooltipContent>
+      <TooltipContent className="max-w-sm whitespace-pre-wrap break-words">
+        {row.error?.trim() || `${row.repoKey} — ${arcaSyncLabel(row)}`}
+      </TooltipContent>
     </Tooltip>
   )
 }

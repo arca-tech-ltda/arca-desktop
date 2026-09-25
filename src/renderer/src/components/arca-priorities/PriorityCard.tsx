@@ -1,3 +1,4 @@
+import { subscribeStatusMdChanges } from '@/components/task-page/status-md-subscription'
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp, ListTodo } from 'lucide-react'
 import type {
@@ -76,7 +77,7 @@ export function PriorityCard(): React.JSX.Element | null {
       .then(setAgents)
       .catch(() => setAgents([]))
     const stopPriorities = window.api.arcaPriorities.onChange(refreshPriorities)
-    const stopTasks = window.api.statusMdTasks.onChanged(refreshTasks)
+    const stopTasks = subscribeStatusMdChanges(refreshTasks)
     return () => {
       stopPriorities()
       stopTasks()
@@ -112,7 +113,10 @@ export function PriorityCard(): React.JSX.Element | null {
   }
 
   return (
-    <aside className="fixed right-12 bottom-10 z-30 w-[380px] max-w-[calc(100vw-64px)] rounded-xl border border-border bg-card shadow-floating">
+    <aside
+      data-arca-priority-card
+      className="fixed right-12 bottom-10 z-30 w-[380px] max-w-[calc(100vw-64px)] rounded-xl border border-border bg-card shadow-floating"
+    >
       <div className="flex items-center gap-2 px-3 py-2">
         <ListTodo className="size-4 text-muted-foreground" />
         <h2 className="flex-1 text-sm font-semibold">

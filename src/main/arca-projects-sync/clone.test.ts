@@ -4,7 +4,7 @@ import path from 'node:path'
 import { afterEach, expect, it } from 'vitest'
 import { gitExecFileAsync } from '../git/runner'
 import type { ArcaCatalogEntry } from '../../shared/arca-projects-sync'
-import { cloneArcaProject, clonePartialMarkerPath, inspectArcaCloneDestination } from './clone'
+import { cloneArcaProject, clonePartialMarkerPath, inspectArcaCloneDestination, isCloneAccessError } from './clone'
 
 const temporaryDirectories: string[] = []
 afterEach(async () => {
@@ -72,3 +72,11 @@ it('cleans an owned partial destination before retrying', async () => {
   expect(await readFile(path.join(destination, 'README.md'), 'utf8')).toBe('ARCA')
   await expect(readFile(clonePartialMarkerPath(destination))).rejects.toMatchObject({ code: 'ENOENT' })
 })
+
+it.each(['Connection timed out', 'Could not resolve hostname github.com', 'Connection reset by peer'])(
+  'does not apply a 24-hour access backoff after %s', (cause) => {
+    expect(isCloneAccessError(new Error(`${cause}\nfatal: Could not read from remote repository.`))).toBe(false)
+    expect(isCloneAccessError(new Error('Authentication failed'))).toBe(true)
+    expect(isCloneAccessError(new Error('fatal: Could not read from remote repository.'))).toBe(false)
+  }
+)

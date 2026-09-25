@@ -54,7 +54,8 @@
       "cancel": "キャンセル",
       "later": "後で",
       "megabytes": "{{received}} / {{total}} MB",
-      "downloadHint": "が利用可能です。準備ができたらダウンロードしてください。"
+      "downloadHint": "が利用可能です。準備ができたらダウンロードしてください。",
+      "networkUnavailable": "ネットワークに接続できないか、要求がタイムアウトしました。再試行してください。"
     }
   },
   "app": {

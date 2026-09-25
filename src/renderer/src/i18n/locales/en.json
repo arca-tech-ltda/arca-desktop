@@ -54,7 +54,8 @@
       "cancel": "Cancel",
       "later": "Later",
       "megabytes": "{{received}} / {{total}} MB",
-      "downloadHint": "is available. Download it when you are ready."
+      "downloadHint": "is available. Download it when you are ready.",
+      "networkUnavailable": "Network unavailable or request timed out. Try again."
     }
   },
   "sidebar": {

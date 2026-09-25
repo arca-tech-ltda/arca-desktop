@@ -1,3 +1,4 @@
+import { subscribeStatusMdChanges } from '@/components/task-page/status-md-subscription'
 import { useEffect, useState } from 'react'
 import type { StatusMdTaskProject } from '../../../../preload/api/status-md-tasks-api'
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
@@ -33,7 +34,7 @@ export function PrioritiesSection(): React.JSX.Element | null {
       .then(setAgents)
       .catch(() => setAgents([]))
     const stopPriorities = window.api.arcaPriorities.onChange(refreshPriorities)
-    const stopTasks = window.api.statusMdTasks.onChanged(refreshTasks)
+    const stopTasks = subscribeStatusMdChanges(refreshTasks)
     return () => {
       stopPriorities()
       stopTasks()

@@ -153,3 +153,19 @@ describe('test update channel', () => {
     expect(() => arcaUpdateChannel(channel)).toThrow()
   })
 })
+
+it('retries a Windows network download once without rechecking the feed or installing', async () => {
+  const updater = setup()
+  await vi.advanceTimersByTimeAsync(0)
+  harness.autoUpdaterMock.emit('checking-for-update')
+  harness.autoUpdaterMock.emit('update-available', { version: '1.5.100' })
+  harness.autoUpdaterMock.downloadUpdate
+    .mockRejectedValueOnce(new Error('net::ERR_CONNECTION_RESET'))
+    .mockResolvedValue([])
+  await vi.advanceTimersByTimeAsync(0)
+  updater.downloadUpdate()
+  await vi.advanceTimersByTimeAsync(0)
+  expect(harness.autoUpdaterMock.downloadUpdate).toHaveBeenCalledTimes(2)
+  expect(harness.autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
+  expect(harness.autoUpdaterMock.quitAndInstall).not.toHaveBeenCalled()
+})

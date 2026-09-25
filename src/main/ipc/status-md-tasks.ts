@@ -127,6 +127,14 @@ export async function recentStatusMdTasks(
 export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: Store): void {
   const refreshPriorities = registerArcaPriorityHandlers(mainWindow, store)
   syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
+  const retry = setInterval(() => {
+    syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
+  }, 2_000)
+  retry.unref()
+  mainWindow.once('closed', () => {
+    clearInterval(retry)
+    syncStatusWatchers(mainWindow, [], refreshPriorities)
+  })
   ipcMain.removeHandler('status-md-tasks:list')
   ipcMain.handle('status-md-tasks:list', async (): Promise<StatusMdTaskProject[]> => {
     const repos = store.getRepos()
@@ -185,6 +193,17 @@ function syncStatusWatchers(
             refreshPriorities()
           }
         }, 120)
+      })
+      watcher.on('error', () => {
+        const current = watchers.get(repo.id)
+        if (current?.watcher !== watcher) {
+          return
+        }
+        if (current.timer) {
+          clearTimeout(current.timer)
+        }
+        watchers.delete(repo.id)
+        watcher.close()
       })
       watchers.set(repo.id, { watcher, timer: null })
     } catch {

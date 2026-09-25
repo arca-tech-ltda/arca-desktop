@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { access, lstat, mkdtemp, readdir, writeFile } from 'node:fs/promises'
+import { access, lstat, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -126,4 +126,22 @@ export async function launchMacInstaller(target: string, staged: string): Promis
     child.once('error', reject)
   })
   child.unref()
+}
+
+export async function removeHealthyMacUpdateBackup(execPath: string): Promise<void> {
+  const target = await writableMacTarget(execPath)
+  const backup = `${target}.bak`
+  try {
+    const info = await lstat(backup)
+    if (!info.isDirectory() || info.isSymbolicLink()) {
+      return
+    }
+    await access(join(backup, 'Contents', 'Info.plist'))
+    await rm(backup, { recursive: true })
+  } catch (error) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') {
+      return
+    }
+    throw error
+  }
 }

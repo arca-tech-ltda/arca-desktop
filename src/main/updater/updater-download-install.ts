@@ -1,3 +1,7 @@
+import {
+  arcaUpdateFeedUnavailableMessage,
+  retryArcaUpdateNetwork
+} from './arca-update-feed-failure'
 import { CancellationToken } from 'builder-util-runtime'
 import { beginMacUpdateDownload, deferMacQuitUntilInstallerReady } from '../updater-mac-install'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
@@ -93,9 +97,8 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
     this.sendStatus({ state: 'downloading', percent: 0, version })
     const cancellation = new CancellationToken()
     this.downloadCancellation = cancellation
-    this.getAutoUpdater()
-      .downloadUpdate(cancellation)
-      .catch((err) => {
+    retryArcaUpdateNetwork(() => this.getAutoUpdater().downloadUpdate(cancellation)).catch(
+      (err) => {
         this.downloadInFlight = false
         if (cancellation.cancelled) {
           this.sendStatus({ state: 'available', version, changelog: null })
@@ -105,9 +108,10 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
         if (localBuildDownload) {
           this.sendLocalBuildErrorAndRestore(message)
         } else {
-          this.sendErrorStatus(message)
+          this.sendErrorStatus(arcaUpdateFeedUnavailableMessage(err) ?? message)
         }
-      })
+      }
+    )
   }
 
   protected isQuittingForUpdate(): boolean {

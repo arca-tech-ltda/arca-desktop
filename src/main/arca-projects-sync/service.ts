@@ -127,7 +127,11 @@ export class ArcaProjectsSync {
         notifyReposChanged(window)
       }
     }
-    Object.assign(row, await syncArcaGit(diskPath, () => this.current.autoUpdate))
+    try {
+      Object.assign(row, await syncArcaGit(diskPath, () => this.current.autoUpdate))
+    } catch (error) {
+      row.error = error instanceof Error ? error.message : String(error)
+    }
     if (row.repoId && row.state === 'updated') {
       this.onRepoUpdated(row.repoId)
     }

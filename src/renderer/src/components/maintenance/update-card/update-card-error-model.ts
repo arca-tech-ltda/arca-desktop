@@ -48,13 +48,19 @@ export function buildUpdateCardErrorModel({
       : null
   }
   if (
+    status.message === 'arca-updater:network-unavailable' ||
     status.message === 'arca-updater:server-unavailable' ||
     status.message === 'arca-updater:feed-access-denied'
   ) {
     const feedAccessDenied = status.message === 'arca-updater:feed-access-denied'
     const message = feedAccessDenied
       ? translate('arca.updater.feedAccessDenied', 'No access to the update feed')
-      : translate('arca.updater.serverUnavailable', 'Update server unavailable')
+      : status.message === 'arca-updater:network-unavailable'
+        ? translate(
+            'arca.updater.networkUnavailable',
+            'Network unavailable or request timed out. Try again.'
+          )
+        : translate('arca.updater.serverUnavailable', 'Update server unavailable')
     return {
       title: message,
       summary: message,
