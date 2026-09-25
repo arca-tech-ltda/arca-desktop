@@ -5,6 +5,8 @@ import path from 'node:path'
 import type { Store } from '../persistence'
 import { ArcaProjectsSync, shouldRunFocusedArcaSync, type SyncSettings } from './service'
 
+const ARCA_PROJECTS_SYNC_INTERVAL_MS = 5 * 60_000
+
 let service: ArcaProjectsSync | undefined
 
 export function registerArcaProjectsSync(store: Store): void {
@@ -83,13 +85,11 @@ export function registerArcaProjectsSync(store: Store): void {
   }
   app.on('browser-window-created', (_event, window) => window.on('focus', runOnFocus))
   void ready.then(() => instance.syncNow(false))
+  // Partners want STATUS.md fresh for agents even when the window is in the
+  // background; N is the ARCA catalog (~10 repos), so a 5-minute fetch is cheap.
   const interval = setInterval(() => {
-    if (
-      BrowserWindow.getAllWindows().some((window) => !window.isDestroyed() && window.isFocused())
-    ) {
-      runOnFocus()
-    }
-  }, 30 * 60_000)
+    void ready.then(() => instance.syncNow(false))
+  }, ARCA_PROJECTS_SYNC_INTERVAL_MS)
   interval.unref()
   app.once('before-quit', () => clearInterval(interval))
 }

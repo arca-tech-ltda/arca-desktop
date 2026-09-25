@@ -32,15 +32,12 @@ import { Store } from '../persistence'
 import { registerArcaProjectsSync } from './registration'
 
 afterEach(() => vi.useRealTimers())
-it('runs periodic sync only every thirty minutes while focused and rejects untrusted IPC', async () => {
+it('syncs every five minutes even unfocused and rejects untrusted IPC', async () => {
   vi.useFakeTimers()
   registerArcaProjectsSync(new Store())
   await vi.advanceTimersByTimeAsync(0)
   expect(mocks.sync).toHaveBeenCalledTimes(1)
-  await vi.advanceTimersByTimeAsync(30 * 60_000)
-  expect(mocks.sync).toHaveBeenCalledTimes(1)
-  mocks.focused.mockReturnValue(true)
-  await vi.advanceTimersByTimeAsync(30 * 60_000)
+  await vi.advanceTimersByTimeAsync(5 * 60_000)
   expect(mocks.sync).toHaveBeenCalledTimes(2)
   mocks.trusted.mockReturnValue(false)
   for (const [, handler] of mocks.handle.mock.calls) {
@@ -48,6 +45,6 @@ it('runs periodic sync only every thirty minutes while focused and rejects untru
   }
   expect(mocks.sync).toHaveBeenCalledTimes(2)
   mocks.onceApp.mock.calls[0][1]()
-  await vi.advanceTimersByTimeAsync(30 * 60_000)
+  await vi.advanceTimersByTimeAsync(5 * 60_000)
   expect(mocks.sync).toHaveBeenCalledTimes(2)
 })
