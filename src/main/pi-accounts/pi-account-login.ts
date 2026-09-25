@@ -1,8 +1,8 @@
-import { spawn } from 'node:child_process'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CODEX_LOGIN_CANCELLED_MESSAGE } from '../../shared/codex-auth-errors'
+import { spawnProcess } from '../../shared/child-process/run-process'
 import type { PiAccountProvider } from '../../shared/pi-accounts'
 import { captureClaudeAuthFromConfigDir } from '../claude-accounts/claude-auth-capture'
 import { runClaudeCommandProcess } from '../claude-accounts/claude-command-process'
@@ -66,8 +66,7 @@ export async function runPiCodexLogin(hooks: PiLoginHooks): Promise<PiCapturedAc
     await runCodexLoginSession(home, {
       wslCommand: 'wsl.exe',
       spawn: ({ command, args, env, stdio }) =>
-        // Hide the outer wrapper only; a dedicated login console stays visible.
-        spawn(command, args, { stdio, windowsHide: true, env }),
+        spawnProcess({ program: command, args, stdio, env }),
       killProcessTree: killCodexLoginProcessTree,
       setCancel: hooks.setCancel,
       onAuthUrl: (url) => hooks.onAuthUrl?.(url)

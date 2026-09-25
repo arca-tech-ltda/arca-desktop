@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { spawnProcess } from '../../shared/child-process/run-process'
 import type { WindowsHostInteractiveLoginSpawn } from '../../shared/windows-interactive-login-spawn'
 import { admitSelfInitiatedTreeKill } from '../own-chromium-tree-kill-guard'
 import type { CodexLoginChild } from './codex-login-session'
@@ -27,11 +27,29 @@ export function killCodexLoginProcessTree(
       // Why: child.kill() only reaches the direct child (cmd.exe for npm .cmd
       // shims); taskkill /t also ends codex descendants whose open handles on
       // the managed home make post-login file operations fail with ENOTEMPTY.
-      execFileSync('taskkill', ['/pid', String(terminationPid), '/t', '/f'], {
-        windowsHide: true,
-        timeout: WINDOWS_LOGIN_TREE_KILL_TIMEOUT_MS,
+      const taskkill = spawnProcess({
+        program: 'taskkill.exe',
+        args: ['/pid', String(terminationPid), '/t', '/f'],
         stdio: 'ignore'
       })
+      let finished = false
+      const finish = (succeeded: boolean): void => {
+        if (finished) {
+          return
+        }
+        finished = true
+        clearTimeout(timeout)
+        if (!succeeded) {
+          child.kill()
+        }
+      }
+      const timeout = setTimeout(() => {
+        taskkill.kill()
+        finish(false)
+      }, WINDOWS_LOGIN_TREE_KILL_TIMEOUT_MS)
+      timeout.unref?.()
+      taskkill.once('error', () => finish(false))
+      taskkill.once('close', (code) => finish(code === 0))
       return
     } catch {
       // Why: taskkill can race an already-exited tree; fall back to the plain

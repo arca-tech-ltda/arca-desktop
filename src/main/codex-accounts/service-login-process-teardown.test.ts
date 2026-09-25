@@ -107,10 +107,10 @@ describe('CodexAccountService config sync', () => {
     child.pid = 4242
     child.exitCode = null
     child.signalCode = null
-    const execFileSyncMock = vi.fn()
-    const spawnMock = vi.fn(() => child)
+    const taskkill = Object.assign(new EventEmitter(), { kill: vi.fn() })
+    const spawnMock = vi.fn((program: string) => (program === 'taskkill.exe' ? taskkill : child))
     vi.doMock('node:child_process', () => ({
-      execFileSync: execFileSyncMock,
+      execFileSync: vi.fn(),
       spawn: spawnMock
     }))
     vi.doMock('../codex-cli/command', () => ({
@@ -134,7 +134,7 @@ describe('CodexAccountService config sync', () => {
       ).runCodexLogin(testState.fakeHomeDir)
 
       await vi.advanceTimersByTimeAsync(1_000)
-      expect(execFileSyncMock).not.toHaveBeenCalled()
+      expect(spawnMock).toHaveBeenCalledTimes(1)
 
       // Codex finishes the login (auth.json exists) but never exits on its own.
       writeFileSync(
@@ -143,14 +143,15 @@ describe('CodexAccountService config sync', () => {
         'utf-8'
       )
       await vi.advanceTimersByTimeAsync(6_000)
-      expect(execFileSyncMock).toHaveBeenCalledWith(
-        'taskkill',
+      expect(spawnMock).toHaveBeenCalledWith(
+        'taskkill.exe',
         ['/pid', '4242', '/t', '/f'],
-        expect.objectContaining({ windowsHide: true, stdio: 'ignore' })
+        expect.objectContaining({ windowsHide: true, stdio: 'ignore', shell: false })
       )
       expect(child.kill).not.toHaveBeenCalled()
 
       // The forced non-zero exit still counts as a successful login.
+      taskkill.emit('close', 0)
       child.emit('close', 1)
       await expect(loginPromise).resolves.toBeUndefined()
     } finally {
@@ -183,10 +184,11 @@ describe('CodexAccountService config sync', () => {
     child.pid = 4343
     child.exitCode = null
     child.signalCode = null
-    const execFileSyncMock = vi.fn()
+    const taskkill = Object.assign(new EventEmitter(), { kill: vi.fn() })
+    const spawnMock = vi.fn((program: string) => (program === 'taskkill.exe' ? taskkill : child))
     vi.doMock('node:child_process', () => ({
-      execFileSync: execFileSyncMock,
-      spawn: vi.fn(() => child)
+      execFileSync: vi.fn(),
+      spawn: spawnMock
     }))
     vi.doMock('../codex-cli/command', () => ({
       resolveCodexCommand: () => 'codex'
@@ -212,7 +214,7 @@ describe('CodexAccountService config sync', () => {
       ).runCodexLogin(testState.fakeHomeDir)
 
       await vi.advanceTimersByTimeAsync(6_000)
-      expect(execFileSyncMock).not.toHaveBeenCalled()
+      expect(spawnMock).toHaveBeenCalledTimes(1)
 
       writeFileSync(
         authPath,
@@ -220,12 +222,13 @@ describe('CodexAccountService config sync', () => {
         'utf-8'
       )
       await vi.advanceTimersByTimeAsync(6_000)
-      expect(execFileSyncMock).toHaveBeenCalledWith(
-        'taskkill',
+      expect(spawnMock).toHaveBeenCalledWith(
+        'taskkill.exe',
         ['/pid', '4343', '/t', '/f'],
-        expect.objectContaining({ windowsHide: true, stdio: 'ignore' })
+        expect.objectContaining({ windowsHide: true, stdio: 'ignore', shell: false })
       )
 
+      taskkill.emit('close', 0)
       child.emit('close', 1)
       await expect(loginPromise).resolves.toBeUndefined()
     } finally {
