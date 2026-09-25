@@ -18326,7 +18326,7 @@
     "add": "To add an account, run /login in Pi, then /accounts save <provider> <name>. Use anthropic for Claude or openai-codex for Codex.",
     "default": "Using a Pi account selects system default for Orca managed accounts. Restart existing Claude or Codex terminals after switching.",
     "active": "Active",
-    "drift": "Slot differs; save a new login before switching.",
+    "drift": "Pi refreshed this token; Use syncs it.",
     "use": "Use",
     "empty": "No saved Pi accounts.",
     "loading": "Loading accounts…",

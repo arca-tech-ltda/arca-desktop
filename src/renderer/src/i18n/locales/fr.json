@@ -16715,7 +16715,7 @@
     "add": "Pour ajouter un compte, exécutez /login dans Pi, puis /accounts save <provider> <name>. Utilisez anthropic pour Claude ou openai-codex pour Codex.",
     "default": "Utiliser un compte Pi sélectionne le compte système par défaut pour les comptes gérés par Orca. Redémarrez les terminaux Claude ou Codex après le changement.",
     "active": "Actif",
-    "drift": "Le slot diffère ; enregistrez la nouvelle connexion avant de changer.",
+    "drift": "Pi a renouvelé ce jeton ; Utiliser le synchronise.",
     "use": "Utiliser",
     "empty": "Aucun compte Pi enregistré.",
     "loading": "Chargement des comptes…",

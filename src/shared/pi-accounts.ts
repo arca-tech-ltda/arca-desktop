@@ -9,5 +9,6 @@ export type PiAccountsState = { accounts: PiAccount[]; error?: string }
 export type PiAccountsApi = {
   list: () => Promise<PiAccountsState>
   use: (provider: PiAccountProvider, name: string) => Promise<PiAccountsState>
+  remirror: (provider: PiAccountProvider) => Promise<PiAccountsState>
   onChange: (callback: (state: PiAccountsState) => void) => () => void
 }

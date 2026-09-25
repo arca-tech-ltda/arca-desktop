@@ -1,10 +1,55 @@
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type { PiAccountProvider, PiAccountsState } from '../../shared/pi-accounts'
-import { authSchema, bucketSchema, readJson, writeJson } from './files'
-import { createAccountMirror } from './mirror'
+import { withAuthLock } from './auth-lock'
+import {
+  authSchema,
+  bucketSchema,
+  readJson,
+  writeJson,
+  type Auth,
+  type Bucket,
+  type Credential
+} from './files'
+import { createAccountMirror, type MirrorResult } from './mirror'
 
 const providers = ['anthropic', 'openai-codex'] as const
+
+const transientCodes = new Set(['EPERM', 'EBUSY', 'ENOENT', 'EACCES', 'EAGAIN'])
+
+function isTransientFileError(error: unknown): boolean {
+  const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
+  return typeof code === 'string' && transientCodes.has(code)
+}
+
+function saveFirst(provider: string): Error {
+  return new Error(`Save the current slot first: /accounts save ${provider} <name>`)
+}
+
+// Match /accounts: capture refreshed slots into their accounts, but never across identities.
+function captureSlots(
+  bucket: Bucket,
+  auth: Auth,
+  options: { strict?: boolean; exclude?: string } = {}
+): void {
+  for (const [activeProvider, activeName] of Object.entries(bucket.active)) {
+    if (activeProvider === options.exclude) {
+      continue
+    }
+    const slot = auth[activeProvider]
+    const stored = bucket.accounts[activeProvider]?.[activeName]
+    if (!slot || !stored) {
+      continue
+    }
+    if (slot.accountId && stored.accountId && slot.accountId !== stored.accountId) {
+      if (options.strict) {
+        throw saveFirst(activeProvider)
+      }
+      continue
+    }
+    bucket.accounts[activeProvider][activeName] = slot
+  }
+}
 
 export class PiAccountsService {
   private readonly agentDir: string
@@ -21,11 +66,19 @@ export class PiAccountsService {
       options.agentDir ?? process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent')
   }
 
-  private async read() {
+  private get bucketPath(): string {
+    return join(this.agentDir, 'accounts.json')
+  }
+
+  private get authPath(): string {
+    return join(this.agentDir, 'auth.json')
+  }
+
+  private async read(): Promise<{ bucket: Bucket; auth: Auth }> {
     const bucket = bucketSchema.parse(
-      await readJson(join(this.agentDir, 'accounts.json'), { version: 1, active: {}, accounts: {} })
+      await readJson(this.bucketPath, { version: 1, active: {}, accounts: {} })
     )
-    const auth = authSchema.parse(await readJson(join(this.agentDir, 'auth.json'), {}))
+    const auth = authSchema.parse(await readJson(this.authPath, {}))
     return { bucket, auth }
   }
 
@@ -48,9 +101,38 @@ export class PiAccountsService {
   }
 
   use(provider: PiAccountProvider, name: string): Promise<PiAccountsState> {
-    const operation = this.pending.then(() => this.switchAccount(provider, name))
-    this.pending = operation.catch(() => {})
-    return operation
+    return this.enqueue(() => this.switchAccount(provider, name))
+  }
+
+  /** Re-pushes the active Pi credential to the CLI sources (after something else overwrote them). */
+  remirror(provider: PiAccountProvider): Promise<PiAccountsState> {
+    return this.enqueue(() => this.remirrorActive(provider))
+  }
+
+  private enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.pending.then(operation)
+    this.pending = next.catch(() => {})
+    return next
+  }
+
+  private async runMirror(
+    provider: PiAccountProvider,
+    name: string,
+    cred: Credential
+  ): Promise<MirrorResult> {
+    if (!(this.options.mirrorEnabled ?? process.env.PI_ACCOUNTS_MIRROR !== '0')) {
+      return { cred }
+    }
+    try {
+      return await (this.options.mirror ?? createAccountMirror())(
+        provider,
+        `${provider}/${name}`,
+        cred,
+        join(this.agentDir, 'accounts-mirror.json')
+      )
+    } catch {
+      return { cred, error: 'mirror-failed' }
+    }
   }
 
   private async switchAccount(provider: PiAccountProvider, name: string): Promise<PiAccountsState> {
@@ -59,40 +141,59 @@ export class PiAccountsService {
       throw new Error('Pi account not found')
     }
     if (auth[provider] && !bucket.active[provider]) {
-      throw new Error(`Save the current slot first: /accounts save ${provider} <name>`)
+      throw saveFirst(provider)
     }
-    // Match /accounts: capture refreshed slots before switching, but never overwrite a different identity.
-    for (const [activeProvider, activeName] of Object.entries(bucket.active)) {
-      const slot = auth[activeProvider]
-      const stored = bucket.accounts[activeProvider]?.[activeName]
-      if (!slot || !stored) {
-        continue
-      }
-      if (slot.accountId && stored.accountId && slot.accountId !== stored.accountId) {
-        throw new Error(`Save the current slot first: /accounts save ${activeProvider} <name>`)
-      }
-      bucket.accounts[activeProvider][activeName] = slot
-    }
-    auth[provider] = bucket.accounts[provider][name]
+    captureSlots(bucket, auth, { strict: true })
+    const previousName = bucket.active[provider]
+    const before = JSON.stringify(auth[provider] ?? null)
     bucket.active[provider] = name
-    let error: string | undefined
-    if (this.options.mirrorEnabled ?? process.env.PI_ACCOUNTS_MIRROR !== '0') {
-      try {
-        const next = await (this.options.mirror ?? createAccountMirror())(
-          provider,
-          `${provider}/${name}`,
-          auth[provider],
-          join(this.agentDir, 'accounts-mirror.json')
-        )
-        bucket.accounts[provider][name] = next
-        auth[provider] = next
-      } catch {
-        error = 'mirror-failed'
+    const mirrored = await this.runMirror(provider, name, bucket.accounts[provider][name])
+    bucket.accounts[provider][name] = mirrored.cred
+    // Why the lock and the re-read: mirroring does network and Keychain work, and Pi can refresh
+    // the same slot meanwhile. Only the switched provider's slot is ours to replace.
+    await withAuthLock(this.agentDir, async () => {
+      const fresh = authSchema.parse(await readJson(this.authPath, {}))
+      if (JSON.stringify(fresh[provider] ?? null) !== before) {
+        if (previousName) {
+          bucket.active[provider] = previousName
+        } else {
+          delete bucket.active[provider]
+        }
+        // Keep both the refresh Pi just made and the one the mirror rotated; the switch is aborted.
+        captureSlots(bucket, fresh)
+        await writeJson(this.bucketPath, bucket)
+        throw new Error('Pi refreshed this provider while switching; try again')
       }
+      captureSlots(bucket, fresh, { exclude: provider })
+      await writeJson(this.bucketPath, bucket)
+      await writeJson(this.authPath, { ...fresh, [provider]: bucket.accounts[provider][name] })
+    })
+    return { ...(await this.list()), ...(mirrored.error ? { error: mirrored.error } : {}) }
+  }
+
+  private async remirrorActive(provider: PiAccountProvider): Promise<PiAccountsState> {
+    const { bucket, auth } = await this.read()
+    const name = bucket.active[provider]
+    const cred = name ? bucket.accounts[provider]?.[name] : undefined
+    if (!name || !cred) {
+      return this.list()
     }
-    await writeJson(join(this.agentDir, 'accounts.json'), bucket)
-    await writeJson(join(this.agentDir, 'auth.json'), auth)
-    return { ...(await this.list()), ...(error ? { error } : {}) }
+    const before = JSON.stringify(auth[provider] ?? null)
+    const mirrored = await this.runMirror(provider, name, cred)
+    const rotated = JSON.stringify(mirrored.cred) !== JSON.stringify(cred)
+    if (rotated || before !== JSON.stringify(cred)) {
+      await withAuthLock(this.agentDir, async () => {
+        const fresh = authSchema.parse(await readJson(this.authPath, {}))
+        bucket.accounts[provider][name] = mirrored.cred
+        captureSlots(bucket, fresh, { exclude: provider })
+        await writeJson(this.bucketPath, bucket)
+        // A rotation invalidates whatever else landed in the slot, so it wins; otherwise Pi's newer slot stays.
+        if (rotated || JSON.stringify(fresh[provider] ?? null) === before) {
+          await writeJson(this.authPath, { ...fresh, [provider]: mirrored.cred })
+        }
+      })
+    }
+    return { ...(await this.list()), ...(mirrored.error ? { error: mirrored.error } : {}) }
   }
 
   watch(onChange: (state: PiAccountsState) => void, intervalMs = 1000): () => void {
@@ -100,14 +201,15 @@ export class PiAccountsService {
     let previous = ''
     let timer: ReturnType<typeof setTimeout> | undefined
     const poll = async (): Promise<void> => {
-      let state: PiAccountsState
+      let state: PiAccountsState | null
       try {
         state = await this.list()
-      } catch {
-        state = { accounts: [], error: 'read-failed' }
+      } catch (error) {
+        // A half-written or briefly locked file is not a change; keep the last published state.
+        state = isTransientFileError(error) ? null : { accounts: [], error: 'read-failed' }
       }
-      const serialized = JSON.stringify(state)
-      if (!stopped && serialized !== previous) {
+      const serialized = state ? JSON.stringify(state) : previous
+      if (!stopped && state && serialized !== previous) {
         previous = serialized
         onChange(state)
       }

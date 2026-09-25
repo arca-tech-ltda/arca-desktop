@@ -102,6 +102,10 @@ export async function deleteManagedClaudeKeychainCredentials(accountId: string):
 const KEYCHAIN_ACCOUNT_PATTERN = /^[a-zA-Z0-9._-]+$/
 const CLAUDE_CODE_FALLBACK_USER = 'claude-code-user'
 
+export function getClaudeKeychainAccount(): string {
+  return getKeychainUser()
+}
+
 function getKeychainUser(): string {
   // Why: Claude Code 2.1+ rejects $USER outside [a-zA-Z0-9._-] (SSO names like
   // first@example.com) and stores the item under claude-code-user (#12857).
@@ -174,6 +178,10 @@ export function claudeConfigDirKeychainAliases(configDir: string): string[] {
     }
   }
   return aliases
+}
+
+export function getActiveClaudeKeychainServices(configDir?: string): string[] {
+  return getActiveClaudeServices(configDir)
 }
 
 function getActiveClaudeServices(configDir?: string): string[] {

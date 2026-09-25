@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { cp, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PiAccountsService } from './service'
@@ -21,7 +21,7 @@ async function fixture() {
   await cp(join(agentDir, 'bucket.json'), join(agentDir, 'accounts.json'))
   vi.stubEnv('PI_CODING_AGENT_DIR', agentDir)
   vi.stubEnv('PI_ACCOUNTS_MIRROR', '1')
-  const security = vi.fn(async () => {
+  const security = vi.fn(async (): Promise<{ code: number; stdout: string }> => {
     throw new Error('Unexpected Keychain access')
   })
   const mirror = createAccountMirror({ home, platform: 'win32', security })
@@ -110,7 +110,7 @@ it('reports partial mirror failure without claiming the Pi switch failed', async
 
 it('uses fake security on macOS and cached Codex id tokens without external access', async () => {
   const f = await fixture()
-  const security = vi.fn(async (_args: string[]) => '{}')
+  const security = vi.fn(async (_args: string[]) => ({ code: 0, stdout: '{}' }))
   const network = vi.fn(
     async () =>
       new Response(
@@ -134,11 +134,79 @@ it('uses fake security on macOS and cached Codex id tokens without external acce
     refresh: 'fixture-old-refresh',
     accountId: 'fixture-account'
   }
-  const next = await mirror('openai-codex', 'openai-codex/work', cred, statePath)
+  const next = (await mirror('openai-codex', 'openai-codex/work', cred, statePath)).cred
   expect(next.access).toBe('fixture-fresh')
   await mirror('openai-codex', 'openai-codex/work', next, statePath)
   expect(network).toHaveBeenCalledTimes(1)
   expect(
     JSON.parse(await readFile(join(f.home, '.codex', 'auth.json'), 'utf8')).tokens.id_token
   ).toBe('fixture-id')
+})
+
+it('persists the rotated Codex refresh token even when the mirror write fails afterwards', async () => {
+  const f = await fixture()
+  const bucket = await f.bucket()
+  bucket.active['openai-codex'] = 'work'
+  bucket.accounts['openai-codex'] = {
+    work: { access: 'fixture-codex-old', refresh: 'fixture-codex-old-refresh', accountId: 'acct' }
+  }
+  await writeJson(join(f.agentDir, 'accounts.json'), bucket)
+  // Why a file: it makes every write under ~/.codex fail after the refresh already rotated the token.
+  await writeFile(join(f.home, '.codex'), 'not a directory')
+  const mirror = createAccountMirror({
+    home: f.home,
+    platform: 'linux',
+    fetch: async () =>
+      new Response(
+        JSON.stringify({
+          access_token: 'fixture-codex-fresh',
+          refresh_token: 'fixture-codex-rotated',
+          id_token: 'fixture-id',
+          expires_in: 3600
+        })
+      )
+  })
+  const state = await new PiAccountsService({ mirror }).use('openai-codex', 'work')
+  expect(state.error).toBe('mirror-failed')
+  expect((await f.auth())['openai-codex'].refresh).toBe('fixture-codex-rotated')
+  expect((await f.bucket()).accounts['openai-codex'].work.refresh).toBe('fixture-codex-rotated')
+})
+
+it('aborts the switch when Pi refreshes the same slot mid-mirror, keeping both credentials', async () => {
+  const f = await fixture()
+  const service = new PiAccountsService({
+    mirror: async (_provider, _key, cred) => {
+      const auth = await f.auth()
+      auth.anthropic = {
+        type: 'oauth',
+        access: 'fixture-concurrent',
+        refresh: 'fixture-concurrent-refresh',
+        expires: 9000
+      }
+      await writeJson(join(f.agentDir, 'auth.json'), auth)
+      return { cred: { ...cred, refresh: 'fixture-rotated' } }
+    }
+  })
+  await expect(service.use('anthropic', 'personal')).rejects.toThrow('refreshed this provider')
+  expect((await f.auth()).anthropic.access).toBe('fixture-concurrent')
+  const bucket = await f.bucket()
+  expect(bucket.active.anthropic).toBe('work')
+  expect(bucket.accounts.anthropic.work.access).toBe('fixture-concurrent')
+  expect(bucket.accounts.anthropic.personal.refresh).toBe('fixture-rotated')
+})
+
+it('treats a transient read error as no change instead of publishing a failure', async () => {
+  const f = await fixture()
+  const events: PiAccountsState[] = []
+  vi.spyOn(f.service, 'list').mockRejectedValueOnce(
+    Object.assign(new Error('locked'), { code: 'EBUSY' })
+  )
+  const stop = f.service.watch((state) => events.push(state), 5)
+  try {
+    await vi.waitFor(() => expect(events.length).toBe(1))
+    expect(events[0].error).toBeUndefined()
+    expect(events[0].accounts).not.toHaveLength(0)
+  } finally {
+    stop()
+  }
 })

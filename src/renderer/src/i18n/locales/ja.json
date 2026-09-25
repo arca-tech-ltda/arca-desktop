@@ -15184,7 +15184,7 @@
     "add": "アカウントを追加するには Pi で /login を実行し、続けて /accounts save <provider> <name> を実行してください。Claude は anthropic、Codex は openai-codex を使用します。",
     "default": "Pi アカウントを使用すると Orca の管理アカウントはシステムのデフォルトになります。切り替え後は既存の Claude または Codex ターミナルを再起動してください。",
     "active": "使用中",
-    "drift": "スロットが異なります。切り替える前に新しいログインを保存してください。",
+    "drift": "Pi がこのトークンを更新しました。「使用」で同期します。",
     "use": "使用",
     "empty": "保存された Pi アカウントはありません。",
     "loading": "アカウントを読み込み中…",

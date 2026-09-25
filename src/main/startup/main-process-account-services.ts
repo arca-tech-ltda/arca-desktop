@@ -24,6 +24,9 @@ import { setSystemCodexHomeHookSweepSuppressed } from '../codex/hook-service'
 import { isRealHomeCodexHookLaneUsable } from '../codex/codex-real-home-hook-install'
 import { resolveHostCodexSessionSourceHome } from '../codex/codex-session-source-home'
 import { browserManager } from '../browser/browser-manager'
+import { ARCA_PI_IS_AUTHORITY } from '../../shared/arca-product'
+import { getPiAccountsService } from '../pi-accounts/registration'
+import { standDownManagedHostAccounts } from '../pi-accounts/managed-account-standdown'
 import { mainProcessState as state } from './main-process-state'
 
 export function initializeMainProcessAccountServices(): void {
@@ -182,5 +185,40 @@ export function initializeMainProcessAccountServices(): void {
             : { kind: 'skip' as const }
         }
       }))
+  })
+  scheduleManagedHostAccountStandDown()
+}
+
+// Why: with Pi as the credential authority, a host account still selected by an older build keeps
+// rewriting ~/.claude/.credentials.json (or the Keychain) on every poll and erases Pi's mirror.
+function scheduleManagedHostAccountStandDown(): void {
+  const store = state.store
+  const piAccounts = getPiAccountsService()
+  const claudeAccounts = state.claudeAccounts
+  const codexAccounts = state.codexAccounts
+  if (!ARCA_PI_IS_AUTHORITY || !store || !piAccounts || !claudeAccounts || !codexAccounts) {
+    return
+  }
+  const settings = store.getSettings()
+  void standDownManagedHostAccounts({
+    providers: [
+      {
+        provider: 'anthropic',
+        activeAccountId: normalizeClaudeRuntimeSelection(settings).host,
+        deselect: () => claudeAccounts.selectAccountForTarget(null, { runtime: 'host' })
+      },
+      {
+        provider: 'openai-codex',
+        activeAccountId: normalizeCodexRuntimeSelection(settings).host,
+        deselect: () => codexAccounts.selectAccountForTarget(null, { runtime: 'host' })
+      }
+    ],
+    hasActivePiAccount: async (provider) =>
+      (await piAccounts.list()).accounts.some(
+        (account) => account.provider === provider && account.active
+      ),
+    remirror: (provider) => piAccounts.remirror(provider)
+  }).catch((error: unknown) => {
+    console.warn('[pi-accounts] Could not stand down managed host accounts:', error)
   })
 }

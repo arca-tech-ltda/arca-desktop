@@ -59,22 +59,29 @@ export function PiAccountsSection({
     setFailed(false)
     setMirrorFailed(false)
     try {
-      // Keep managed-account selection on system default without changing its storage or service.
-      if (
-        settings?.activeClaudeManagedAccountIdsByRuntime?.host ||
-        settings?.activeClaudeManagedAccountId
-      ) {
-        await selectClaudeProviderAccount(settings, { accountId: null, runtime: 'host' })
-      }
-      if (
-        settings?.activeCodexManagedAccountIdsByRuntime?.host ||
-        settings?.activeCodexManagedAccountId
-      ) {
-        await selectCodexProviderAccount(settings, { accountId: null, runtime: 'host' })
-      }
       const next = await window.api.piAccounts.use(selectedProvider, name)
       setState(next)
       setMirrorFailed(next.error === 'mirror-failed')
+      // Keep managed-account selection on system default without changing its storage or service.
+      // Deselecting restores an Orca snapshot over the mirror, so push the Pi credential back after.
+      const claudeManaged =
+        settings?.activeClaudeManagedAccountIdsByRuntime?.host ||
+        settings?.activeClaudeManagedAccountId
+      const codexManaged =
+        settings?.activeCodexManagedAccountIdsByRuntime?.host ||
+        settings?.activeCodexManagedAccountId
+      const deselected: PiAccountProvider[] = []
+      if (claudeManaged) {
+        await selectClaudeProviderAccount(settings, { accountId: null, runtime: 'host' })
+        deselected.push('anthropic')
+      }
+      if (codexManaged) {
+        await selectCodexProviderAccount(settings, { accountId: null, runtime: 'host' })
+        deselected.push('openai-codex')
+      }
+      for (const deselectedProvider of deselected) {
+        setState(await window.api.piAccounts.remirror(deselectedProvider))
+      }
       await fetchSettings()
     } catch {
       setFailed(true)
@@ -126,10 +133,7 @@ export function PiAccountsSection({
                 ) : null}
                 {account.drift ? (
                   <span className="text-xs text-muted-foreground">
-                    {translate(
-                      'piAccounts.drift',
-                      'Slot differs; save a new login before switching.'
-                    )}
+                    {translate('piAccounts.drift', 'Pi refreshed this token; Use syncs it.')}
                   </span>
                 ) : null}
                 <Button

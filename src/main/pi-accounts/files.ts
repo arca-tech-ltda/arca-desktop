@@ -15,6 +15,7 @@ export const credentialSchema = z
   .passthrough()
 export type Credential = z.infer<typeof credentialSchema>
 export const authSchema = z.record(z.string(), credentialSchema)
+export type Auth = z.infer<typeof authSchema>
 export const bucketSchema = z
   .object({
     version: z.literal(1),
@@ -22,6 +23,7 @@ export const bucketSchema = z
     accounts: z.record(z.string(), z.record(z.string(), credentialSchema))
   })
   .passthrough()
+export type Bucket = z.infer<typeof bucketSchema>
 
 export async function readJson(path: string, fallback: unknown): Promise<unknown> {
   try {
