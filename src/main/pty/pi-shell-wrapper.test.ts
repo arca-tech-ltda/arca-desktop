@@ -29,7 +29,7 @@ for (const shell of ['/bin/bash', '/bin/zsh', '/opt/homebrew/bin/fish']) {
       const wrapper = shell.endsWith('fish') ? getFishPiShellWrapper() : getPosixPiShellWrapper()
       const command = manual
         ? `${wrapper}\npi 'hello world'`
-        : withPiManagedExtensions("pi 'hello world'", 'posix')
+        : withPiManagedExtensions("pi 'hello world'", 'posix', env)
       const result = await runProcess({ program: shell, args: ['-c', command], env })
       expect(result.code, result.stderr).toBe(0)
       expect(result.stdout.trim().split('\n')).toEqual([
@@ -38,7 +38,10 @@ for (const shell of ['/bin/bash', '/bin/zsh', '/opt/homebrew/bin/fish']) {
       ])
       const outside = await runProcess({
         program: shell,
-        args: ['-c', command],
+        args: [
+          '-c',
+          `${wrapper}\n${withPiManagedExtensions("pi 'hello world'", 'posix', { ...env, ORCA_PANE_KEY: '' })}`
+        ],
         env: { ...env, ORCA_PANE_KEY: '' }
       })
       expect(outside.stdout).toBe('hello world\n')
@@ -62,7 +65,7 @@ it.skipIf(!existsSync('/opt/homebrew/bin/pwsh'))(
       ...Object.fromEntries(PI_EXTENSION_ENV_KEYS.map((key, i) => [key, paths[i]]))
     }
     for (const command of [
-      withPiManagedExtensions("pi 'hello world'", 'powershell'),
+      withPiManagedExtensions("pi 'hello world'", 'powershell', env),
       `${getPowerShellPiShellWrapper()}\npi 'hello world'`
     ]) {
       const result = await runProcess({

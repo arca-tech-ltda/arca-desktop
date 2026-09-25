@@ -1,3 +1,4 @@
+import { isTrustedUIRenderer } from '../ipc/ui'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -41,15 +42,24 @@ export function registerArcaProjectsSync(store: Store): void {
       instance.restoreSettings(value)
     })
     .catch(() => {})
-  ipcMain.handle('arcaProjectsSync:status', async () => {
+  ipcMain.handle('arcaProjectsSync:status', async (event) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted project sync caller')
+    }
     await ready
     return instance.status()
   })
-  ipcMain.handle('arcaProjectsSync:syncNow', async () => {
+  ipcMain.handle('arcaProjectsSync:syncNow', async (event) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted project sync caller')
+    }
     await ready
     return instance.syncNow(true)
   })
-  ipcMain.handle('arcaProjectsSync:setAutoUpdate', async (_event, enabled: unknown) => {
+  ipcMain.handle('arcaProjectsSync:setAutoUpdate', async (event, enabled: unknown) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted project sync caller')
+    }
     if (typeof enabled !== 'boolean') {
       throw new Error('Invalid auto-update setting')
     }
@@ -73,7 +83,13 @@ export function registerArcaProjectsSync(store: Store): void {
   }
   app.on('browser-window-created', (_event, window) => window.on('focus', runOnFocus))
   void ready.then(() => instance.syncNow(false))
-  const interval = setInterval(() => void ready.then(() => instance.syncNow(false)), 5 * 60_000)
+  const interval = setInterval(() => {
+    if (
+      BrowserWindow.getAllWindows().some((window) => !window.isDestroyed() && window.isFocused())
+    ) {
+      runOnFocus()
+    }
+  }, 30 * 60_000)
   interval.unref()
   app.once('before-quit', () => clearInterval(interval))
 }

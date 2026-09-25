@@ -1,4 +1,3 @@
-import { withPiManagedExtensions } from './tui-agent-pi-extensions'
 import {
   getAgentResumeArgv,
   type AgentProviderSessionMetadata,
@@ -61,10 +60,7 @@ export function buildAgentResumeStartupPlan(args: {
   const applied = baseCommand.appliedSessionOptions
   return {
     agent: args.agent,
-    launchCommand:
-      args.agent === 'pi' || args.agent === 'prime-agent'
-        ? withPiManagedExtensions(launchCommand, shell)
-        : launchCommand,
+    launchCommand,
     expectedProcess: TUI_AGENT_CONFIG[args.agent].expectedProcess,
     followupPrompt: null,
     launchConfig,

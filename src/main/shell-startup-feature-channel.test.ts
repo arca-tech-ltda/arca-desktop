@@ -41,6 +41,19 @@ const PLAIN_PANE = {
 }
 
 describe('shell startup feature selection', () => {
+  it.each(['ORCA_PI_EXT_TITLEBAR', 'ORCA_PI_EXT_PREFILL', 'ORCA_PI_EXT_STATUS'])(
+    'installs the Pi function when only %s is available',
+    (key) => {
+      expect(
+        selectShellStartupFeatures({
+          shellPath: '/bin/zsh',
+          env: { [key]: '/host/extension.ts' },
+          ...PLAIN_PANE
+        })
+      ).toContain('overlay')
+    }
+  )
+
   it('ignores an inherited ORCA_SHELL_FEATURES in the spawn env', () => {
     // Why: the value a parent shell exported is not an input. If it were, a pane
     // opened from another pane would inherit that pane's feature set.

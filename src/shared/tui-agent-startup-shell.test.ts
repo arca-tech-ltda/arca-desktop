@@ -1,4 +1,3 @@
-import { withPiManagedExtensions } from './tui-agent-pi-extensions'
 import { describe, expect, it } from 'vitest'
 import {
   buildShellCommandFromArgv,
@@ -144,10 +143,7 @@ describe('one Unix startup dialect', () => {
     })
 
     expect(plan?.launchCommand).toBe(
-      `${withPiManagedExtensions(
-        'pi',
-        'posix'
-      )}; command test -n "$fish_pid" && set --erase -g ORCA_PI_PREFILL; command test -z "$fish_pid" && unset ORCA_PI_PREFILL; true`
+      `pi ; command test -n "$fish_pid" && set --erase -g ORCA_PI_PREFILL; command test -z "$fish_pid" && unset ORCA_PI_PREFILL; true`
     )
     expect(plan?.env?.ORCA_PI_PREFILL).toBe('hello')
   })

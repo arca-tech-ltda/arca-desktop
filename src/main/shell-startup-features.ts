@@ -1,3 +1,5 @@
+import { PI_EXTENSION_ENV_KEYS } from '../shared/tui-agent-pi-extensions'
+
 /**
  * The single env variable ARCA uses to tell a launched shell which startup
  * features its wrapper should turn on, plus the pure selection that fills it.
@@ -26,6 +28,7 @@ export type ShellStartupFeature = (typeof SHELL_STARTUP_FEATURES)[number]
 
 /** Spawn-env keys that mean this pane carries an ARCA overlay the wrapper must re-apply. */
 const OVERLAY_ENV_KEYS = [
+  ...PI_EXTENSION_ENV_KEYS,
   'ORCA_OPENCODE_CONFIG_DIR',
   'ORCA_MIMOCODE_HOME',
   'ORCA_OMP_STATUS_EXTENSION',

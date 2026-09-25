@@ -38,20 +38,11 @@ export function createArcaUpdateMenuItem(
   return {
     id: 'arca-check-update',
     label: translateMain('menu.checkForUpdates', 'Check for Updates...'),
-    click: (_item, _window, event) => {
+    click: () => {
       if (restartFromArcaMenu()) {
         return
       }
-      const isMac = process.platform === 'darwin'
-      const modifierClick = !event.triggeredByAccelerator
-      const localBuild = isMac && modifierClick && event.altKey === true
-      const includePerfPrerelease =
-        !localBuild && modifierClick && (isMac ? event.metaKey === true : event.ctrlKey === true)
-      onCheck({
-        includePrerelease: !localBuild && modifierClick && event.shiftKey === true,
-        includePerfPrerelease,
-        ...(localBuild ? { localBuild: true } : {})
-      })
+      onCheck({})
     }
   }
 }

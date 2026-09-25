@@ -1,3 +1,4 @@
+import { recognizeAgentProcessFromCommandLine } from '../../shared/agent-process-recognition'
 import { win32 as pathWin32 } from 'node:path'
 import { resolveWindowsShellLaunchArgs } from './windows-shell-args'
 import type { WindowsShellWslContext } from './windows-shell-args'
@@ -28,7 +29,13 @@ function toAttempt(
     cwd,
     defaultCwd,
     wslContext,
-    startupCommand
+    // The winning cmd fallback needs host-resolved extension args in its own dialect.
+    pathWin32.basename(shellPath).toLowerCase() === 'cmd.exe' &&
+      ['pi', 'prime-agent'].includes(
+        recognizeAgentProcessFromCommandLine(startupCommand)?.agent ?? ''
+      )
+      ? undefined
+      : startupCommand
   )
   return {
     shellPath,

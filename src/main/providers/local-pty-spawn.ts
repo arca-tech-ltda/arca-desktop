@@ -1,3 +1,4 @@
+import { piLaunchCommand } from '../pty/pi-launch-command'
 import { randomUUID } from 'node:crypto'
 import { win32 as pathWin32 } from 'node:path'
 import * as pty from 'node-pty'
@@ -39,7 +40,7 @@ export async function spawnLocalPty(
   const id = allocatePtyId(reattachId ?? undefined)
   const incarnationId = randomUUID()
   const planResult = createLocalPtyLaunchPlan(args, getOptions)
-  const plan =
+  let plan =
     planResult instanceof DeferredLocalPtyLaunchPlan
       ? planResult.finish(await planResult.availability)
       : planResult
@@ -51,6 +52,16 @@ export async function spawnLocalPty(
   })
   const finalEnv = envResult instanceof Promise ? await envResult : envResult
   enforceLocalPtySpawnEnvironmentOverrides(args, finalEnv)
+  const originalCommand = args.command
+  const command = piLaunchCommand(args.command, plan.shellPath, finalEnv)
+  if (command !== args.command) {
+    args = { ...args, command }
+    const updated = createLocalPtyLaunchPlan(args, getOptions)
+    plan =
+      updated instanceof DeferredLocalPtyLaunchPlan
+        ? updated.finish(await updated.availability)
+        : updated
+  }
   const historyResult = finalizeLocalPtySpawnEnvironment({
     spawn: args,
     getOptions,
@@ -88,6 +99,7 @@ export async function spawnLocalPty(
   })
   args.onPtySpawnCommitted?.()
   plan.shellPath = spawnResult.shellPath
+  args = { ...args, command: piLaunchCommand(originalCommand, plan.shellPath, finalEnv) }
   // Why: a Windows fallback embeds its startup command in argv; honor the winning shell's delivery flag to avoid a double write.
   if (spawnResult.startupCommandDeliveredInShellArgs !== undefined) {
     plan.startupCommandDeliveredInShellArgs = spawnResult.startupCommandDeliveredInShellArgs

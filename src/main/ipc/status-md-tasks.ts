@@ -1,3 +1,5 @@
+import { mapWithConcurrency } from '../../shared/map-with-concurrency'
+import { isTrustedUIRenderer } from './ui'
 import { ipcMain, type BrowserWindow } from 'electron'
 import { watch, type FSWatcher } from 'node:fs'
 import { readFile } from 'node:fs/promises'
@@ -90,24 +92,24 @@ export async function recentStatusMdTasks(
   readTimestamps: ReadTaskTimestamps = statusMdTaskTimestamps
 ): Promise<StatusMdRecentTasks> {
   const recent = (
-    await Promise.all(
-      projects
-        .filter((project) => project.status === 'available')
-        .map(async (project): Promise<StatusMdRecentTask[]> => {
-          try {
-            const timestamps = await readTimestamps(project.path, project.statusPath, project.tasks)
-            return project.tasks.map((task) => ({
-              repoId: project.repoId,
-              projectName: project.name,
-              path: project.path,
-              statusPath: project.statusPath,
-              task,
-              changedAt: timestamps.get(task.lineNumber) ?? 0
-            }))
-          } catch {
-            return []
-          }
-        })
+    await mapWithConcurrency(
+      projects.filter((project) => project.status === 'available'),
+      4,
+      async (project): Promise<StatusMdRecentTask[]> => {
+        try {
+          const timestamps = await readTimestamps(project.path, project.statusPath, project.tasks)
+          return project.tasks.map((task) => ({
+            repoId: project.repoId,
+            projectName: project.name,
+            path: project.path,
+            statusPath: project.statusPath,
+            task,
+            changedAt: timestamps.get(task.lineNumber) ?? 0
+          }))
+        } catch {
+          return []
+        }
+      }
     )
   )
     .flat()
@@ -124,44 +126,92 @@ export async function recentStatusMdTasks(
   }
 }
 
+type WatchState = {
+  watchers: Map<string, { watcher: FSWatcher; timer: NodeJS.Timeout | null; path: string }>
+  failures: Map<string, { delay: number; retryAt: number }>
+}
+const registrations = new Map<
+  number,
+  {
+    list: () => Promise<StatusMdTaskProject[]>
+    recent: () => Promise<StatusMdRecentTasks>
+  }
+>()
+
 export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: Store): void {
   const refreshPriorities = registerArcaPriorityHandlers(mainWindow, store)
-  syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
-  const retry = setInterval(() => {
-    syncStatusWatchers(mainWindow, store.getRepos(), refreshPriorities)
-  }, 2_000)
+  const state: WatchState = { watchers: new Map(), failures: new Map() }
+  const sync = (): void =>
+    syncStatusWatchers(state, mainWindow, store.getRepos(), refreshPriorities)
+  sync()
+  const retry = setInterval(sync, 2_000)
   retry.unref()
+  let reading: Promise<StatusMdTaskProject[]> | null = null
+  let scanning: Promise<StatusMdRecentTasks> | null = null
+  const list = (): Promise<StatusMdTaskProject[]> => {
+    sync()
+    reading ??= readStatusMdTasksForRepos(store.getRepos()).finally(() => {
+      reading = null
+    })
+    return reading
+  }
+  const id = mainWindow.webContents.id
+  const registration = {
+    list,
+    recent: (): Promise<StatusMdRecentTasks> => {
+      scanning ??= list()
+        .then((projects) => recentStatusMdTasks(projects))
+        .finally(() => {
+          scanning = null
+        })
+      return scanning
+    }
+  }
+  registrations.set(id, registration)
   mainWindow.once('closed', () => {
     clearInterval(retry)
-    syncStatusWatchers(mainWindow, [], refreshPriorities)
+    syncStatusWatchers(state, mainWindow, [], refreshPriorities)
+    if (registrations.get(id) === registration) {
+      registrations.delete(id)
+    }
   })
-  ipcMain.removeHandler('status-md-tasks:list')
-  ipcMain.handle('status-md-tasks:list', async (): Promise<StatusMdTaskProject[]> => {
-    const repos = store.getRepos()
-    syncStatusWatchers(mainWindow, repos, refreshPriorities)
-    return readStatusMdTasksForRepos(repos)
-  })
-  ipcMain.removeHandler('status-md-tasks:recent')
-  ipcMain.handle('status-md-tasks:recent', async (): Promise<StatusMdRecentTasks> => {
-    const repos = store.getRepos()
-    syncStatusWatchers(mainWindow, repos, refreshPriorities)
-    return recentStatusMdTasks(await readStatusMdTasksForRepos(repos))
-  })
+  for (const method of ['list', 'recent'] as const) {
+    ipcMain.removeHandler(`status-md-tasks:${method}`)
+    ipcMain.handle(`status-md-tasks:${method}`, (event) => {
+      if (!isTrustedUIRenderer(event.sender)) {
+        throw new Error('Untrusted STATUS.md caller')
+      }
+      const registered = registrations.get(event.sender.id)
+      if (!registered) {
+        throw new Error('STATUS.md window is closed')
+      }
+      return registered[method]()
+    })
+  }
 }
 
-const watchers = new Map<string, { watcher: FSWatcher; timer: NodeJS.Timeout | null }>()
-
 function syncStatusWatchers(
+  state: WatchState,
   mainWindow: BrowserWindow,
   repos: readonly Repo[],
   refreshPriorities: () => void
 ): void {
+  const { watchers, failures } = state
+  const failed = (id: string): void => {
+    const delay = Math.min((failures.get(id)?.delay ?? 1_000) * 2, 30_000)
+    failures.set(id, { delay, retryAt: Date.now() + delay })
+  }
   const localRepos = repos.filter(
     (repo) => !repo.connectionId && (!repo.executionHostId || repo.executionHostId === 'local')
   )
   const wanted = new Set(localRepos.map((repo) => repo.id))
+  for (const id of failures.keys()) {
+    if (!wanted.has(id)) {
+      failures.delete(id)
+    }
+  }
   for (const [repoId, current] of watchers) {
-    if (!wanted.has(repoId)) {
+    if (!localRepos.some((repo) => repo.id === repoId && repo.path === current.path)) {
       if (current.timer) {
         clearTimeout(current.timer)
       }
@@ -171,12 +221,12 @@ function syncStatusWatchers(
   }
 
   for (const repo of localRepos) {
-    if (watchers.has(repo.id)) {
+    if (watchers.has(repo.id) || (failures.get(repo.id)?.retryAt ?? 0) > Date.now()) {
       continue
     }
     try {
       const watcher = watch(repo.path, { persistent: false }, (_event, filename) => {
-        if (filename && filename.toString() !== STATUS_FILE) {
+        if (filename && filename.toString().toLowerCase() !== STATUS_FILE.toLowerCase()) {
           return
         }
         const current = watchers.get(repo.id)
@@ -204,10 +254,11 @@ function syncStatusWatchers(
         }
         watchers.delete(repo.id)
         watcher.close()
+        failed(repo.id)
       })
-      watchers.set(repo.id, { watcher, timer: null })
+      watchers.set(repo.id, { watcher, timer: null, path: repo.path })
     } catch {
-      // The list call still reports the file state; watching can start after the path appears.
+      failed(repo.id)
     }
   }
 }

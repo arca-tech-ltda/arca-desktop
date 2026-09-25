@@ -1,33 +1,56 @@
 import { expect, it } from 'vitest'
-import { buildAgentStartupPlan } from './tui-agent-startup'
+import { recognizeAgentProcessFromCommandLine } from './agent-process-recognition'
+import { buildAgentStartupPlan, buildAgentDraftLaunchPlan } from './tui-agent-startup'
+import { withPiManagedExtensions } from './tui-agent-pi-extensions'
 
 it.each(['posix', 'powershell', 'cmd'] as const)(
-  'passes Pi extensions from host environment in %s',
+  'keeps Pi recognizable before and after host extension injection in %s',
   (shell) => {
-    const plan = buildAgentStartupPlan({
-      agent: 'pi',
-      prompt: 'hello',
-      cmdOverrides: {},
-      platform: shell === 'posix' ? 'linux' : 'win32',
-      shell
-    })
-    const prefix = shell === 'cmd' ? '%' : shell === 'powershell' ? '$env:' : '$'
-    const suffix = shell === 'cmd' ? '%' : ''
-    for (const kind of ['TITLEBAR', 'PREFILL', 'STATUS']) {
-      expect(plan?.launchCommand).toContain(`--extension "${prefix}ORCA_PI_EXT_${kind}${suffix}"`)
+    for (const builder of [buildAgentStartupPlan, buildAgentDraftLaunchPlan]) {
+      const plan = builder({
+        agent: 'pi',
+        prompt: 'hello',
+        draft: 'hello',
+        cmdOverrides: {},
+        platform: shell === 'posix' ? 'linux' : 'win32',
+        shell
+      })
+      expect(plan).not.toBeNull()
+      const command = plan!.launchCommand
+      expect(recognizeAgentProcessFromCommandLine(command)?.agent).toBe('pi')
+      expect(command).not.toContain('--extension')
+      const extended = withPiManagedExtensions(command, shell, {
+        ORCA_PANE_KEY: 'pane',
+        ORCA_PI_EXT_STATUS: '/host/status.ts',
+        ORCA_PI_EXT_PREFILL: '/host/prefill.ts'
+      })
+      expect(recognizeAgentProcessFromCommandLine(extended)?.agent).toBe('pi')
+      expect(extended).toContain('/host/status.ts')
+      expect(extended).toContain('/host/prefill.ts')
+      expect(extended).not.toContain('TITLEBAR')
+      expect(
+        withPiManagedExtensions(extended, shell, {
+          ORCA_PANE_KEY: 'pane',
+          ORCA_PI_EXT_STATUS: '/host/status.ts'
+        })
+      ).toBe(extended)
     }
-    expect(plan?.expectedProcess).toBe('pi')
-    expect(plan?.launchConfig).not.toHaveProperty('ORCA_PI_EXT_STATUS')
   }
 )
 
-it('passes only the status extension on explicit Prime launches', () => {
+it('injects only installed Prime extensions on the execution host', () => {
   const plan = buildAgentStartupPlan({
     agent: 'prime-agent',
     prompt: 'hello',
     cmdOverrides: {},
     platform: 'linux'
-  })
-  expect(plan?.launchCommand).toContain('--extension "$ORCA_PRIME_AGENT_STATUS_EXTENSION"')
-  expect(plan?.launchCommand).not.toContain('ORCA_PI_EXT_')
+  })!
+  expect(plan.launchCommand.startsWith('prime-agent')).toBe(true)
+  expect(
+    withPiManagedExtensions(plan.launchCommand, 'posix', {
+      ORCA_PANE_KEY: 'pane',
+      ORCA_PRIME_AGENT_STATUS_EXTENSION: '/host/prime.ts',
+      ORCA_PI_EXT_STATUS: '/host/pi.ts'
+    })
+  ).toContain("--extension '/host/prime.ts'")
 })

@@ -287,11 +287,10 @@ describe('SidebarSettingsHelpMenu', () => {
   it('renders Check for Updates menu item', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
     expect(html).toContain('Check for Updates')
-    expect(html).toMatch(/(⇧\+click|Shift\+click) checks the latest RC/)
-    expect(html).toMatch(/(⌘\+click|Ctrl\+click) checks the latest perf build/)
+    expect(html).toContain('Mainframe ARCA · stable')
   })
 
-  it('passes update-check modifier options through the updater bridge', async () => {
+  it('ignores obsolete update-channel modifiers', async () => {
     const container = await renderMenu()
     const checkButton = findMenuItem(container, 'Check for Updates')
     const primaryModifier = navigator.userAgent.includes('Mac')
@@ -312,18 +311,9 @@ describe('SidebarSettingsHelpMenu', () => {
       checkButton.click()
     })
 
-    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(1, {
-      includePrerelease: true,
-      includePerfPrerelease: false
-    })
-    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(2, {
-      includePrerelease: false,
-      includePerfPrerelease: true
-    })
-    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(3, {
-      includePrerelease: false,
-      includePerfPrerelease: false
-    })
+    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(1, {})
+    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(2, {})
+    expect(mocks.updaterCheck).toHaveBeenNthCalledWith(3, {})
   })
 
   // No other test in this file opens the menu or selects Send Feedback, so the 0 -> 1

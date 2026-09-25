@@ -1,3 +1,4 @@
+import { piLaunchCommand } from '../pty/pi-launch-command'
 import { buildStartupCommandSubmission } from '../../shared/startup-command-submission'
 import { resolvePtyOwnerBackend } from '../../shared/pty-owner-backend'
 import { getDaemonSessionResultMetadata } from './daemon-create-or-attach-result'
@@ -119,7 +120,7 @@ async function spawnAndPublishSession(
     cwd: opts.cwd,
     env: opts.env,
     envToDelete: opts.envToDelete,
-    command: opts.command,
+    command: piLaunchCommand(opts.command, wslDistro ? 'bash' : opts.shellOverride, opts.env ?? {}),
     startupCommandDelivery: opts.startupCommandDelivery,
     ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),
     shellOverride: opts.shellOverride,
@@ -199,10 +200,17 @@ async function spawnAndPublishSession(
     const submit = process.platform === 'win32' ? '\r' : '\n'
     // Why: only Orca-wrapped shells advertise the paste-safe startup barrier.
     session.write(
-      buildStartupCommandSubmission(opts.command, {
-        submit,
-        bracketedPasteSafe: shellReadySupported
-      })
+      buildStartupCommandSubmission(
+        piLaunchCommand(
+          opts.command,
+          wslDistro ? 'bash' : (subprocess.shellPath ?? opts.shellOverride),
+          opts.env ?? {}
+        ) ?? opts.command,
+        {
+          submit,
+          bracketedPasteSafe: shellReadySupported
+        }
+      )
     )
   }
 

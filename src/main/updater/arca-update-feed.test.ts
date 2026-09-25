@@ -5,18 +5,23 @@ import {
   ARCA_UPDATE_SERVER_UNAVAILABLE,
   arcaUpdateFeedUnavailableMessage
 } from './arca-update-feed-failure'
-import { areAutoUpdatesEnabled } from './auto-update-policy'
+import { getArcaMainframeEndpoint } from '../arca-mainframe/arca-mainframe-endpoint'
 import { readCredential } from '../arca-megamind/credentials'
 
 vi.mock('../arca-megamind/credentials', () => ({
   megamindConfigPath: () => '/config',
   readCredential: vi.fn()
 }))
-afterEach(() => vi.unstubAllEnvs())
+vi.mock('../arca-mainframe/arca-mainframe-endpoint', () => ({
+  getArcaMainframeEndpoint: vi.fn(() => ({ origin: 'https://mainframe.arcatech.com.br' }))
+}))
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.mocked(getArcaMainframeEndpoint).mockReset()
+})
 
-describe('ARCA update policy', () => {
+describe('ARCA update feed', () => {
   it('enables only the authenticated stable generic feed', () => {
-    expect(areAutoUpdatesEnabled()).toBe(true)
     const feed = arcaUpdateFeed(undefined, 'device-token')
     expect(feed).toEqual({
       provider: 'generic',
@@ -41,8 +46,27 @@ describe('ARCA update policy', () => {
       tokenFile: '/token'
     })
     expect((await readArcaUpdateFeed())?.requestHeaders.Authorization).toBe('Bearer abc')
-    vi.stubEnv('ARCA_MAINFRAME_URL', 'https://other.example')
+    vi.mocked(getArcaMainframeEndpoint).mockReturnValue({
+      ...getArcaMainframeEndpoint(),
+      origin: 'https://other.example'
+    })
     expect(await readArcaUpdateFeed()).toBeNull()
+  })
+
+  it('uses the configured enrollment origin without an environment override', async () => {
+    vi.stubEnv('ARCA_MAINFRAME_URL', undefined)
+    vi.mocked(getArcaMainframeEndpoint).mockReturnValue({
+      ...getArcaMainframeEndpoint(),
+      origin: 'https://configured.example'
+    })
+    vi.mocked(readCredential).mockResolvedValue({
+      endpoint: 'https://configured.example/api',
+      token: 'device',
+      tokenFile: '/token'
+    })
+    expect((await readArcaUpdateFeed())?.url).toBe(
+      'https://configured.example/api/arca/desktop/updates/stable/'
+    )
   })
 
   it.each([

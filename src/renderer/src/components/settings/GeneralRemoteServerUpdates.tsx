@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
-import { getUpdateCheckClickOptions, getUpdateCheckHint } from '@/lib/update-check-click-options'
+import { ARCA_UPDATE_CHECK_HINT } from '@/lib/update-check-hint'
 import { SearchableSetting } from './SearchableSetting'
 
 export function GeneralRemoteServerUpdates(): React.JSX.Element | null {
@@ -14,7 +14,6 @@ export function GeneralRemoteServerUpdates(): React.JSX.Element | null {
   const running = useAppStore((state) => state.remoteServerUpdatesRunning)
   const refresh = useAppStore((state) => state.refreshRemoteServerUpdates)
   const setDialogOpen = useAppStore((state) => state.setRemoteServerUpdateDialogOpen)
-  const updateCheckHint = getUpdateCheckHint()
 
   useEffect(() => {
     void refresh()
@@ -108,11 +107,11 @@ export function GeneralRemoteServerUpdates(): React.JSX.Element | null {
           variant="outline"
           size="sm"
           className="gap-2"
-          title={updateCheckHint}
+          title={ARCA_UPDATE_CHECK_HINT}
           disabled={checking || running}
-          onClick={(event) => {
+          onClick={() => {
             setDialogOpen(true)
-            void refresh(getUpdateCheckClickOptions(event))
+            void refresh({})
           }}
         >
           {checking || running ? (

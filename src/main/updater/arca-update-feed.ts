@@ -1,4 +1,5 @@
 import { ARCA_MAINFRAME_DEFAULT_URL } from '../../shared/arca-mainframe'
+import { getArcaMainframeEndpoint } from '../arca-mainframe/arca-mainframe-endpoint'
 import { megamindConfigPath, readCredential } from '../arca-megamind/credentials'
 
 // Why: stable code shared with the renderer, which shows the localized text.
@@ -42,7 +43,7 @@ export function arcaUpdateFeed(base = ARCA_MAINFRAME_DEFAULT_URL, token?: string
 export async function readArcaUpdateFeed() {
   try {
     const credential = await readCredential(megamindConfigPath())
-    const base = process.env.ARCA_MAINFRAME_URL ?? ARCA_MAINFRAME_DEFAULT_URL
+    const base = getArcaMainframeEndpoint().origin
     // Never send a device credential to a different enrollment host.
     if (new URL(credential.endpoint).origin !== new URL(base).origin) {
       return null

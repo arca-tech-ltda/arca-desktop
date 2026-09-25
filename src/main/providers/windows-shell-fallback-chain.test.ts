@@ -78,3 +78,20 @@ describe('buildWindowsPowerShellSpawnAttempts', () => {
     }
   })
 })
+
+it.each(['pi', 'prime-agent'])(
+  'defers %s cmd fallback delivery until the winning shell is known',
+  (agent) => {
+    restorePlatform = setPlatform('win32')
+    const attempts = buildWindowsPowerShellSpawnAttempts({
+      shellPath: 'pwsh.exe',
+      cwd: 'C:\\repo',
+      defaultCwd: 'C:\\Users\\dev',
+      startupCommand: `${agent} --prompt hello`,
+      resolveOptions: { platform: 'win32', env: WIN_ENV, isRealExecutable: () => true }
+    })
+    expect(attempts[0].startupCommandDeliveredInShellArgs).toBe(true)
+    expect(attempts.at(-1)?.shellPath).toBe(CMD)
+    expect(attempts.at(-1)?.startupCommandDeliveredInShellArgs).toBe(false)
+  }
+)

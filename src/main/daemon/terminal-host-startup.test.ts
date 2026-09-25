@@ -37,6 +37,22 @@ describe('TerminalHost startup command terminator', () => {
     host = new TerminalHost({ spawnSubprocess: () => sub })
   })
 
+  it('uses cmd extension quoting after a PowerShell fallback', async () => {
+    Object.defineProperty(process, 'platform', { value: 'win32' })
+    sub.shellPath = 'C:\\Windows\\System32\\cmd.exe'
+    await host.createOrAttach({
+      sessionId: 'pi-fallback',
+      cols: 80,
+      rows: 24,
+      command: 'pi',
+      shellOverride: 'powershell.exe',
+      shellReadySupported: false,
+      env: { ORCA_PANE_KEY: 'pane', ORCA_PI_EXT_STATUS: 'C:\\Ana Silva\\status.ts' },
+      streamClient: { onData: vi.fn(), onExit: vi.fn() }
+    })
+    expect(sub.write).toHaveBeenCalledWith('pi --extension "C:\\Ana Silva\\status.ts"\r')
+  })
+
   it.each([
     ['win32', 'claude', 'claude\r'],
     ['darwin', 'claude', 'claude\n'],

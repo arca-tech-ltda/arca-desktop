@@ -42,6 +42,7 @@ vi.mock('./arca-mac-install', () => ({
   writableMacTarget: mocks.writableTarget
 }))
 
+import { readArcaUpdateFeed } from './arca-update-feed'
 import { ArcaMacUpdate } from './arca-mac-update'
 
 describe('ARCA macOS update flow', () => {
@@ -54,6 +55,35 @@ describe('ARCA macOS update flow', () => {
     mocks.writableTarget.mockResolvedValue('/Applications/ARCA.app')
     mocks.launch.mockResolvedValue(undefined)
     mocks.writeStream.mockReturnValue({})
+  })
+
+  it('publishes checking before reporting a missing credential', async () => {
+    vi.mocked(readArcaUpdateFeed).mockResolvedValueOnce(null)
+    const send = vi.fn()
+    await new ArcaMacUpdate(send).check(true)
+    expect(send).toHaveBeenNthCalledWith(1, { state: 'checking', userInitiated: true })
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'error' }))
+  })
+
+  it('queues a download requested during an automatic check', async () => {
+    let resolveManifest!: (text: string) => void
+    const manifest = new Promise<string>((resolve) => {
+      resolveManifest = resolve
+    })
+    mocks.netFetch.mockReset()
+    mocks.netFetch
+      .mockResolvedValueOnce({ ok: true, text: () => manifest })
+      .mockResolvedValueOnce({ ok: true, body: {} })
+    const send = vi.fn()
+    const updater = new ArcaMacUpdate(send)
+    const checking = updater.check(false)
+    await updater.download()
+    resolveManifest(
+      `version: 1.5.2\nfiles:\n  - url: update-${process.arch}.zip\n    sha512: digest`
+    )
+    await checking
+    expect(mocks.netFetch).toHaveBeenCalledTimes(2)
+    expect(send).toHaveBeenLastCalledWith({ state: 'downloaded', version: '1.5.2' })
   })
 
   it('downloads the matching authenticated ZIP and stages it after SHA512 verification', async () => {

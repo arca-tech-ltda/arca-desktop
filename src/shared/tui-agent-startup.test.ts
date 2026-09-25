@@ -1,4 +1,3 @@
-import { withPiManagedExtensions } from './tui-agent-pi-extensions'
 import { describe, expect, it } from 'vitest'
 import {
   buildAgentDraftLaunchPlan,
@@ -31,7 +30,7 @@ describe('draft prefill teardown ordering (#14975)', () => {
 
     const command = plan?.launchCommand ?? ''
     expect(command.indexOf('pi')).toBeLessThan(command.indexOf('fish_pid'))
-    expect(command).toContain('--extension')
+    expect(command).not.toContain('--extension')
   })
 })
 
@@ -682,12 +681,7 @@ describe('tui agent startup plans', () => {
         cmdOverrides: {},
         platform: 'win32'
       })?.launchCommand
-    ).toBe(
-      `${withPiManagedExtensions(
-        'pi',
-        'powershell'
-      )}; Remove-Item Env:ORCA_PI_PREFILL -ErrorAction SilentlyContinue`
-    )
+    ).toBe('pi ; Remove-Item Env:ORCA_PI_PREFILL -ErrorAction SilentlyContinue')
 
     expect(
       buildAgentDraftLaunchPlan({
@@ -697,7 +691,7 @@ describe('tui agent startup plans', () => {
         platform: 'win32',
         shell: 'cmd'
       })?.launchCommand
-    ).toBe(`${withPiManagedExtensions('pi', 'cmd')} & set "ORCA_PI_PREFILL="`)
+    ).toBe('pi & set "ORCA_PI_PREFILL="')
   })
 
   it('returns an OMP draft plan with ORCA_OMP_PREFILL (OMP-scoped, not Pi-shared)', () => {

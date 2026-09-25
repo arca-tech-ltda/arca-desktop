@@ -24,12 +24,14 @@ import {
 export class ArcaMacUpdate {
   private manifestCache: { manifest: unknown; at: number; url: string } | null = null
   private busy = false
+  private downloadRequested = false
   private staged: string | null = null
   private directory: string | null = null
   private version = ''
   private cancellation: AbortController | null = null
 
   cancelDownload(): void {
+    this.downloadRequested = false
     this.cancellation?.abort()
   }
 
@@ -41,6 +43,7 @@ export class ArcaMacUpdate {
 
   async check(userInitiated: boolean, downloadRequested = false): Promise<void> {
     if (this.busy) {
+      this.downloadRequested ||= downloadRequested
       return
     }
     if (this.staged) {
@@ -49,11 +52,11 @@ export class ArcaMacUpdate {
     }
     this.busy = true
     try {
+      this.send({ state: 'checking', userInitiated })
       const feed = await readArcaUpdateFeed()
       if (!feed) {
         throw new Error(MEGAMIND_UPDATE_REQUIRED)
       }
-      this.send({ state: 'checking', userInitiated })
       const cached = this.manifestCache
       const manifest: unknown =
         downloadRequested &&
@@ -190,6 +193,10 @@ export class ArcaMacUpdate {
     } finally {
       this.busy = false
       this.cancellation = null
+      if (this.downloadRequested) {
+        this.downloadRequested = false
+        await this.check(true, true)
+      }
     }
   }
 

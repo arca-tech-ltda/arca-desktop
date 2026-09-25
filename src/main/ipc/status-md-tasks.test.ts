@@ -69,3 +69,20 @@ describe('readStatusMdTasksForRepos', () => {
     expect(result.completed.map((item) => item.task.title)).toEqual(['Recently done'])
   })
 })
+
+it('bounds concurrent timestamp readers to four', async () => {
+  const projects = await readStatusMdTasksForRepos(
+    Array.from({ length: 12 }, (_, index) => ({ ...repo, id: String(index) })),
+    async () => '- [ ] Task'
+  )
+  let active = 0
+  let maximum = 0
+  await recentStatusMdTasks(projects, async () => {
+    active++
+    maximum = Math.max(maximum, active)
+    await new Promise<void>((resolve) => setTimeout(resolve, 1))
+    active--
+    return new Map()
+  })
+  expect(maximum).toBe(4)
+})

@@ -7,7 +7,7 @@ import { Button } from '../ui/button'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
 import { translate } from '@/i18n/i18n'
-import { getUpdateCheckClickOptions, getUpdateCheckHint } from '@/lib/update-check-click-options'
+import { ARCA_UPDATE_CHECK_HINT } from '@/lib/update-check-hint'
 import { GeneralRemoteServerUpdates } from './GeneralRemoteServerUpdates'
 import { getReleaseNotesUrlForVersion } from '../../../../shared/release-channel'
 
@@ -29,7 +29,6 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
   }
 
   const [appVersion, setAppVersion] = useState<string | null>(null)
-  const updateCheckHint = getUpdateCheckHint()
 
   useEffect(() => {
     let cancelled = false
@@ -83,10 +82,8 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
           <Button
             variant="outline"
             size="sm"
-            // Why: modifier-click channels are power-user update affordances, not
-            // persistent settings toggles.
-            onClick={(event) => window.api.updater.check(getUpdateCheckClickOptions(event))}
-            title={updateCheckHint}
+            onClick={() => window.api.updater.check({})}
+            title={ARCA_UPDATE_CHECK_HINT}
             disabled={updateStatus.state === 'checking' || updateStatus.state === 'downloading'}
             className="gap-2"
           >

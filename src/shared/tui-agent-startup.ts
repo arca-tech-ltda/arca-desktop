@@ -1,4 +1,3 @@
-import { withPiManagedExtensions } from './tui-agent-pi-extensions'
 import { withFreshOmpLaunch, isFreshOmpLaunchCommand } from './omp-fresh-launch'
 import { withOmpDraftCleanup } from './omp-draft-launch'
 import { isShellProcess } from './agent-detection'
@@ -40,7 +39,7 @@ function appliedSessionOptionProps(values: Record<string, SessionOptionValue>) {
   return Object.keys(values).length > 0 ? { sessionOptions: { ...values } } : {}
 }
 
-function buildAgentStartupPlanInternal(args: {
+export function buildAgentStartupPlan(args: {
   agent: TuiAgent
   prompt: string
   cmdOverrides: Partial<Record<TuiAgent, string>>
@@ -215,7 +214,7 @@ export type AgentDraftLaunchPlan = {
   sessionOptions?: Record<string, SessionOptionValue>
 }
 
-function buildAgentDraftLaunchPlanInternal(args: {
+export function buildAgentDraftLaunchPlan(args: {
   agent: TuiAgent
   draft: string
   cmdOverrides: Partial<Record<TuiAgent, string>>
@@ -275,7 +274,7 @@ function buildAgentDraftLaunchPlanInternal(args: {
       launchCommand:
         agent === 'omp' && isFreshOmpLaunchCommand(launchCommand)
           ? withOmpDraftCleanup(launchCommand, shell)
-          : `${launchCommand}${commandSeparator(shell)}${clearVar}`,
+          : `${launchCommand} ${commandSeparator(shell).trimStart()}${clearVar}`,
       expectedProcess: config.expectedProcess,
       launchConfig,
       ...appliedSessionOptionProps(baseCommand.appliedSessionOptions),
@@ -299,42 +298,3 @@ export {
   resolveStartupShell
 } from './tui-agent-startup-shell'
 export type { AgentCliArgsPlan, AgentStartupShell } from './tui-agent-startup-shell'
-
-export function buildAgentStartupPlan(
-  args: Parameters<typeof buildAgentStartupPlanInternal>[0]
-): AgentStartupPlan | null {
-  const plan = buildAgentStartupPlanInternal(args)
-  if (plan && (args.agent === 'pi' || args.agent === 'prime-agent')) {
-    plan.launchCommand = withPiManagedExtensions(
-      plan.launchCommand,
-      resolveStartupShell(args.platform, args.shell)
-    )
-  }
-  return plan
-}
-
-export function buildAgentDraftLaunchPlan(
-  args: Parameters<typeof buildAgentDraftLaunchPlanInternal>[0]
-): AgentDraftLaunchPlan | null {
-  const plan = buildAgentDraftLaunchPlanInternal(args)
-  if (plan && args.agent === 'pi') {
-    const shell = resolveStartupShell(args.platform, args.shell)
-    const cleanup = `${commandSeparator(shell)}${clearEnvCommand('ORCA_PI_PREFILL', shell)}`
-    const command = plan.launchCommand.endsWith(cleanup)
-      ? plan.launchCommand.slice(0, -cleanup.length)
-      : plan.launchCommand
-    plan.launchCommand =
-      withPiManagedExtensions(command, shell) +
-      (plan.launchCommand.endsWith(cleanup) ? cleanup : '')
-    if (
-      !inlineAgentDraftFitsPlatform({
-        command: plan.launchCommand,
-        env: plan.env,
-        platform: args.platform
-      })
-    ) {
-      return null
-    }
-  }
-  return plan
-}

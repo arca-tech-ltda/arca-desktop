@@ -18,7 +18,6 @@ import { createUpdaterDiagnosticLogger } from '../linux-package-install-diagnost
 import { registerAutoUpdaterHandlers } from '../updater-events'
 import { getServeUpdateHandoffFailure } from '../serve-update-handoff'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
-import { areAutoUpdatesEnabled } from './auto-update-policy'
 import { UpdaterDownloadInstall } from './updater-download-install'
 import { AUTO_UPDATE_CHECK_INTERVAL_MS, type UpdateInstallMode } from './updater-state'
 
@@ -111,9 +110,6 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
   }
 
   setupAutoUpdater(mainWindow: BrowserWindow, opts?: UpdaterSetupOptions): void {
-    if (!areAutoUpdatesEnabled()) {
-      return
-    }
     this.mainWindowRef = mainWindow
     this.onBeforeQuitCleanup = opts?.onBeforeQuit ?? null
     this.persistLastUpdateCheckAt = opts?.setLastUpdateCheckAt ?? null

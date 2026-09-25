@@ -51,17 +51,24 @@ done
 [ -d "$target" ] && [ ! -L "$target" ] && [ -w "$target" ] || exit 1
 [ ! -L "$backup" ] || exit 1
 rm -rf "$backup"
-mv "$target" "$backup"
+replacement=$(mktemp -d "$target.update.XXXXXX")
 rollback() {
-  rm -rf "$target"
-  mv "$backup" "$target"
+  trap - EXIT INT TERM HUP
+  if [ -d "$backup" ]; then
+    rm -rf "$target"
+    mv "$backup" "$target"
+  fi
+  rm -rf "$replacement"
   ${launch}
 }
 trap 'rollback' EXIT
-/usr/bin/ditto "$staged" "$target"
-/usr/bin/xattr -dr com.apple.quarantine "$target"
+trap 'exit 1' INT TERM HUP
+/usr/bin/ditto "$staged" "$replacement"
+/usr/bin/xattr -dr com.apple.quarantine "$replacement"
+mv "$target" "$backup"
+mv "$replacement" "$target"
 ${launch}
-trap - EXIT
+trap - EXIT INT TERM HUP
 `
 }
 

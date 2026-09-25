@@ -3,15 +3,8 @@ import { toast } from 'sonner'
 import type { StatusMdTaskProject } from '../../../../preload/api/status-md-tasks-api'
 import type { StatusMdTask } from '../../../../shared/status-md-tasks'
 import { translate } from '@/i18n/i18n'
-import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
+import { startPiOnStatusReference } from '@/lib/start-pi-on-status-reference'
 import { useAppStore } from '@/store'
-
-function clientPlatform(): NodeJS.Platform {
-  if (navigator.userAgent.includes('Windows')) {
-    return 'win32'
-  }
-  return navigator.userAgent.includes('Mac') ? 'darwin' : 'linux'
-}
 
 export function statusMdTaskPrompt(task: StatusMdTask, project: StatusMdTaskProject): string {
   return [
@@ -67,51 +60,19 @@ export function useStatusMdTaskActions(): {
       if (!repo || project.status !== 'available') {
         return
       }
-      const startupPlan = buildAgentStartupPlan({
-        agent: 'pi',
-        prompt: statusMdTaskPrompt(task, project),
-        cmdOverrides: settings?.agentCmdOverrides ?? {},
-        platform: clientPlatform()
-      })
-      if (!startupPlan) {
-        toast.error(translate('auto.components.TaskPage.piUnavailable', 'Pi is not available.'))
-        return
-      }
       const slug = task.title
         .toLocaleLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 40)
       try {
-        await createWorktree(
-          repo.id,
-          `status-${slug || 'task'}-${task.lineNumber}`,
-          undefined,
-          undefined,
-          undefined,
-          'unknown',
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          'pi',
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            command: startupPlan.launchCommand,
-            launchConfig: startupPlan.launchConfig,
-            launchAgent: 'pi',
-            viewMode: 'terminal',
-            ...(startupPlan.env ? { env: startupPlan.env } : {}),
-            ...(startupPlan.launchToken ? { launchToken: startupPlan.launchToken } : {}),
-            ...(startupPlan.startupCommandDelivery
-              ? { startupCommandDelivery: startupPlan.startupCommandDelivery }
-              : {})
-          }
-        )
+        await startPiOnStatusReference({
+          repoId: repo.id,
+          branchName: `status-${slug || 'task'}-${task.lineNumber}`,
+          prompt: statusMdTaskPrompt(task, project),
+          createWorktree,
+          cmdOverrides: settings?.agentCmdOverrides
+        })
       } catch {
         toast.error(
           translate('auto.components.TaskPage.piLaunchError', 'Could not start Pi for this task.')

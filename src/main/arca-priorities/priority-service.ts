@@ -1,4 +1,6 @@
 import { app, ipcMain, type BrowserWindow } from 'electron'
+import { isDeepStrictEqual } from 'node:util'
+import { isTrustedUIRenderer } from '../ipc/ui'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Store } from '../persistence'
@@ -164,7 +166,7 @@ class PriorityService {
   }
 
   list(): Promise<ArcaPriorityProject[]> {
-    return this.refresh().then(() => this.projects)
+    return Promise.resolve(this.projects)
   }
 
   refresh(): Promise<void> {
@@ -205,8 +207,9 @@ class PriorityService {
       this.initialized = true
       await this.saveSeen()
     }
+    const changed = !isDeepStrictEqual(this.projects, sorted)
     this.projects = sorted
-    if (!this.mainWindow.isDestroyed()) {
+    if (changed && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send('arca-priorities:changed')
     }
   }
@@ -233,12 +236,25 @@ class PriorityService {
   }
 }
 
-let service: PriorityService | null = null
+const services = new Map<number, PriorityService>()
 
 export function registerArcaPriorityHandlers(mainWindow: BrowserWindow, store: Store): () => void {
-  service?.stop()
-  service = new PriorityService(mainWindow, store)
+  const id = mainWindow.webContents.id
+  services.get(id)?.stop()
+  const service = new PriorityService(mainWindow, store)
+  services.set(id, service)
+  mainWindow.once('closed', () => {
+    service.stop()
+    if (services.get(id) === service) {
+      services.delete(id)
+    }
+  })
   ipcMain.removeHandler('arca-priorities:list')
-  ipcMain.handle('arca-priorities:list', () => service?.list() ?? [])
-  return () => void service?.refresh()
+  ipcMain.handle('arca-priorities:list', (event) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted priorities caller')
+    }
+    return services.get(event.sender.id)?.list() ?? []
+  })
+  return () => void service.refresh()
 }

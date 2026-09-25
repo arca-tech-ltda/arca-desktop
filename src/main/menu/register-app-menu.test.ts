@@ -158,7 +158,7 @@ describe('registerAppMenu', () => {
     expect(options.onBeforeReload).toHaveBeenCalledWith({ ignoreCache: true, webContentsId: 102 })
   })
 
-  it('routes Check for Updates modifier clicks to prerelease and perf checks', () => {
+  it('keeps modifier clicks on the stable ARCA update feed', () => {
     const options = buildMenuOptions()
     registerAppMenu(options)
 
@@ -205,21 +205,7 @@ describe('registerAppMenu', () => {
       } as Electron.KeyboardEvent
     )
 
-    expect(options.onCheckForUpdates.mock.calls).toEqual([
-      [{ includePrerelease: true, includePerfPrerelease: false }],
-      [{ includePrerelease: false, includePerfPrerelease: false }],
-      [{ includePrerelease: true, includePerfPrerelease: true }],
-      [{ includePrerelease: false, includePerfPrerelease: true }],
-      [{ includePrerelease: false, includePerfPrerelease: false }],
-      [
-        {
-          includePrerelease: !isMac,
-          includePerfPrerelease: false,
-          ...(isMac ? { localBuild: true } : {})
-        }
-      ],
-      [{ includePrerelease: false, includePerfPrerelease: false }]
-    ])
+    expect(options.onCheckForUpdates.mock.calls).toEqual(Array.from({ length: 7 }, () => [{}]))
   })
 
   it('shows the worktree palette shortcut as a display-only menu hint', () => {

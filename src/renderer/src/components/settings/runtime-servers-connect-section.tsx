@@ -4,7 +4,7 @@ import type { UpdateCheckOptions } from '../../../../shared/update-status-types'
 import type { RemoteServerUpdateEntry } from '@/runtime/remote-server-update-coordinator'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
-import { getUpdateCheckClickOptions, getUpdateCheckHint } from '@/lib/update-check-click-options'
+import { ARCA_UPDATE_CHECK_HINT } from '@/lib/update-check-hint'
 import { Button } from '../ui/button'
 import type { RuntimeHostDetails } from './runtime-environment-host-details'
 import { RuntimeHostAccessForm, type RuntimeHostAccessFailure } from './RuntimeHostAccessForm'
@@ -67,7 +67,6 @@ export function RuntimeServersConnectSection({
   onDisconnect,
   onRemove
 }: RuntimeServersConnectSectionProps): React.JSX.Element {
-  const updateCheckHint = getUpdateCheckHint()
   return (
     <div className={cn('space-y-3', !visible && 'hidden')}>
       <div
@@ -95,10 +94,10 @@ export function RuntimeServersConnectSection({
               variant="outline"
               size="sm"
               className="gap-1.5"
-              title={updateCheckHint}
-              onClick={(event) => {
+              title={ARCA_UPDATE_CHECK_HINT}
+              onClick={() => {
                 onOpenUpdateDialog()
-                void refreshRemoteServerUpdates(getUpdateCheckClickOptions(event))
+                void refreshRemoteServerUpdates({})
               }}
               disabled={remoteServerUpdatesChecking && remoteServerUpdates.size === 0}
             >

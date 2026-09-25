@@ -34,15 +34,19 @@ describe('unsigned macOS update', () => {
       '[ "$count" -lt 120 ]',
       '[ ! -L "$backup" ]',
       'mv "$target" "$backup"',
-      '/usr/bin/ditto "$staged" "$target"',
-      '/usr/bin/xattr -dr com.apple.quarantine "$target"',
+      '/usr/bin/ditto "$staged" "$replacement"',
+      '/usr/bin/xattr -dr com.apple.quarantine "$replacement"',
       '/usr/bin/open -g "$target"',
       "trap 'rollback' EXIT",
+      "trap 'exit 1' INT TERM HUP",
+      'trap - EXIT INT TERM HUP',
       'mv "$backup" "$target"'
     ]) {
       expect(script).toContain(command)
     }
     expect(script.indexOf('kill -0')).toBeLessThan(script.indexOf('mv "$target"'))
+    expect(script.indexOf('/usr/bin/ditto')).toBeLessThan(script.indexOf('mv "$target"'))
+    expect(script.indexOf("trap 'rollback'")).toBeLessThan(script.indexOf('mv "$target"'))
     expect(script).not.toContain('sudo')
     expect(() => macInstallScript(0, '/Applications/ARCA.app', '/tmp/x')).toThrow()
   })
@@ -94,3 +98,27 @@ it('removes only a bundle backup on healthy startup, including legacy installers
     await rm(root, { recursive: true, force: true })
   }
 })
+
+it.skipIf(process.platform === 'win32').each(['INT', 'TERM', 'HUP'])(
+  'restores the bundle on SIG%s during replacement',
+  async (signal) => {
+    const root = await mkdtemp(join(tmpdir(), 'arca-rollback-'))
+    const target = join(root, 'ARCA.app')
+    try {
+      await mkdir(target)
+      await writeFile(join(target, 'original'), 'old bundle')
+      const script = macInstallScript(123, target, '/unused')
+        .replace('while kill -0 123 2>/dev/null', 'while false')
+        .replace('/usr/bin/ditto "$staged" "$replacement"', ':')
+        .replace('/usr/bin/xattr -dr com.apple.quarantine "$replacement"', ':')
+        .replace('mv "$target" "$backup"', `mv "$target" "$backup"\nkill -${signal} $$`)
+        .replaceAll('/usr/bin/open -g "$target"', ':')
+      const result = await runProcess({ program: '/bin/sh', args: [], input: script })
+      expect(result.code).not.toBe(0)
+      await expect(access(join(target, 'original'))).resolves.toBeUndefined()
+      await expect(access(`${target}.bak`)).rejects.toThrow()
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  }
+)

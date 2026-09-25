@@ -35,7 +35,7 @@ describe('GeneralRemoteServerUpdates', () => {
     storeMock.state.setRemoteServerUpdateDialogOpen.mockReset()
   })
 
-  it('matches the local update check action and forwards modifier options', async () => {
+  it('matches the stable local update check action regardless of modifiers', async () => {
     const container = document.createElement('div')
     const root = createRoot(container)
     await act(async () => root.render(<GeneralRemoteServerUpdates />))
@@ -52,10 +52,7 @@ describe('GeneralRemoteServerUpdates', () => {
     })
 
     expect(storeMock.state.setRemoteServerUpdateDialogOpen).toHaveBeenCalledWith(true)
-    expect(storeMock.state.refreshRemoteServerUpdates).toHaveBeenCalledWith({
-      includePrerelease: true,
-      includePerfPrerelease: false
-    })
+    expect(storeMock.state.refreshRemoteServerUpdates).toHaveBeenCalledWith({})
     await act(async () => root.unmount())
   })
 })

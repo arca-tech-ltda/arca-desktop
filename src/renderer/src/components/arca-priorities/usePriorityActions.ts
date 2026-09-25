@@ -2,15 +2,8 @@ import { useCallback } from 'react'
 import { toast } from 'sonner'
 import type { ArcaPriorityProject } from '../../../../shared/arca-priorities'
 import { translate } from '@/i18n/i18n'
-import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
+import { startPiOnStatusReference } from '@/lib/start-pi-on-status-reference'
 import { useAppStore } from '@/store'
-
-function platform(): NodeJS.Platform {
-  if (navigator.userAgent.includes('Windows')) {
-    return 'win32'
-  }
-  return navigator.userAgent.includes('Mac') ? 'darwin' : 'linux'
-}
 
 function prompt(project: ArcaPriorityProject): string {
   return [
@@ -69,51 +62,19 @@ export function usePriorityActions(): {
       if (!repo || !project.title) {
         return
       }
-      const startupPlan = buildAgentStartupPlan({
-        agent: 'pi',
-        prompt: prompt(project),
-        cmdOverrides: settings?.agentCmdOverrides ?? {},
-        platform: platform()
-      })
-      if (!startupPlan) {
-        toast.error(translate('auto.components.TaskPage.piUnavailable', 'Pi is not available.'))
-        return
-      }
       const slug = project.title
         .toLocaleLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 40)
       try {
-        await createWorktree(
-          repo.id,
-          `priority-${slug || project.line || 'task'}`,
-          undefined,
-          undefined,
-          undefined,
-          'unknown',
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          'pi',
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          {
-            command: startupPlan.launchCommand,
-            launchConfig: startupPlan.launchConfig,
-            launchAgent: 'pi',
-            viewMode: 'terminal',
-            ...(startupPlan.env ? { env: startupPlan.env } : {}),
-            ...(startupPlan.launchToken ? { launchToken: startupPlan.launchToken } : {}),
-            ...(startupPlan.startupCommandDelivery
-              ? { startupCommandDelivery: startupPlan.startupCommandDelivery }
-              : {})
-          }
-        )
+        await startPiOnStatusReference({
+          repoId: repo.id,
+          branchName: `priority-${slug || project.line || 'task'}`,
+          prompt: prompt(project),
+          createWorktree,
+          cmdOverrides: settings?.agentCmdOverrides
+        })
       } catch {
         toast.error(
           translate(
