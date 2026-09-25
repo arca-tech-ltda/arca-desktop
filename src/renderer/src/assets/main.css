@@ -1054,6 +1054,17 @@ html.native-shell .app-layout {
   flex: 0 0 auto;
 }
 
+.titlebar-app-name-logo {
+  height: 14px;
+  width: 14px;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+:root:not(.dark) .titlebar-app-name-logo {
+  filter: invert(1);
+}
+
 .titlebar-icon-button {
   -webkit-app-region: no-drag;
   background: none;
