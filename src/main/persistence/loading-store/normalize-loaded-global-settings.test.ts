@@ -35,3 +35,29 @@ describe('retired Agents sidebar setting', () => {
     expect(normalized.agentsSidebarMigratedFromExperimental).toBe(true)
   })
 })
+
+describe('ARCA Black terminal default', () => {
+  it('moves the inherited Ghostty dark default to ARCA Black once', () => {
+    const normalized = normalizeLegacyProfile({
+      terminalThemeDark: 'Ghostty Default Style Dark',
+      terminalThemeDarkArcaBlackMigrated: undefined
+    })
+    expect(normalized.terminalThemeDark).toBe('ARCA Black')
+    expect(normalized.terminalThemeDarkArcaBlackMigrated).toBe(true)
+  })
+
+  it('keeps a theme the user picked, including Ghostty after migration', () => {
+    expect(
+      normalizeLegacyProfile({
+        terminalThemeDark: 'Builtin Dark',
+        terminalThemeDarkArcaBlackMigrated: undefined
+      }).terminalThemeDark
+    ).toBe('Builtin Dark')
+    expect(
+      normalizeLegacyProfile({
+        terminalThemeDark: 'Ghostty Default Style Dark',
+        terminalThemeDarkArcaBlackMigrated: true
+      }).terminalThemeDark
+    ).toBe('Ghostty Default Style Dark')
+  })
+})

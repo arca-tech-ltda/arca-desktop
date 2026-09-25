@@ -74,6 +74,14 @@ export function normalizeLoadedGlobalSettings(
       primarySelectionDefaultedForTerminalDefaults || stampPrimarySelectionTerminalDefaults,
     ...migratedAutoRenameBranchFromWork,
     ...migratedTerminalCursorStyle,
+    // Why: ARCA's dark terminal is true black; move only the untouched inherited default, once.
+    terminalThemeDark:
+      parsed.settings?.terminalThemeDarkArcaBlackMigrated !== true &&
+      (parsed.settings?.terminalThemeDark ?? 'Ghostty Default Style Dark') ===
+        'Ghostty Default Style Dark'
+        ? 'ARCA Black'
+        : (parsed.settings?.terminalThemeDark ?? defaults.settings.terminalThemeDark),
+    terminalThemeDarkArcaBlackMigrated: true,
     terminalLineHeight: migratedTerminalLineHeight,
     // Why: the old true default was inherited, but false was always an explicit opt-out and must survive this one-shot reset.
     terminalRightClickToPaste: terminalRightClickToPasteDefaultedForPlatform

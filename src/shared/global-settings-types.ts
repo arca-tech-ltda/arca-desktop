@@ -140,6 +140,8 @@ export type GlobalSettings = {
   terminalCursorStyleDefaultedToBlock?: boolean
   terminalCursorBlink: boolean
   terminalThemeDark: string
+  /** One-shot migration guard: ARCA moved the inherited Ghostty dark default to ARCA Black. */
+  terminalThemeDarkArcaBlackMigrated?: boolean
   terminalCustomThemes?: TerminalCustomTheme[]
   terminalDividerColorDark: string
   terminalUseSeparateLightTheme: boolean
