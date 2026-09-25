@@ -15147,5 +15147,19 @@
     "paused": "Pausado: poco espacio en disco",
     "downloading": "Descargando proyectos de ARCA {{current}}/{{total}} — {{name}} {{percent}}%",
     "autoDownloadMissing": "Descargar automáticamente los proyectos de ARCA que faltan"
+  },
+  "piAccounts": {
+    "title": "Cuentas de Pi",
+    "scope": "Cuentas del escritorio local. Para SSH o WSL, usa /accounts en ese host.",
+    "remote": "Cambia al escritorio local para administrar estas cuentas.",
+    "add": "Para añadir una cuenta, ejecuta /login en Pi y luego /accounts save <provider> <name>. Usa anthropic para Claude u openai-codex para Codex.",
+    "default": "Al usar una cuenta de Pi, las cuentas administradas de Orca pasan al valor predeterminado del sistema. Reinicia los terminales de Claude o Codex después de cambiar.",
+    "active": "Activa",
+    "drift": "El slot difiere; guarda el nuevo inicio de sesión antes de cambiar.",
+    "use": "Usar",
+    "empty": "No hay cuentas de Pi guardadas.",
+    "loading": "Cargando cuentas…",
+    "mirrorFailed": "Pi cambió de cuenta, pero falló la copia para el CLI. Ejecuta /accounts mirror en Pi.",
+    "failed": "No se pudieron leer o cambiar las cuentas de Pi. Revisa los archivos y ejecuta /accounts en Pi; guarda cualquier nuevo inicio de sesión antes de cambiar."
   }
 }

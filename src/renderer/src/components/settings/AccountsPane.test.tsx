@@ -177,3 +177,20 @@ describe('AccountsPane', () => {
     expect(markup).not.toContain('Fe26.2**… token or auth=Fe26.2**… header')
   })
 })
+
+// These cases exercise the retained Orca-managed account UI.
+const authority = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
+vi.mock('../../../../shared/arca-product', () => authority)
+
+it('shows Pi accounts instead of Orca account writers when Pi is authoritative', () => {
+  authority.ARCA_PI_IS_AUTHORITY = true
+  try {
+    const markup = renderPane(getDefaultSettings('/tmp'))
+    expect(markup).toContain('Pi accounts')
+    expect(markup).toContain('/accounts save')
+    expect(markup).not.toContain('id="accounts-claude"')
+    expect(markup).not.toContain('id="accounts-codex"')
+  } finally {
+    authority.ARCA_PI_IS_AUTHORITY = false
+  }
+})

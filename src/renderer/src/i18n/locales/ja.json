@@ -15176,5 +15176,19 @@
     "paused": "一時停止: ディスク容量不足",
     "downloading": "ARCA プロジェクトをダウンロード中 {{current}}/{{total}} — {{name}} {{percent}}%",
     "autoDownloadMissing": "不足している ARCA プロジェクトを自動的にダウンロード"
+  },
+  "piAccounts": {
+    "title": "Pi アカウント",
+    "scope": "ローカルデスクトップのアカウントです。SSH または WSL では、そのホストで /accounts を使用してください。",
+    "remote": "これらのアカウントを管理するにはローカルデスクトップに切り替えてください。",
+    "add": "アカウントを追加するには Pi で /login を実行し、続けて /accounts save <provider> <name> を実行してください。Claude は anthropic、Codex は openai-codex を使用します。",
+    "default": "Pi アカウントを使用すると Orca の管理アカウントはシステムのデフォルトになります。切り替え後は既存の Claude または Codex ターミナルを再起動してください。",
+    "active": "使用中",
+    "drift": "スロットが異なります。切り替える前に新しいログインを保存してください。",
+    "use": "使用",
+    "empty": "保存された Pi アカウントはありません。",
+    "loading": "アカウントを読み込み中…",
+    "mirrorFailed": "Pi のアカウントは切り替わりましたが、CLI へのコピーに失敗しました。Pi で /accounts mirror を実行してください。",
+    "failed": "Pi アカウントの読み込みまたは切り替えに失敗しました。ファイルを確認し Pi で /accounts を実行してください。切り替える前に新しいログインを保存してください。"
   }
 }

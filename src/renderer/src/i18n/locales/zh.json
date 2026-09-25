@@ -15288,5 +15288,19 @@
     "paused": "已暂停：磁盘空间不足",
     "downloading": "正在下载 ARCA 项目 {{current}}/{{total}} — {{name}} {{percent}}%",
     "autoDownloadMissing": "自动下载缺失的 ARCA 项目"
+  },
+  "piAccounts": {
+    "title": "Pi 账户",
+    "scope": "本地桌面账户。对于 SSH 或 WSL，请在相应主机上使用 /accounts。",
+    "remote": "请切换到本地桌面以管理这些账户。",
+    "add": "要添加账户，请在 Pi 中运行 /login，然后运行 /accounts save <provider> <name>。Claude 使用 anthropic，Codex 使用 openai-codex。",
+    "default": "使用 Pi 账户会将 Orca 管理的账户设为系统默认值。切换后请重启现有的 Claude 或 Codex 终端。",
+    "active": "当前使用",
+    "drift": "凭据槽不同；切换前请保存新的登录。",
+    "use": "使用",
+    "empty": "没有已保存的 Pi 账户。",
+    "loading": "正在加载账户…",
+    "mirrorFailed": "Pi 已切换账户，但 CLI 镜像失败。请在 Pi 中运行 /accounts mirror。",
+    "failed": "无法读取或切换 Pi 账户。请检查文件并在 Pi 中运行 /accounts；切换前请保存新的登录。"
   }
 }

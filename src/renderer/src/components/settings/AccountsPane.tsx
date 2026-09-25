@@ -1,3 +1,5 @@
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { PiAccountsSection } from './PiAccountsSection'
 import { useEffect, useRef, useState } from 'react'
 import type {
   ClaudeRateLimitAccountsState,
@@ -361,10 +363,10 @@ export function AccountsPane({
     matchesSettingsSearch(searchQuery, getAccountsLocationSearchEntries())
       ? renderAccountsLocationSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries())
+    !ARCA_PI_IS_AUTHORITY && matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries())
       ? renderClaudeAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries())
+    !ARCA_PI_IS_AUTHORITY && matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries())
       ? renderCodexAccountsSection(model)
       : null,
     matchesSettingsSearch(searchQuery, getAccountsGeminiSearchEntries())
@@ -384,6 +386,7 @@ export function AccountsPane({
   return (
     <div className="space-y-8">
       <MegamindSettingsSection />
+      {ARCA_PI_IS_AUTHORITY ? <PiAccountsSection /> : null}
       {renderAccountsRemovalDialogs(model, removeCodexTarget, removeClaudeTarget)}
       {visibleSections.map((section, index) => (
         <div key={index} className="space-y-8">

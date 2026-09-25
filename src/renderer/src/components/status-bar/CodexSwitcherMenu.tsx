@@ -1,3 +1,5 @@
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { PiAccountsSection } from '../settings/PiAccountsSection'
 import { ChevronDown, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import React from 'react'
 import { Button } from '@/components/ui/button'
@@ -88,15 +90,17 @@ export function CodexSwitcherMenu({
         'Open Codex details and account switcher'
       )}
       topContent={
-        <AccountRuntimeToggle
-          groups={switchGroups}
-          value={selectedGroup?.key ?? selectedRuntimeKey}
-          onChange={(group) => void handleSelectRuntime(group)}
-          ariaLabel={translate(
-            'auto.components.status.bar.StatusBar.38b5647724',
-            'Codex usage runtime'
-          )}
-        />
+        ARCA_PI_IS_AUTHORITY ? undefined : (
+          <AccountRuntimeToggle
+            groups={switchGroups}
+            value={selectedGroup?.key ?? selectedRuntimeKey}
+            onChange={(group) => void handleSelectRuntime(group)}
+            ariaLabel={translate(
+              'auto.components.status.bar.StatusBar.38b5647724',
+              'Codex usage runtime'
+            )}
+          />
+        )
       }
       open={open}
       onOpenChange={handleOpenChange}
@@ -180,108 +184,114 @@ export function CodexSwitcherMenu({
           <DropdownMenuSeparator />
         </>
       ) : null}
-      <DropdownMenuLabel>
-        {translate('auto.components.status.bar.StatusBar.7657e3db9c', 'Codex Account')}
-      </DropdownMenuLabel>
-      <DropdownMenuItem
-        onSelect={(event) => {
-          event.preventDefault()
-          handleAccountsExpandedToggle()
-        }}
-      >
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-0.5 text-[12px]">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className="min-w-0 flex-1 truncate text-foreground">
-              {activeTarget?.label ??
-                translate('auto.components.status.bar.StatusBar.c676918adc', 'System default')}
-            </span>
-          </div>
-        </div>
-        {accountsExpanded ? (
-          <ChevronDown className="ml-auto size-3.5 text-muted-foreground/85" />
-        ) : (
-          <ChevronRight className="ml-auto size-3.5 text-muted-foreground/85" />
-        )}
-      </DropdownMenuItem>
-      {accountsExpanded ? (
-        <div className="px-1 pb-1">
-          <div className="max-h-[220px] overflow-y-auto rounded-md border border-border/60 bg-accent/5 p-1 scrollbar-sleek">
-            {selectedGroup ? (
-              <>
-                {selectedGroup.targets.map((target) => {
-                  const inactiveUsage = target.id
-                    ? inactiveCodexAccounts.find((a) => a.accountId === target.id)
-                    : null
-                  // Why: sign-in spawns a local `codex login`, so a remote-owned account can't be re-authed from this desktop.
-                  const showSignInAction =
-                    !hasActiveRuntimeEnvironment &&
-                    !target.active &&
-                    target.id !== null &&
-                    isUnavailableInactiveUsage(inactiveUsage?.rateLimits)
-                  const isSigningIn = reauthenticatingAccountId === target.id
-                  const isBusy = isSwitching || reauthenticatingAccountId !== null
+      {ARCA_PI_IS_AUTHORITY ? (
+        <PiAccountsSection provider="openai-codex" />
+      ) : (
+        <>
+          <DropdownMenuLabel>
+            {translate('auto.components.status.bar.StatusBar.7657e3db9c', 'Codex Account')}
+          </DropdownMenuLabel>
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault()
+              handleAccountsExpandedToggle()
+            }}
+          >
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-0.5 text-[12px]">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="min-w-0 flex-1 truncate text-foreground">
+                  {activeTarget?.label ??
+                    translate('auto.components.status.bar.StatusBar.c676918adc', 'System default')}
+                </span>
+              </div>
+            </div>
+            {accountsExpanded ? (
+              <ChevronDown className="ml-auto size-3.5 text-muted-foreground/85" />
+            ) : (
+              <ChevronRight className="ml-auto size-3.5 text-muted-foreground/85" />
+            )}
+          </DropdownMenuItem>
+          {accountsExpanded ? (
+            <div className="px-1 pb-1">
+              <div className="max-h-[220px] overflow-y-auto rounded-md border border-border/60 bg-accent/5 p-1 scrollbar-sleek">
+                {selectedGroup ? (
+                  <>
+                    {selectedGroup.targets.map((target) => {
+                      const inactiveUsage = target.id
+                        ? inactiveCodexAccounts.find((a) => a.accountId === target.id)
+                        : null
+                      // Why: sign-in spawns a local `codex login`, so a remote-owned account can't be re-authed from this desktop.
+                      const showSignInAction =
+                        !hasActiveRuntimeEnvironment &&
+                        !target.active &&
+                        target.id !== null &&
+                        isUnavailableInactiveUsage(inactiveUsage?.rateLimits)
+                      const isSigningIn = reauthenticatingAccountId === target.id
+                      const isBusy = isSwitching || reauthenticatingAccountId !== null
 
-                  return (
-                    <DropdownMenuItem
-                      key={`${selectedGroup.key}:${target.id ?? 'system'}`}
-                      onSelect={(event) => {
-                        // Why: keep the menu open so the follow-up "restart live Codex tabs" prompt stays in this interaction.
-                        event.preventDefault()
-                        if (suppressNextAccountSelectRef.current) {
-                          suppressNextAccountSelectRef.current = false
-                          return
-                        }
-                        if (!target.active) {
-                          void handleSelectAccount(target.id, target.runtimeTarget)
-                        }
-                      }}
-                      disabled={isBusy || target.active}
-                    >
-                      <div className="flex w-full min-w-0 flex-col gap-0.5">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="min-w-0 flex-1 whitespace-normal break-words">
-                            {target.label}
-                          </span>
-                          {target.active ? (
-                            <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
-                              {translate(
-                                'auto.components.status.bar.StatusBar.ff0fbe9311',
-                                'Active'
-                              )}
-                            </span>
-                          ) : null}
-                        </div>
-                        {inactiveUsage?.isFetching && !inactiveUsage.rateLimits ? (
-                          <InlineUsageSkeleton />
-                        ) : showSignInAction ? (
-                          <InlineUsageSignInAction
-                            isFetching={inactiveUsage?.isFetching ?? false}
-                            isSigningIn={isSigningIn}
-                            disabled={isBusy}
-                            onSignInPointerDown={suppressNextAccountSelect}
-                            onSignIn={() => {
-                              suppressNextAccountSelect()
-                              if (target.id !== null) {
-                                void handleSignInAccount(target.id, target.runtimeTarget)
-                              }
-                            }}
-                          />
-                        ) : inactiveUsage?.rateLimits ? (
-                          <InlineUsageBars
-                            limits={inactiveUsage.rateLimits}
-                            isFetching={inactiveUsage.isFetching}
-                          />
-                        ) : null}
-                      </div>
-                    </DropdownMenuItem>
-                  )
-                })}
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-      {open ? <CodexRestartStatusPrompt /> : null}
+                      return (
+                        <DropdownMenuItem
+                          key={`${selectedGroup.key}:${target.id ?? 'system'}`}
+                          onSelect={(event) => {
+                            // Why: keep the menu open so the follow-up "restart live Codex tabs" prompt stays in this interaction.
+                            event.preventDefault()
+                            if (suppressNextAccountSelectRef.current) {
+                              suppressNextAccountSelectRef.current = false
+                              return
+                            }
+                            if (!target.active) {
+                              void handleSelectAccount(target.id, target.runtimeTarget)
+                            }
+                          }}
+                          disabled={isBusy || target.active}
+                        >
+                          <div className="flex w-full min-w-0 flex-col gap-0.5">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="min-w-0 flex-1 whitespace-normal break-words">
+                                {target.label}
+                              </span>
+                              {target.active ? (
+                                <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+                                  {translate(
+                                    'auto.components.status.bar.StatusBar.ff0fbe9311',
+                                    'Active'
+                                  )}
+                                </span>
+                              ) : null}
+                            </div>
+                            {inactiveUsage?.isFetching && !inactiveUsage.rateLimits ? (
+                              <InlineUsageSkeleton />
+                            ) : showSignInAction ? (
+                              <InlineUsageSignInAction
+                                isFetching={inactiveUsage?.isFetching ?? false}
+                                isSigningIn={isSigningIn}
+                                disabled={isBusy}
+                                onSignInPointerDown={suppressNextAccountSelect}
+                                onSignIn={() => {
+                                  suppressNextAccountSelect()
+                                  if (target.id !== null) {
+                                    void handleSignInAccount(target.id, target.runtimeTarget)
+                                  }
+                                }}
+                              />
+                            ) : inactiveUsage?.rateLimits ? (
+                              <InlineUsageBars
+                                limits={inactiveUsage.rateLimits}
+                                isFetching={inactiveUsage.isFetching}
+                              />
+                            ) : null}
+                          </div>
+                        </DropdownMenuItem>
+                      )
+                    })}
+                  </>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+          {open ? <CodexRestartStatusPrompt /> : null}
+        </>
+      )}
       <DropdownMenuSeparator />
       <DropdownMenuItem
         onSelect={() => {

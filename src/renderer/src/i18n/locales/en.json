@@ -18318,5 +18318,19 @@
     "paused": "Paused: low disk space",
     "downloading": "Downloading ARCA projects {{current}}/{{total}} — {{name}} {{percent}}%",
     "autoDownloadMissing": "Download missing ARCA projects automatically"
+  },
+  "piAccounts": {
+    "title": "Pi accounts",
+    "scope": "Local desktop accounts. For SSH or WSL, use /accounts on that host.",
+    "remote": "Switch to the local desktop to manage these accounts.",
+    "add": "To add an account, run /login in Pi, then /accounts save <provider> <name>. Use anthropic for Claude or openai-codex for Codex.",
+    "default": "Using a Pi account selects system default for Orca managed accounts. Restart existing Claude or Codex terminals after switching.",
+    "active": "Active",
+    "drift": "Slot differs; save a new login before switching.",
+    "use": "Use",
+    "empty": "No saved Pi accounts.",
+    "loading": "Loading accounts…",
+    "mirrorFailed": "Pi switched accounts, but the CLI mirror failed. Run /accounts mirror in Pi.",
+    "failed": "Could not read or switch Pi accounts. Check the files and run /accounts in Pi; save any new login before switching."
   }
 }
