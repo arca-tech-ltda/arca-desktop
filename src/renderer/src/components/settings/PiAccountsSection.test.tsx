@@ -35,6 +35,14 @@ const remirror = vi.fn(async () => {
   order.push('remirror')
   return initial
 })
+const add = vi.fn(async () => ({
+  status: 'added' as const,
+  name: 'dev@example.com',
+  state: initial
+}))
+const remove = vi.fn(async () => ({ status: 'removed' as const, state: initial }))
+const rename = vi.fn(async () => ({ status: 'renamed' as const, state: initial }))
+const cancelAdd = vi.fn(async () => true)
 const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
 
 beforeEach(() => {
@@ -49,10 +57,15 @@ beforeEach(() => {
         list,
         use: select,
         remirror,
+        add,
+        remove,
+        rename,
+        cancelAdd,
         onChange: (callback: typeof receive) => {
           receive = callback
           return stop
-        }
+        },
+        onLoginUrl: () => () => {}
       }
     }
   })
@@ -91,6 +104,43 @@ it('switches Pi first, then stands managed accounts down and re-mirrors Pi over 
   expect(order).toEqual(['use', 'deselect-claude', 'remirror'])
   expect(selectClaudeProviderAccount).toHaveBeenCalledTimes(1)
   expect(selectCodexProviderAccount).not.toHaveBeenCalled()
+})
+
+it('signs in a new account and reports the saved name', async () => {
+  render(<PiAccountsSection />)
+  await screen.findByText('anthropic / personal')
+  fireEvent.click(screen.getByRole('button', { name: 'Add Claude account' }))
+  expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy()
+  await waitFor(() => expect(add).toHaveBeenCalledWith('anthropic'))
+  await screen.findByText('Saved as dev@example.com.')
+})
+
+it('confirms before removing, and refuses to remove the active account while another exists', async () => {
+  render(<PiAccountsSection />)
+  await screen.findByText('anthropic / personal')
+  fireEvent.click(screen.getByRole('button', { name: 'Remove anthropic / work' }))
+  await screen.findByText('Remove anthropic / work?')
+  expect(
+    screen.getByText(
+      'This account is in use. Choose another account with Use first, then remove this one.'
+    )
+  ).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Remove' }).hasAttribute('disabled')).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Remove anthropic / personal' }))
+  await screen.findByText('Remove anthropic / personal?')
+  fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+  await waitFor(() => expect(remove).toHaveBeenCalledWith('anthropic', 'personal'))
+})
+
+it('renames an account through the dialog', async () => {
+  render(<PiAccountsSection />)
+  await screen.findByText('anthropic / personal')
+  fireEvent.click(screen.getByRole('button', { name: 'Rename anthropic / personal' }))
+  const input = await screen.findByLabelText('Account name')
+  fireEvent.change(input, { target: { value: 'home' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(rename).toHaveBeenCalledWith('anthropic', 'personal', 'home'))
 })
 
 it('never reads or switches desktop accounts when the account owner is remote', () => {
