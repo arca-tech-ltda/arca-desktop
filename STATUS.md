@@ -35,7 +35,7 @@ Claude/Codex compartilhadas com o `/accounts` do Pi.
 _Nenhuma._
 
 ### 🟡 Em andamento
-- [ ] Login/adicionar/remover contas no app gravando no bucket do Pi (branch local `arca-acclogin`)
+- [ ] Teste manual do login de conta pelo app (Claude e Codex, Mac e Windows) — código na 1.5.9
 - [ ] Investigar notificações no macOS (registro no Notification Center exige identidade de bundle assinada)
 
 ### ⚪ A fazer (priorizado)
