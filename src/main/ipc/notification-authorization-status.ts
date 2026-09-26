@@ -6,6 +6,9 @@ export type NotificationAuthorizationStatus = 'authorized' | 'denied' | 'not-det
 
 const HELPER_EXECUTABLE = 'orca-notification-status'
 const HELPER_TIMEOUT_MS = 4000
+// Why: the prompt waits for the user, and macOS records a denial if the asking
+// process exits first.
+const HELPER_REQUEST_TIMEOUT_MS = 5 * 60 * 1000
 
 let cachedHelperPath: string | null | undefined
 
@@ -59,9 +62,39 @@ export function readNotificationAuthorizationStatus(): Promise<NotificationAutho
   return readInFlight
 }
 
-function runStatusHelper(helperPath: string): Promise<NotificationAuthorizationStatus | null> {
+/**
+ * Shows the macOS notification permission prompt once and resolves with the
+ * resulting authorization.
+ *
+ * Why a helper and not Electron: Electron's Notification.show() never calls
+ * UNUserNotificationCenter.requestAuthorization, so an undecided app is left
+ * undecided and macOS reports 'denied' evidence for it forever.
+ */
+let requestInFlight: Promise<NotificationAuthorizationStatus | null> | null = null
+
+export function requestNotificationAuthorization(): Promise<NotificationAuthorizationStatus | null> {
+  const helperPath = resolveHelperPath()
+  if (!helperPath) {
+    return Promise.resolve(null)
+  }
+  if (requestInFlight) {
+    return requestInFlight
+  }
+  requestInFlight = runStatusHelper(helperPath, ['--request'], HELPER_REQUEST_TIMEOUT_MS).finally(
+    () => {
+      requestInFlight = null
+    }
+  )
+  return requestInFlight
+}
+
+function runStatusHelper(
+  helperPath: string,
+  args: string[] = [],
+  timeout: number = HELPER_TIMEOUT_MS
+): Promise<NotificationAuthorizationStatus | null> {
   return new Promise((resolve) => {
-    execFile(helperPath, [], { timeout: HELPER_TIMEOUT_MS }, (error, stdout) => {
+    execFile(helperPath, args, { timeout }, (error, stdout) => {
       if (error) {
         resolve(null)
         return

@@ -9,7 +9,10 @@ import type {
   NotificationPermissionStatusResult
 } from '../../shared/notification-settings-types'
 import type { OrcaRuntimeService } from '../runtime/orca-runtime'
-import { readNotificationAuthorizationStatus } from './notification-authorization-status'
+import {
+  readNotificationAuthorizationStatus,
+  requestNotificationAuthorization
+} from './notification-authorization-status'
 import { setTrayAttention } from '../tray/system-tray'
 import { isMainWindowVisible } from '../window/main-window-visibility'
 import { activeNotificationsById } from './native-notification-lifecycle'
@@ -20,7 +23,6 @@ import { registerNotificationSoundHandlers } from './notification-sound-ipc'
 import { openNotificationSystemSettings } from './notification-system-settings-link'
 import {
   getLastObservedDeliveryOutcome,
-  hasTriggeredPermissionDialogThisSession,
   probeNotificationDelivery,
   recordNotificationDeliveryOutcome,
   resetNotificationPermissionEvidence
@@ -68,10 +70,8 @@ export function registerNotificationHandlers(store: Store, runtime?: OrcaRuntime
         return { state: 'blocked', authoritative: true }
       }
       if (authorization === 'not-determined') {
-        // Why: the dialog only appears once something asks; fire one probe per session to trigger it, then report pending.
-        if (!hasTriggeredPermissionDialogThisSession()) {
-          void probeNotificationDelivery()
-        }
+        // Why the helper and not a probe notification: only requestAuthorization raises the macOS dialog.
+        void requestNotificationAuthorization()
         return { state: 'awaiting-decision', authoritative: true }
       }
       // Helper unavailable or 'unknown': fall back to scheduling-based probes with session caching to avoid repeated banners.

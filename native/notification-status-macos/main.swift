@@ -1,4 +1,7 @@
-// Prints the app's macOS notification settings as JSON and exits.
+// Prints the app's macOS notification settings as JSON and exits. With
+// --request it first asks UNUserNotificationCenter for authorization, which is
+// the only call that shows the macOS permission prompt — Electron's
+// Notification.show() never asks, so without this the app stays undecided.
 //
 // Why this exists: Electron exposes no API for UNUserNotificationCenter
 // authorization, and scheduling silently succeeds even while macOS suppresses
@@ -10,6 +13,18 @@
 // with the target CFBundleIdentifier.
 import Foundation
 import UserNotifications
+
+// Why so long: the prompt stays up until the user answers, and macOS records a
+// denial if the asking process dies first.
+let requestTimeoutSeconds = 300.0
+if CommandLine.arguments.contains("--request") {
+  let requestSemaphore = DispatchSemaphore(value: 0)
+  UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+    _, _ in
+    requestSemaphore.signal()
+  }
+  _ = requestSemaphore.wait(timeout: .now() + requestTimeoutSeconds)
+}
 
 let semaphore = DispatchSemaphore(value: 0)
 var authorization = "unknown"
