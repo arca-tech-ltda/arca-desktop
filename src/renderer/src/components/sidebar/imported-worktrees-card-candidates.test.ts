@@ -181,4 +181,62 @@ describe('buildImportedWorktreesCardCandidates', () => {
 
     expect(candidates.has(repo.id)).toBe(true)
   })
+  it('splits agent worktrees out of the discovery prompt', () => {
+    const candidates = buildImportedWorktreesCardCandidates({
+      repos: [repo],
+      detectedWorktreesByRepo: {
+        [repo.id]: detectedResult([
+          detectedWorktree({
+            id: 'repo-1::/repo',
+            path: '/repo',
+            isMainWorktree: true,
+            selectedCheckout: true
+          }),
+          detectedWorktree(),
+          detectedWorktree({
+            id: 'repo-1::/tmp/arca-notif-wt',
+            path: '/tmp/arca-notif-wt',
+            displayName: 'arca-notif-wt',
+            agentWork: { source: 'marker', agent: 'claude', task: 'Wire notifications' }
+          })
+        ])
+      }
+    })
+
+    expect(candidates.get(repo.id)).toMatchObject({
+      hiddenWorktrees: [{ id: 'repo-1::/repo-worktree' }],
+      agentWorktrees: [{ id: 'repo-1::/tmp/arca-notif-wt' }],
+      agentBaseRef: 'main'
+    })
+  })
+
+  it('keeps agent worktrees after the discovery prompt was dismissed', () => {
+    const candidates = buildImportedWorktreesCardCandidates({
+      repos: [{ ...repo, externalWorktreeVisibilityPromptDismissedAt: 1 }],
+      detectedWorktreesByRepo: {
+        [repo.id]: detectedResult([
+          detectedWorktree(),
+          detectedWorktree({
+            id: 'repo-1::/tmp/arca-ui-wt',
+            path: '/tmp/arca-ui-wt',
+            agentWork: { source: 'temp-dir' }
+          })
+        ])
+      }
+    })
+
+    expect(candidates.get(repo.id)).toMatchObject({
+      hiddenWorktrees: [],
+      agentWorktrees: [{ id: 'repo-1::/tmp/arca-ui-wt' }]
+    })
+  })
+
+  it('builds no candidate when a dismissed project has only ordinary discovered worktrees', () => {
+    expect(
+      buildImportedWorktreesCardCandidates({
+        repos: [{ ...repo, externalWorktreeVisibilityPromptDismissedAt: 1 }],
+        detectedWorktreesByRepo: { [repo.id]: detectedResult([detectedWorktree()]) }
+      }).size
+    ).toBe(0)
+  })
 })
