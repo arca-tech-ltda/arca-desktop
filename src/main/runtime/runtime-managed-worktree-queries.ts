@@ -30,6 +30,7 @@ import { listRuntimeFolderWorkspaces } from './runtime-worktree-filesystem'
 import type { ResolvedWorktree } from './runtime-worktree-path-identity'
 import { resolveConfiguredWorktreeBasePaths } from '../../shared/worktree/configured-worktree-base-path'
 import { getRetiredNameRegistryForRepo } from '../worktree-name-retirement'
+import { annotateAgentWorktrees } from '../worktree-agent-detection'
 
 type Dependencies = {
   getStore(): RuntimeStore | null
@@ -185,7 +186,10 @@ export class RuntimeManagedWorktreeQueries {
       repoId: repo.id,
       authoritative: scan.ok && !scan.superseded,
       source: scan.ok ? 'git' : 'metadata-fallback',
-      worktrees: projectResolvedWorktreeLineage(detected, store.getAllWorktreeLineage?.() ?? {})
+      worktrees: projectResolvedWorktreeLineage(
+        repo.connectionId ? detected : annotateAgentWorktrees(detected),
+        store.getAllWorktreeLineage?.() ?? {}
+      )
     }
   }
 
