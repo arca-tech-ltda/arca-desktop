@@ -138,20 +138,48 @@ const registrations = new Map<
   }
 >()
 
+function reposKey(repos: readonly Repo[]): string {
+  return repos.map((repo) => `${repo.id}\u0000${repo.path}`).join('\u0001')
+}
+
 export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: Store): void {
   const refreshPriorities = registerArcaPriorityHandlers(mainWindow, store)
   const state: WatchState = { watchers: new Map(), failures: new Map() }
+  // Set whenever a STATUS.md write or a repo-list change lands, so an in-flight scan that
+  // already read the old bytes rescans instead of resolving stale.
+  let stale = false
+  const onStatusMdChanged = (): void => {
+    stale = true
+    refreshPriorities()
+  }
   const sync = (): void =>
-    syncStatusWatchers(state, mainWindow, store.getRepos(), refreshPriorities)
+    syncStatusWatchers(state, mainWindow, store.getRepos(), onStatusMdChanged)
   sync()
   const retry = setInterval(sync, 2_000)
   retry.unref()
   let reading: Promise<StatusMdTaskProject[]> | null = null
   let scanning: Promise<StatusMdRecentTasks> | null = null
+  let scannedRepos: string | null = null
   const list = (): Promise<StatusMdTaskProject[]> => {
     sync()
-    reading ??= readStatusMdTasksForRepos(store.getRepos()).finally(() => {
+    if (reading) {
+      if (scannedRepos !== null && scannedRepos !== reposKey(store.getRepos())) {
+        stale = true
+      }
+      return reading
+    }
+    reading = (async () => {
+      let projects: StatusMdTaskProject[]
+      do {
+        stale = false
+        const repos = store.getRepos()
+        scannedRepos = reposKey(repos)
+        projects = await readStatusMdTasksForRepos(repos)
+      } while (stale)
+      return projects
+    })().finally(() => {
       reading = null
+      scannedRepos = null
     })
     return reading
   }
@@ -159,18 +187,23 @@ export function registerStatusMdTaskHandlers(mainWindow: BrowserWindow, store: S
   const registration = {
     list,
     recent: (): Promise<StatusMdRecentTasks> => {
-      scanning ??= list()
-        .then((projects) => recentStatusMdTasks(projects))
-        .finally(() => {
-          scanning = null
-        })
+      scanning ??= (async () => {
+        for (;;) {
+          const recent = await recentStatusMdTasks(await list())
+          if (!stale) {
+            return recent
+          }
+        }
+      })().finally(() => {
+        scanning = null
+      })
       return scanning
     }
   }
   registrations.set(id, registration)
   mainWindow.once('closed', () => {
     clearInterval(retry)
-    syncStatusWatchers(state, mainWindow, [], refreshPriorities)
+    syncStatusWatchers(state, mainWindow, [], onStatusMdChanged)
     if (registrations.get(id) === registration) {
       registrations.delete(id)
     }
@@ -194,7 +227,7 @@ function syncStatusWatchers(
   state: WatchState,
   mainWindow: BrowserWindow,
   repos: readonly Repo[],
-  refreshPriorities: () => void
+  onStatusMdChanged: () => void
 ): void {
   const { watchers, failures } = state
   const failed = (id: string): void => {
@@ -239,8 +272,10 @@ function syncStatusWatchers(
         current.timer = setTimeout(() => {
           current.timer = null
           if (!mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('status-md-tasks:changed', { repoId: repo.id })
-            refreshPriorities()
+            mainWindow.webContents.send('status-md-tasks:changed', {
+              repoId: repo.id
+            })
+            onStatusMdChanged()
           }
         }, 1_500)
       })

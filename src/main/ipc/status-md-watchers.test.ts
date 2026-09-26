@@ -126,6 +126,37 @@ it('backs off failed watches from two seconds up to thirty seconds', () => {
   }
 })
 
+it('rescans when a write lands while a scan is already in flight', async () => {
+  vi.useFakeTimers()
+  mocks.watch.mockImplementation(() => Object.assign(new EventEmitter(), { close: vi.fn() }))
+  let releaseFirstRead: ((contents: string) => void) | null = null
+  mocks.readFile
+    .mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          releaseFirstRead = resolve
+        })
+    )
+    .mockResolvedValue('- [ ] New task')
+  const window = new BrowserWindow()
+  registerStatusMdTaskHandlers(window, new Store())
+  const list = mocks.handle.mock.calls.find(([channel]) => channel === 'status-md-tasks:list')![1]
+  try {
+    const pending = list({ sender: window.webContents })
+    await vi.advanceTimersByTimeAsync(0)
+    mocks.watch.mock.calls[0][2]('change', 'STATUS.md')
+    await vi.advanceTimersByTimeAsync(1_500)
+    releaseFirstRead!('- [ ] Old task')
+    const projects = await pending
+    expect(projects[0].tasks.map((task: { title: string }) => task.title)).toEqual(['New task'])
+    expect(mocks.readFile).toHaveBeenCalledTimes(2)
+  } finally {
+    window.emit('closed')
+    mocks.readFile.mockReset()
+    mocks.readFile.mockImplementation(async () => '- [ ] Task')
+  }
+})
+
 it('coalesces rapid writes into one blame shared by both windows', async () => {
   vi.useFakeTimers()
   mocks.watch.mockImplementation(() => Object.assign(new EventEmitter(), { close: vi.fn() }))
