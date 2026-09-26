@@ -2,7 +2,7 @@ import { mapWithConcurrency } from '../../shared/map-with-concurrency'
 import { isTrustedUIRenderer } from './ui'
 import { ipcMain, type BrowserWindow } from 'electron'
 import { watch, type FSWatcher } from 'node:fs'
-import { readFile } from 'node:fs/promises'
+import { readStatusMdContent } from '../git/status-md-content'
 import { join } from 'node:path'
 import type { Repo } from '../../shared/repo-types'
 import { parseStatusMd } from '../../shared/status-md-tasks'
@@ -21,7 +21,7 @@ type ReadText = (path: string) => Promise<string>
 
 export async function readStatusMdTasksForRepos(
   repos: readonly Repo[],
-  readText: ReadText = async (path) => readFile(path, 'utf8')
+  readText: ReadText = readStatusMdContent
 ): Promise<StatusMdTaskProject[]> {
   return Promise.all(
     repos.map(async (repo): Promise<StatusMdTaskProject> => {
@@ -242,7 +242,7 @@ function syncStatusWatchers(
             mainWindow.webContents.send('status-md-tasks:changed', { repoId: repo.id })
             refreshPriorities()
           }
-        }, 120)
+        }, 1_500)
       })
       watcher.on('error', () => {
         const current = watchers.get(repo.id)

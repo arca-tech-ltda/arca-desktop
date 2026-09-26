@@ -56,6 +56,25 @@ it('reads the snapshot without refreshing and broadcasts only changed priorities
   await vi.advanceTimersByTimeAsync(0)
   expect(mocks.list).toHaveBeenCalledTimes(2)
   expect(mocks.send).toHaveBeenCalledTimes(1)
+  let finish = () => {}
+  mocks.list.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = () => resolve({ projects: [] })
+      })
+  )
+  refresh()
+  await vi.advanceTimersByTimeAsync(0)
+  expect(mocks.list).toHaveBeenCalledTimes(3)
+  mocks.read.mockResolvedValue('# Prioridade: Updated by sync\n- [ ] Task')
+  for (let sync = 0; sync < 10; sync++) {
+    refresh()
+  }
+  finish()
+  await vi.advanceTimersByTimeAsync(0)
+  expect(mocks.list).toHaveBeenCalledTimes(4)
+  expect(mocks.send).toHaveBeenCalledTimes(2)
+  expect((await handler({ sender: { id: 1 } }))[0].title).toBe('Updated by sync')
   mocks.closed.mock.calls[0][1]()
   expect(mocks.stop).toHaveBeenCalledOnce()
 })

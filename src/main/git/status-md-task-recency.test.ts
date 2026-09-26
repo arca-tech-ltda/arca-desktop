@@ -1,10 +1,11 @@
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parseStatusMd } from '../../shared/status-md-tasks'
 import { gitExecFileAsync } from './runner'
 import {
+  invalidateStatusMdTaskRecency,
   resetStatusMdTaskRecencyCacheForTests,
   statusMdTaskTimestamps
 } from './status-md-task-recency'
@@ -93,4 +94,86 @@ describe('statusMdTaskTimestamps', () => {
 
     expect(blameCalls).toBe(1)
   })
+})
+
+it('shares concurrent HEAD/blame scans and invalidates on HEAD without a file change', async () => {
+  let head = 'first'
+  const git = vi.fn(async (args: string[]) => ({ stdout: args[0] === 'rev-parse' ? head : '' }))
+  const statFile = vi.fn(async () => ({ mtimeMs: 123, size: 10 }))
+  const tasks = parseStatusMd('- [ ] Task').tasks
+  const read = () => statusMdTaskTimestamps('/repo', '/repo/STATUS.md', tasks, { git, statFile })
+  const results = await Promise.all(Array.from({ length: 10 }, read))
+  expect(statFile).toHaveBeenCalledTimes(1)
+  expect(git.mock.calls.map(([args]) => args[0])).toEqual(['rev-parse', 'blame'])
+  expect(results[0].get(1)).toBe(123)
+  results[0].clear()
+  expect(results[1].get(1)).toBe(123)
+  await read()
+  expect(git.mock.calls.filter(([args]) => args[0] === 'blame')).toHaveLength(1)
+  head = 'second'
+  await read()
+  expect(git.mock.calls.filter(([args]) => args[0] === 'blame')).toHaveLength(2)
+})
+
+it('bounds scans globally across concurrent callers and repositories', async () => {
+  let active = 0
+  let peak = 0
+  const git = async () => {
+    active++
+    peak = Math.max(peak, active)
+    await new Promise<void>((resolve) => setImmediate(resolve))
+    active--
+    return { stdout: '' }
+  }
+  await Promise.all(
+    Array.from({ length: 20 }, (_, index) =>
+      statusMdTaskTimestamps(`/repo-${index}`, `/repo-${index}/STATUS.md`, [], {
+        git,
+        statFile: async () => ({ mtimeMs: 123, size: 10 })
+      })
+    )
+  )
+  expect(peak).toBe(4)
+})
+
+it('rechecks an in-flight scan immediately after project sync', async () => {
+  let unblock = () => {}
+  const blocked = new Promise<void>((resolve) => {
+    unblock = resolve
+  })
+  const git = vi.fn(async (args: string[]) => {
+    if (args[0] === 'rev-parse') {
+      return { stdout: 'head' }
+    }
+    await blocked
+    return { stdout: '' }
+  })
+  const statFile = vi.fn(async () => ({ mtimeMs: 123, size: 10 }))
+  const read = () => statusMdTaskTimestamps('/repo', '/repo/STATUS.md', [], { git, statFile })
+  const first = read()
+  await vi.waitFor(() => expect(git).toHaveBeenCalledTimes(2))
+  invalidateStatusMdTaskRecency('/repo')
+  const synced = read()
+  unblock()
+  await Promise.all([first, synced])
+  expect(git.mock.calls.filter(([args]) => args[0] === 'rev-parse')).toHaveLength(2)
+})
+
+it('invalidates on mtime and size and falls back to mtime outside git', async () => {
+  let file = { mtimeMs: 123, size: 10 }
+  const git = vi.fn(async () => {
+    throw new Error('not a repository')
+  })
+  const tasks = parseStatusMd('- [ ] Task').tasks
+  const read = () =>
+    statusMdTaskTimestamps('/folder', '/folder/STATUS.md', tasks, {
+      git,
+      statFile: async () => file
+    })
+  expect((await read()).get(1)).toBe(123)
+  file = { mtimeMs: 456, size: 10 }
+  expect((await read()).get(1)).toBe(456)
+  file = { mtimeMs: 456, size: 20 }
+  await read()
+  expect(git).toHaveBeenCalledTimes(6)
 })

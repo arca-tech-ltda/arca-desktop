@@ -15,11 +15,9 @@ vi.mock('../linux-update-package-type', () => harness.moduleFactories.linuxUpdat
 vi.mock('../updater-lifecycle-diagnostics', () =>
   harness.moduleFactories.updaterLifecycleDiagnostics()
 )
-vi.mock('../updater-nudge', () => harness.moduleFactories.updaterNudge())
 vi.mock('../update-install-exit-watchdog', () =>
   harness.moduleFactories.updateInstallExitWatchdog()
 )
-vi.mock('../updater-prerelease-feed', () => harness.moduleFactories.updaterPrereleaseFeed())
 vi.mock('./arca-update-feed', async (original) => ({
   ...(await original<typeof ArcaFeedModule>()),
   readArcaUpdateFeed: feedReader
@@ -77,7 +75,6 @@ describe('ARCA upstream integration', () => {
     expect(harness.autoUpdaterMock.downloadUpdate).toHaveBeenCalledTimes(1)
     expect(updater.getUpdateStatus().state).toBe('downloading')
     expect(harness.autoUpdaterMock.autoInstallOnAppQuit).toBe(true)
-    expect(harness.fetchNudgeMock).not.toHaveBeenCalled()
   })
 
   it('stays inactive without enrollment and retries stable after enrollment', async () => {
@@ -91,17 +88,33 @@ describe('ARCA upstream integration', () => {
     })
     await vi.advanceTimersByTimeAsync(1_000)
     feedReader.mockResolvedValue(arcaUpdateFeed(undefined, 'new-device'))
-    updater.checkForUpdatesFromMenu({
-      channel: 'hourly',
-      targetTag: 'v1.0',
-      includePrerelease: true
-    })
+    updater.checkForUpdatesFromMenu()
     await vi.waitFor(() => {
       expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith(
         arcaUpdateFeed(undefined, 'new-device')
       )
     })
     expect(await updater.listAvailableReleaseBuilds('hourly')).toEqual([])
+  })
+
+  it('keeps remote channel requests on the ARCA feed without allowing downgrades', async () => {
+    const updater = setup(true)
+    updater.checkForRemoteServerUpdate('runtime', {
+      channel: 'hourly',
+      targetTag: 'v1.0',
+      includePrerelease: true,
+      localBuild: true
+    })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(harness.autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith(
+      arcaUpdateFeed(undefined, 'device')
+    )
+    expect(harness.autoUpdaterMock.allowPrerelease).toBe(false)
+    expect(harness.autoUpdaterMock.allowDowngrade).toBe(false)
+    harness.autoUpdaterMock.emit('checking-for-update')
+    harness.autoUpdaterMock.emit('update-available', { version: '0.0.1' })
+    expect(updater.getUpdateStatus().state).toBe('not-available')
+    expect(harness.autoUpdaterMock.downloadUpdate).not.toHaveBeenCalled()
   })
 
   it('keeps automatic feed failures neutral', async () => {

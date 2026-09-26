@@ -7,7 +7,6 @@ const {
   killAllPtyMock,
   armExitWatchdogMock,
   disarmExitWatchdogMock,
-  fetchNewerReleaseTagsMock,
   moduleFactories,
   resetUpdaterMocks
 } = await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
@@ -24,11 +23,7 @@ vi.mock('./ipc/pty', () => moduleFactories.ipcPty())
 vi.mock('./linux-update-package-type', () => moduleFactories.linuxUpdatePackageType())
 vi.mock('./updater-lifecycle-diagnostics', () => moduleFactories.updaterLifecycleDiagnostics())
 vi.mock('./updater-changelog', () => moduleFactories.updaterChangelog())
-vi.mock('./updater-nudge', () => moduleFactories.updaterNudge())
 vi.mock('./update-install-exit-watchdog', () => moduleFactories.updateInstallExitWatchdog())
-vi.mock('./updater-prerelease-feed', () => moduleFactories.updaterPrereleaseFeed())
-vi.mock('./local-builds/local-build-switch', () => moduleFactories.localBuildSwitch())
-vi.mock('./local-builds/local-build-feed-server', () => moduleFactories.localBuildFeedServer())
 vi.mock('./startup/hydrate-shell-path', () => ({
   runWithLaunchPath: (action: () => unknown): unknown => {
     launchPathScope.active = true
@@ -52,10 +47,6 @@ describe('updater', () => {
   })
 
   it('still surfaces updater error events while a download is in flight', async () => {
-    fetchNewerReleaseTagsMock.mockResolvedValue({
-      tags: ['v1.0.61'],
-      state: 'ready'
-    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -99,10 +90,6 @@ describe('updater', () => {
   })
 
   it('surfaces an accepted retry before electron-updater emits download progress', async () => {
-    fetchNewerReleaseTagsMock.mockResolvedValue({
-      tags: ['v1.0.61'],
-      state: 'ready'
-    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -280,10 +267,6 @@ describe('updater', () => {
   it('does not recover quit-for-update state from late errors after install commit', async () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
-    fetchNewerReleaseTagsMock.mockResolvedValue({
-      tags: ['v1.0.61'],
-      state: 'ready'
-    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {
@@ -346,10 +329,6 @@ describe('updater', () => {
   it('arms the forced-exit watchdog once the install commits', async () => {
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
-    fetchNewerReleaseTagsMock.mockResolvedValue({
-      tags: ['v1.0.61'],
-      state: 'ready'
-    })
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
       autoUpdaterMock.emit('checking-for-update')
       queueMicrotask(() => {

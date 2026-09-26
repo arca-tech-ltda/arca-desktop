@@ -1,3 +1,5 @@
+import { refreshArcaPrioritiesAfterRepoSync } from '../arca-priorities/priority-service'
+import { invalidateStatusMdTaskRecency } from '../git/status-md-task-recency'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -29,6 +31,11 @@ export function registerArcaProjectsSync(store: Store): void {
     {
       persist,
       onRepoUpdated: (repoId) => {
+        const repo = store.getRepos().find((repo) => repo.id === repoId)
+        if (repo) {
+          invalidateStatusMdTaskRecency(repo.path)
+        }
+        refreshArcaPrioritiesAfterRepoSync()
         for (const window of BrowserWindow.getAllWindows()) {
           if (!window.isDestroyed()) {
             window.webContents.send('arcaProjectsSync:repoUpdated', repoId)

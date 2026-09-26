@@ -1,3 +1,4 @@
+import { readStatusMdContent } from '../git/status-md-content'
 import { app, ipcMain, type BrowserWindow } from 'electron'
 import { isDeepStrictEqual } from 'node:util'
 import { isTrustedUIRenderer } from '../ipc/ui'
@@ -123,7 +124,7 @@ async function localProjects(store: Store): Promise<ArcaPriorityProject[]> {
       let parsed = parseArcaPriority(null)
       if (!remote) {
         try {
-          parsed = parseArcaPriority(await readFile(join(repo.path, STATUS_FILE), 'utf8'))
+          parsed = parseArcaPriority(await readStatusMdContent(join(repo.path, STATUS_FILE)))
         } catch {
           // Missing STATUS.md is represented by an empty local priority.
         }
@@ -150,6 +151,7 @@ class PriorityService {
   private projects: ArcaPriorityProject[] = []
   private initialized = false
   private busy: Promise<void> | null = null
+  private refreshAgain = false
   private timer: ReturnType<typeof setInterval>
   private stopMegamind: () => void
   private seen = new Set<string>()
@@ -170,7 +172,16 @@ class PriorityService {
   }
 
   refresh(): Promise<void> {
-    this.busy ??= this.doRefresh().finally(() => {
+    if (this.busy) {
+      this.refreshAgain = true
+      return this.busy
+    }
+    this.busy = (async () => {
+      do {
+        this.refreshAgain = false
+        await this.doRefresh()
+      } while (this.refreshAgain)
+    })().finally(() => {
       this.busy = null
     })
     return this.busy
@@ -237,6 +248,12 @@ class PriorityService {
 }
 
 const services = new Map<number, PriorityService>()
+
+export function refreshArcaPrioritiesAfterRepoSync(): void {
+  for (const service of services.values()) {
+    void service.refresh()
+  }
+}
 
 export function registerArcaPriorityHandlers(mainWindow: BrowserWindow, store: Store): () => void {
   const id = mainWindow.webContents.id

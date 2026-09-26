@@ -94,10 +94,6 @@ vi.mock('./ipc/pty', () => ({ killAllPty: killAllPtyMock }))
 vi.mock('./updater-changelog', () => ({
   fetchChangelog: vi.fn().mockResolvedValue(null)
 }))
-vi.mock('./updater-nudge', () => ({
-  fetchNudge: vi.fn().mockResolvedValue(null),
-  shouldApplyNudge: vi.fn().mockReturnValue(false)
-}))
 vi.mock('./updater-lifecycle-diagnostics', () => ({
   recordUpdaterLifecycle: recordUpdaterLifecycleMock
 }))

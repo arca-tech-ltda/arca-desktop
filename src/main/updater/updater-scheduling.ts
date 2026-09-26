@@ -45,15 +45,6 @@ export abstract class UpdaterScheduling extends UpdaterCheckFailure {
   protected runBackgroundUpdateCheck(
     nudgeId: string | null = this.getPersistedPendingUpdateNudgeId()
   ): boolean {
-    // Why: a pinned dev jump owns the feed until it settles; a background check would repoint it mid-flight and download the wrong build.
-    if (
-      this.activeUpdateSource !== 'release' ||
-      this.isPinnedBuildActive ||
-      this.localBuildSelectionInProgress ||
-      this.pinnedBuildSelectionInProgress
-    ) {
-      return false
-    }
     if (this.backgroundCheckLaunchPending || this.currentStatus.state === 'checking') {
       return false
     }
@@ -89,12 +80,7 @@ export abstract class UpdaterScheduling extends UpdaterCheckFailure {
         if (wasUserInitiated) {
           this.userInitiatedCheck = false
         }
-        void this.sendCheckFailureStatus(
-          String(err?.message ?? err),
-          wasUserInitiated,
-          'promise',
-          err
-        )
+        void this.sendCheckFailureStatus(String(err?.message ?? err), wasUserInitiated, err)
       })
     return true
   }
@@ -105,18 +91,5 @@ export abstract class UpdaterScheduling extends UpdaterCheckFailure {
       span.setAttribute('updater.outcome', 'launched')
       this.runBackgroundUpdateCheck()
     })
-  }
-
-  protected enablePrereleaseManifestChecks(): void {
-    this.getAutoUpdater().allowPrerelease = true
-  }
-
-  protected enableIncludePrerelease(): void {
-    if (this.includePrereleaseActive) {
-      return
-    }
-    // Why: this flag makes electron-updater accept prerelease manifests; we keep the manifest-probed generic feed over the native GitHub provider because cancelled RCs can appear without assets.
-    this.enablePrereleaseManifestChecks()
-    this.includePrereleaseActive = true
   }
 }

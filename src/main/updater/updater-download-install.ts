@@ -19,12 +19,7 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
   }
 
   protected quitAndInstall(): void {
-    if (
-      this.localBuildSelectionInProgress ||
-      this.pinnedBuildSelectionInProgress ||
-      this.pendingQuitAndInstallTimer ||
-      this.quitAndInstallInProgress
-    ) {
+    if (this.pendingQuitAndInstallTimer || this.quitAndInstallInProgress) {
       return
     }
 
@@ -49,11 +44,7 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
   }
 
   protected downloadUpdate(): void {
-    if (
-      this.localBuildSelectionInProgress ||
-      this.pinnedBuildSelectionInProgress ||
-      this.downloadInFlight
-    ) {
+    if (this.downloadInFlight) {
       return
     }
     // Why: allow retry from 'error' (availableVersion stays cached) so the error card's Retry Download button works.
@@ -74,11 +65,7 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
       recordUpdaterLifecycle('linux_package_externally_managed_download_blocked', {
         version
       })
-      // Why: a pinned jump resolves to 'release' on Linux (no dev-channel artifact is built for it),
-      // so refusing without unwinding would strand isPinnedBuildActive and silently kill every
-      // background check for the rest of the process. A no-op on the ordinary release path.
       this.clearAvailableUpdateContext()
-      this.restoreReleaseUpdateSource()
       this.sendStatus({
         state: 'error',
         message: LINUX_PACKAGE_EXTERNALLY_MANAGED_MESSAGE,
@@ -91,7 +78,6 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
       return
     }
     this.downloadInFlight = true
-    const localBuildDownload = this.activeUpdateSource === 'local'
     beginMacUpdateDownload()
     // Why: setup can take seconds before progress emits; surface acceptance now so the action never looks inert.
     this.sendStatus({ state: 'downloading', percent: 0, version })
@@ -105,11 +91,7 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
           return
         }
         const message = String(err?.message ?? err)
-        if (localBuildDownload) {
-          this.sendLocalBuildErrorAndRestore(message)
-        } else {
-          this.sendErrorStatus(arcaUpdateFeedUnavailableMessage(err) ?? message)
-        }
+        this.sendErrorStatus(arcaUpdateFeedUnavailableMessage(err) ?? message)
       }
     )
   }

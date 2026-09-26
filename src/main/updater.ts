@@ -10,7 +10,7 @@ import type {
   RemoteServerUpdateSupport
 } from '../shared/remote-server-update'
 import type { ReleaseBuild, ReleaseChannel } from '../shared/release-channel'
-import type { ReleaseBuildListOptions } from './updater-release-build-cache'
+import type { ReleaseBuildListOptions } from './updater-release-build-options'
 import type { UpdaterSetupOptions } from './updater/updater-setup'
 import { ArcaUpdater } from './updater/arca-updater'
 import type { UpdateInstallMode } from './updater/updater-state'
@@ -55,8 +55,9 @@ export function checkForUpdates(): void {
   updater.checkForUpdates()
 }
 
-export function checkForUpdatesFromMenu(options?: UpdateCheckOptions): void {
-  updater.checkForUpdatesFromMenu(options)
+// Older IPC callers may still send Orca channel options; ARCA always uses its configured feed.
+export function checkForUpdatesFromMenu(_options?: UpdateCheckOptions): void {
+  updater.checkForUpdatesFromMenu()
 }
 
 export function cancelUpdateDownload(): void {

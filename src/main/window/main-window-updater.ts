@@ -58,7 +58,6 @@ export function scheduleMainWindowAutoUpdaterSetup(
         store.updateUI({ lastUpdateCheckAt: timestamp })
       },
       getPendingUpdateNudgeId: () => store.getUI().pendingUpdateNudgeId ?? null,
-      getDismissedUpdateNudgeId: () => store.getUI().dismissedUpdateNudgeId ?? null,
       setPendingUpdateNudgeId: (id) => {
         // Why: only the apply branch also nulls dismissedUpdateVersion so relaunch can't resurrect the old hidden card; clearing must not, or it un-dismisses.
         if (id) {
@@ -70,7 +69,6 @@ export function scheduleMainWindowAutoUpdaterSetup(
       setDismissedUpdateNudgeId: (id) => {
         store.updateUI({ dismissedUpdateNudgeId: id })
       },
-      getReleaseChannelOverride: () => store.getUI().releaseChannelOverride ?? null,
       installMode: options?.updateInstallMode
     })
     logStartupMilestone('updater-setup-done')

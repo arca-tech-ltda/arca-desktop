@@ -92,11 +92,6 @@ vi.mock('./ipc/pty', () => ({
   killAllPty: killAllPtyMock
 }))
 
-vi.mock('./updater-nudge', () => ({
-  fetchNudge: vi.fn().mockResolvedValue(null),
-  shouldApplyNudge: vi.fn().mockReturnValue(false)
-}))
-
 const ONE_HOUR_MS = 60 * 60 * 1000
 const THIRTY_SECONDS_MS = 30 * 1000
 function makeBenignCheckFailure(message: string): void {

@@ -1,14 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
-const {
-  autoUpdaterMock,
-  fetchChangelogMock,
-  fetchNewerReleaseTagsMock,
-  closeLocalBuildFeedMock,
-  moduleFactories,
-  resetUpdaterMocks
-} = await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
+const { feed, feedReader } = vi.hoisted(() => {
+  const feed = {
+    provider: 'generic' as const,
+    url: 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/',
+    channel: 'latest',
+    useMultipleRangeRequest: false,
+    requestHeaders: { Authorization: 'Bearer updater-test-device' }
+  }
+  return { feed, feedReader: vi.fn(async () => feed) }
+})
+vi.mock('./updater/arca-update-feed', () => ({
+  MEGAMIND_UPDATE_REQUIRED: 'arca-updater:megamind-required',
+  readArcaUpdateFeed: feedReader
+}))
+
+const { autoUpdaterMock, fetchChangelogMock, moduleFactories, resetUpdaterMocks } =
+  await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
 
 vi.mock('electron', () => moduleFactories.electron())
 vi.mock('electron-updater', () => moduleFactories.electronUpdater())
@@ -18,17 +27,14 @@ vi.mock('./ipc/pty', () => moduleFactories.ipcPty())
 vi.mock('./linux-update-package-type', () => moduleFactories.linuxUpdatePackageType())
 vi.mock('./updater-lifecycle-diagnostics', () => moduleFactories.updaterLifecycleDiagnostics())
 vi.mock('./updater-changelog', () => moduleFactories.updaterChangelog())
-vi.mock('./updater-nudge', () => moduleFactories.updaterNudge())
 vi.mock('./update-install-exit-watchdog', () => moduleFactories.updateInstallExitWatchdog())
-vi.mock('./updater-prerelease-feed', () => moduleFactories.updaterPrereleaseFeed())
-vi.mock('./local-builds/local-build-switch', () => moduleFactories.localBuildSwitch())
-vi.mock('./local-builds/local-build-feed-server', () => moduleFactories.localBuildFeedServer())
 
 warmUpdaterModule()
 
 describe('updater', () => {
   beforeEach(() => {
     resetUpdaterMocks()
+    feedReader.mockReset().mockResolvedValue(feed)
     autoUpdaterMock.downloadUpdate.mockResolvedValue([])
   })
 
@@ -56,7 +62,6 @@ describe('updater', () => {
     dismissAvailableUpdate()
 
     // Why: a release dismissal is renderer-only state; main must not clear the offer it can still install.
-    expect(closeLocalBuildFeedMock).not.toHaveBeenCalled()
     expect(send).not.toHaveBeenCalledWith('updater:status', { state: 'idle' })
   })
 
@@ -132,11 +137,11 @@ describe('updater', () => {
   })
 
   it('shows checking immediately for a user-initiated check while feed pinning is pending', async () => {
-    let resolveTags: (value: { tags: string[]; state: 'no-newer' }) => void = () => {}
-    fetchNewerReleaseTagsMock.mockImplementation(
+    let resolveFeed: (value: typeof feed) => void = () => {}
+    feedReader.mockImplementation(
       () =>
-        new Promise<{ tags: string[]; state: 'no-newer' }>((resolve) => {
-          resolveTags = resolve
+        new Promise<typeof feed>((resolve) => {
+          resolveFeed = resolve
         })
     )
     autoUpdaterMock.checkForUpdates.mockImplementation(() => {
@@ -157,7 +162,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled()
 
-    resolveTags({ tags: [], state: 'no-newer' })
+    resolveFeed(feed)
     await vi.waitFor(() => {
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -173,11 +178,11 @@ describe('updater', () => {
   })
 
   it('keeps background checks event-driven before checking-for-update fires', async () => {
-    let resolveTags: (value: { tags: string[]; state: 'no-newer' }) => void = () => {}
-    fetchNewerReleaseTagsMock.mockImplementation(
+    let resolveFeed: (value: typeof feed) => void = () => {}
+    feedReader.mockImplementation(
       () =>
-        new Promise<{ tags: string[]; state: 'no-newer' }>((resolve) => {
-          resolveTags = resolve
+        new Promise<typeof feed>((resolve) => {
+          resolveFeed = resolve
         })
     )
     autoUpdaterMock.checkForUpdates.mockImplementation(() => new Promise(() => {}))
@@ -197,7 +202,7 @@ describe('updater', () => {
         )
     ).toBe(false)
 
-    resolveTags({ tags: [], state: 'no-newer' })
+    resolveFeed(feed)
     await vi.waitFor(() => {
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -210,11 +215,11 @@ describe('updater', () => {
   })
 
   it('promotes a pending background check to user-initiated without launching a duplicate check', async () => {
-    let resolveTags: (value: { tags: string[]; state: 'no-newer' }) => void = () => {}
-    fetchNewerReleaseTagsMock.mockImplementation(
+    let resolveFeed: (value: typeof feed) => void = () => {}
+    feedReader.mockImplementation(
       () =>
-        new Promise<{ tags: string[]; state: 'no-newer' }>((resolve) => {
-          resolveTags = resolve
+        new Promise<typeof feed>((resolve) => {
+          resolveFeed = resolve
         })
     )
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
@@ -232,7 +237,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled()
 
-    resolveTags({ tags: [], state: 'no-newer' })
+    resolveFeed(feed)
     await vi.waitFor(() => {
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -247,7 +252,6 @@ describe('updater', () => {
 
   it('keeps a silent background settle user-initiated after menu promotion', async () => {
     vi.useFakeTimers()
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: [], state: 'no-newer' })
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
@@ -279,7 +283,6 @@ describe('updater', () => {
 
   it('settles a manual check when electron-updater resolves without a terminal event', async () => {
     vi.useFakeTimers()
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: [], state: 'no-newer' })
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const sendMock = vi.fn()
     const setLastUpdateCheckAt = vi.fn()
@@ -307,7 +310,6 @@ describe('updater', () => {
 
   it('ignores a stale update-available event after a silent background settle', async () => {
     vi.useFakeTimers()
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: [], state: 'no-newer' })
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }
@@ -336,7 +338,6 @@ describe('updater', () => {
 
   it('ignores a stale checking-for-update event after a silent manual settle', async () => {
     vi.useFakeTimers()
-    fetchNewerReleaseTagsMock.mockResolvedValue({ tags: [], state: 'no-newer' })
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const sendMock = vi.fn()
     const mainWindow = { webContents: { send: sendMock } }

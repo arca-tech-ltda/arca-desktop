@@ -18,11 +18,7 @@ vi.mock('./ipc/pty', () => moduleFactories.ipcPty())
 vi.mock('./linux-update-package-type', () => moduleFactories.linuxUpdatePackageType())
 vi.mock('./updater-lifecycle-diagnostics', () => moduleFactories.updaterLifecycleDiagnostics())
 vi.mock('./updater-changelog', () => moduleFactories.updaterChangelog())
-vi.mock('./updater-nudge', () => moduleFactories.updaterNudge())
 vi.mock('./update-install-exit-watchdog', () => moduleFactories.updateInstallExitWatchdog())
-vi.mock('./updater-prerelease-feed', () => moduleFactories.updaterPrereleaseFeed())
-vi.mock('./local-builds/local-build-switch', () => moduleFactories.localBuildSwitch())
-vi.mock('./local-builds/local-build-feed-server', () => moduleFactories.localBuildFeedServer())
 
 const feed = {
   provider: 'generic' as const,
