@@ -13,6 +13,10 @@ const {
   verifyPackagedMainRuntimeDeps
 } = require('./packaged-runtime-node-modules.cjs')
 const { verifyLinuxGlibcFloor } = require('./scripts/verify-linux-glibc-floor.cjs')
+const {
+  sealMacAdhocBundle,
+  shouldSealMacAdhocBundle
+} = require('./scripts/mac-adhoc-bundle-seal.cjs')
 const { writeMacBuildCompatibility } = require('./scripts/mac-build-compatibility.cjs')
 const {
   MOBILE_WEB_BUNDLE_DIR,
@@ -398,6 +402,18 @@ module.exports = {
         'orca-keyboard-layout',
         context.packager
       )
+      // Why last: sealing the outer bundle hashes everything below it, so every
+      // nested helper must already carry its final signature.
+      if (
+        shouldSealMacAdhocBundle({
+          platformName: context.electronPlatformName,
+          isMacRelease
+        })
+      ) {
+        await sealMacAdhocBundle(
+          join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`)
+        )
+      }
     }
   },
   win: {
