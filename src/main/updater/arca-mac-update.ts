@@ -9,7 +9,12 @@ import { parse } from 'yaml'
 import type { UpdateStatus } from '../../shared/update-status-types'
 import { object } from '../arca-megamind/credentials'
 import { compareVersions } from '../updater-fallback'
-import { MEGAMIND_UPDATE_REQUIRED, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
+import {
+  ArcaUpdateConfigurationError,
+  MEGAMIND_UPDATE_REQUIRED,
+  readArcaUpdateFeed,
+  updateArtifactUrl
+} from './arca-update-feed'
 import {
   arcaUpdateFeedUnavailableMessage,
   retryArcaUpdateNetwork
@@ -175,7 +180,12 @@ export class ArcaMacUpdate {
         this.send({ state: 'available', version: this.version, changelog: null })
         return
       }
-      const feedUnavailableMessage = arcaUpdateFeedUnavailableMessage(error)
+      // Why first: a configuration fault must read as itself, not as an outage classified
+      // out of whatever the channel string happens to spell.
+      const feedUnavailableMessage =
+        error instanceof ArcaUpdateConfigurationError
+          ? null
+          : arcaUpdateFeedUnavailableMessage(error)
       if (feedUnavailableMessage) {
         console.warn('[updater] update request unavailable:', error)
         this.send(

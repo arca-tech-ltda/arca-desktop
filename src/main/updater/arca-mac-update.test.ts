@@ -25,6 +25,7 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('node:stream/promises', () => ({ pipeline: mocks.pipeline }))
 vi.mock('./arca-update-feed', () => ({
   MEGAMIND_UPDATE_REQUIRED: 'arca-updater:megamind-required',
+  ArcaUpdateConfigurationError: class ArcaUpdateConfigurationError extends Error {},
   readArcaUpdateFeed: vi.fn().mockResolvedValue({
     provider: 'generic',
     url: 'https://mainframe.arcatech.com.br/api/arca/desktop/updates/stable/',

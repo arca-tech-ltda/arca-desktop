@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import { arcaUpdateFeed, readArcaUpdateFeed, updateArtifactUrl } from './arca-update-feed'
+import {
+  ArcaUpdateConfigurationError,
+  arcaUpdateChannel,
+  arcaUpdateFeed,
+  readArcaUpdateFeed,
+  updateArtifactUrl
+} from './arca-update-feed'
 import {
   ARCA_UPDATE_FEED_ACCESS_DENIED,
   ARCA_UPDATE_SERVER_UNAVAILABLE,
@@ -78,6 +84,27 @@ describe('ARCA update feed', () => {
     ['request timed out', 'arca-updater:network-unavailable']
   ])('classifies unavailable feed failure %s', (message, expected) => {
     expect(arcaUpdateFeedUnavailableMessage(new Error(message))).toBe(expected)
+  })
+
+  it('reports an invalid channel as a configuration error naming the channel', async () => {
+    vi.stubEnv('ARCA_UPDATE_CHANNEL', 'Stable Beta')
+    vi.mocked(getArcaMainframeEndpoint).mockReturnValue({
+      ...getArcaMainframeEndpoint(),
+      origin: 'https://mainframe.arcatech.com.br'
+    })
+    vi.mocked(readCredential).mockResolvedValue({
+      endpoint: 'https://mainframe.arcatech.com.br/api',
+      token: 'abc',
+      tokenFile: '/token'
+    })
+    // Why not null: a null feed reads as "enroll in Megamind", which hides the real fault.
+    await expect(readArcaUpdateFeed()).rejects.toThrow(ArcaUpdateConfigurationError)
+    await expect(readArcaUpdateFeed()).rejects.toThrow(/ARCA_UPDATE_CHANNEL "Stable Beta"/)
+    expect(() => arcaUpdateChannel()).toThrow(ArcaUpdateConfigurationError)
+    expect(arcaUpdateChannel('beta-2')).toBe('beta-2')
+    vi.stubEnv('ARCA_UPDATE_CHANNEL', undefined)
+    expect(arcaUpdateChannel()).toBe('stable')
+    expect((await readArcaUpdateFeed())?.url).toContain('/stable/')
   })
 
   it('does not classify integrity or installation failures as feed availability', () => {

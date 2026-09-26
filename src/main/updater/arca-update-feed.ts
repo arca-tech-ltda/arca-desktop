@@ -5,12 +5,17 @@ import { megamindConfigPath, readCredential } from '../arca-megamind/credentials
 // Why: stable code shared with the renderer, which shows the localized text.
 export const MEGAMIND_UPDATE_REQUIRED = 'arca-updater:megamind-required'
 
+/** Why its own class: a misconfigured channel must not be reported as "enroll in Megamind". */
+export class ArcaUpdateConfigurationError extends Error {}
+
 export function arcaUpdateChannel(value = process.env.ARCA_UPDATE_CHANNEL): string {
   if (value === undefined) {
     return 'stable'
   }
   if (!/^[a-z0-9-]{1,32}$/.test(value)) {
-    throw new Error('Invalid ARCA update channel')
+    throw new ArcaUpdateConfigurationError(
+      `Invalid ARCA_UPDATE_CHANNEL ${JSON.stringify(value)}: use lowercase letters, digits or "-" (1-32 characters).`
+    )
   }
   return value
 }
@@ -41,6 +46,8 @@ export function arcaUpdateFeed(base = ARCA_MAINFRAME_DEFAULT_URL, token?: string
 }
 
 export async function readArcaUpdateFeed() {
+  // Outside the catch: a bad channel is a configuration fault, not a missing enrollment.
+  arcaUpdateChannel()
   try {
     const credential = await readCredential(megamindConfigPath())
     const base = getArcaMainframeEndpoint().origin
