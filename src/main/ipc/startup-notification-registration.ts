@@ -1,15 +1,27 @@
 import { Notification } from 'electron'
-import type { Store } from '../persistence'
 import { activeNotifications, logNativeNotificationFailure } from './native-notification-lifecycle'
+import {
+  readNotificationAuthorizationStatus,
+  requestNotificationAuthorization
+} from './notification-authorization-status'
 import { recordNotificationDeliveryOutcome } from './notification-permission-probe'
 import { openNotificationSystemSettings } from './notification-system-settings-link'
 
+// Why not the whole Store: these two operations are all this needs, and a narrow surface keeps callers and tests cast-free.
+type NotificationPermissionStore = {
+  getUI: () => { notificationPermissionRequested?: boolean }
+  updateUI: (updates: { notificationPermissionRequested: boolean }) => void
+}
+
 /**
- * On first launch (macOS permission 'not-determined'), show a welcome notification to trigger the system prompt.
+ * On first launch, ask macOS for notification authorization once, then show a welcome notification.
  *
- * Why: macOS requires at least one notification attempt before it will prompt to allow/deny.
+ * Why the explicit request: only UNUserNotificationCenter.requestAuthorization raises the system
+ * prompt; scheduling a notification never does, so an undecided app stays undecided forever.
  */
-export function triggerStartupNotificationRegistration(store: Store): void {
+export async function triggerStartupNotificationRegistration(
+  store: NotificationPermissionStore
+): Promise<void> {
   if (process.platform !== 'darwin' || !Notification.isSupported()) {
     return
   }
@@ -19,6 +31,10 @@ export function triggerStartupNotificationRegistration(store: Store): void {
     return
   }
   store.updateUI({ notificationPermissionRequested: true })
+
+  if ((await readNotificationAuthorizationStatus()) === 'not-determined') {
+    await requestNotificationAuthorization()
+  }
 
   const notification = new Notification({
     title: 'ARCA is ready to notify you',

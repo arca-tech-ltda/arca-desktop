@@ -54,8 +54,16 @@ export function createElectronModuleMock(): Record<string, unknown> {
   }
 }
 
+export const requestAuthorizationMock = vi.fn(
+  (): Promise<'authorized' | 'denied' | 'not-determined' | 'unknown' | null> =>
+    Promise.resolve(null)
+)
+
 export function createNotificationAuthorizationModuleMock(): Record<string, unknown> {
-  return { readNotificationAuthorizationStatus: readAuthorizationStatusMock }
+  return {
+    readNotificationAuthorizationStatus: readAuthorizationStatusMock,
+    requestNotificationAuthorization: requestAuthorizationMock
+  }
 }
 
 export function createTrustedUIRendererModuleMock(): Record<string, unknown> {

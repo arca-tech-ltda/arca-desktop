@@ -11,6 +11,7 @@ import {
   notificationShowMock,
   readAuthorizationStatusMock,
   removeHandlerMock,
+  requestAuthorizationMock,
   shellOpenExternalMock
 } from './notifications-test-harness'
 
@@ -92,6 +93,8 @@ describe('notifications:probeDelivery', () => {
     notificationIsSupportedMock.mockReturnValue(true)
     readAuthorizationStatusMock.mockReset()
     readAuthorizationStatusMock.mockResolvedValue(null)
+    requestAuthorizationMock.mockReset()
+    requestAuthorizationMock.mockResolvedValue(null)
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
   })
 
@@ -127,7 +130,7 @@ describe('notifications:probeDelivery', () => {
     expect(notificationCtorMock).not.toHaveBeenCalled()
   })
 
-  it('fires one dialog-trigger probe per session while the decision is pending', async () => {
+  it('asks macOS for authorization while the decision is pending, without probe banners', async () => {
     const store = createStore()
     registerNotificationHandlers(store as never)
     const handler = getProbeDeliveryHandler()
@@ -137,14 +140,14 @@ describe('notifications:probeDelivery', () => {
       state: 'awaiting-decision',
       authoritative: true
     })
-    expect(notificationCtorMock).toHaveBeenCalledTimes(1)
+    expect(requestAuthorizationMock).toHaveBeenCalledTimes(1)
 
-    // Polling again while pending must not spam more probe notifications.
     expect(await handler({}, { force: true })).toEqual({
       state: 'awaiting-decision',
       authoritative: true
     })
-    expect(notificationCtorMock).toHaveBeenCalledTimes(1)
+    // Why: only requestAuthorization raises the dialog; scheduling a notification never does.
+    expect(notificationCtorMock).not.toHaveBeenCalled()
   })
 
   it('marks the one-shot permission registration as done so startup cannot re-prompt', async () => {
@@ -250,11 +253,40 @@ describe('triggerStartupNotificationRegistration', () => {
     notificationRemoveListenerMock.mockClear()
     notificationIsSupportedMock.mockReset()
     notificationIsSupportedMock.mockReturnValue(true)
+    readAuthorizationStatusMock.mockReset()
+    readAuthorizationStatusMock.mockResolvedValue(null)
+    requestAuthorizationMock.mockReset()
+    requestAuthorizationMock.mockResolvedValue(null)
     Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
   })
 
   afterEach(() => {
     Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
+  })
+
+  it('asks macOS for permission once before the welcome notification', async () => {
+    readAuthorizationStatusMock.mockResolvedValue('not-determined')
+    const store = {
+      getUI: () => ({ notificationPermissionRequested: undefined }),
+      updateUI: vi.fn()
+    }
+
+    await triggerStartupNotificationRegistration(store)
+
+    expect(requestAuthorizationMock).toHaveBeenCalledTimes(1)
+    expect(notificationShowMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not re-ask when macOS already has a decision', async () => {
+    readAuthorizationStatusMock.mockResolvedValue('authorized')
+    const store = {
+      getUI: () => ({ notificationPermissionRequested: undefined }),
+      updateUI: vi.fn()
+    }
+
+    await triggerStartupNotificationRegistration(store)
+
+    expect(requestAuthorizationMock).not.toHaveBeenCalled()
   })
 
   it('shows welcome notification when not yet requested', async () => {
@@ -263,7 +295,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(store.updateUI).toHaveBeenCalledWith({ notificationPermissionRequested: true })
     expect(notificationCtorMock).toHaveBeenCalledWith({
@@ -279,7 +311,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(notificationCtorMock).not.toHaveBeenCalled()
   })
@@ -291,7 +323,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(notificationCtorMock).not.toHaveBeenCalled()
   })
@@ -302,7 +334,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
     expect(vi.getTimerCount()).toBe(1)
 
     getStartupNotificationEventHandler('click')()
@@ -322,7 +354,7 @@ describe('triggerStartupNotificationRegistration', () => {
         updateUI: vi.fn()
       }
 
-      triggerStartupNotificationRegistration(store as never)
+      await triggerStartupNotificationRegistration(store)
       expect(vi.getTimerCount()).toBe(1)
 
       const failedHandler = getStartupNotificationEventHandler('failed')
