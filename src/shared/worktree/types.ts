@@ -7,6 +7,7 @@ import type { EphemeralVmCheckoutMode } from '../orca-yaml-hook-types'
 import type { BuiltInWorktreeVisibilitySourceId } from '../repo-types'
 import type { WorktreeIdentity } from './identity'
 import type { WorktreeScanFailureKind } from '../worktree-scan-failure'
+import type { AgentWorktreeInfo } from './agent-worktree'
 
 export type WorkspaceLinkedItem = {
   provider: 'github' | 'gitlab' | 'linear' | 'jira'
@@ -211,6 +212,9 @@ export type DetectedWorktree = Worktree & {
   ownership: WorktreeOwnership
   selectedCheckout: boolean
   visible: boolean
+  /** Set when the execution host recognised this checkout as a parallel agent's work.
+   *  Additive; hosts that predate the classification omit it. */
+  agentWork?: AgentWorktreeInfo
   /** Optional additive source identity; older hosts omit it. */
   visibilitySource?:
     | { kind: 'built-in'; id: BuiltInWorktreeVisibilitySourceId }

@@ -6119,6 +6119,32 @@
           "projectOnly": "Ajouté dans ce projet uniquement.",
           "useGlobalFor": "Utiliser la valeur globale pour {{value0}}",
           "useGlobal": "Utiliser la valeur globale"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "démarré {{value0}}",
+          "updated": "mis à jour {{value0}}",
+          "checking": "vérification…",
+          "unknownState": "état inconnu",
+          "commitsAhead": "{{value0}} en avance",
+          "uncommitted": "{{value0}} non validés",
+          "clean": "propre",
+          "confirmRemove": "Ce worktree contient du travail qui n'est enregistré nulle part ailleurs. Le supprimer quand même ?",
+          "confirmRemoveAction": "Supprimer quand même",
+          "cancel": "Annuler",
+          "open": "Ouvrir",
+          "reviewDiff": "Examiner les différences",
+          "removeWorktree": "Supprimer le worktree {{value0}}",
+          "remove": "Supprimer"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "Impossible de supprimer le worktree de l'agent. Réessayez."
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "1 agent au travail",
+          "manyAgents": "{{value0}} agents au travail",
+          "collapseLabel": "Réduire les worktrees des agents de {{value0}}",
+          "expandLabel": "Développer les worktrees des agents de {{value0}}",
+          "listLabel": "Worktrees des agents"
         }
       },
       "shared": {

@@ -5458,6 +5458,32 @@
           "3b7ea51793": "清除搜索",
           "7f1c2e94a5": "搜索文本过长 — 看板未被筛选",
           "9a4d0f6b21": "过长"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "{{value0}}开始",
+          "updated": "{{value0}}更新",
+          "checking": "检查中…",
+          "unknownState": "状态未知",
+          "commitsAhead": "领先 {{value0}} 个提交",
+          "uncommitted": "{{value0}} 项未提交",
+          "clean": "无更改",
+          "confirmRemove": "此 worktree 中的工作没有保存在其他任何地方。仍要删除吗？",
+          "confirmRemoveAction": "仍然删除",
+          "cancel": "取消",
+          "open": "打开",
+          "reviewDiff": "查看差异",
+          "removeWorktree": "删除 worktree {{value0}}",
+          "remove": "删除"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "无法删除代理的 worktree。请重试。"
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "1 个代理正在工作",
+          "manyAgents": "{{value0}} 个代理正在工作",
+          "collapseLabel": "折叠 {{value0}} 的代理 worktree",
+          "expandLabel": "展开 {{value0}} 的代理 worktree",
+          "listLabel": "代理 worktree"
         }
       },
       "shared": {

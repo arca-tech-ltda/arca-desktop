@@ -5410,6 +5410,32 @@
           "3b7ea51793": "Borrar búsqueda",
           "7f1c2e94a5": "El texto de búsqueda es demasiado largo: el tablero no está filtrado",
           "9a4d0f6b21": "Demasiado largo"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "iniciado {{value0}}",
+          "updated": "actualizado {{value0}}",
+          "checking": "comprobando…",
+          "unknownState": "estado desconocido",
+          "commitsAhead": "{{value0}} por delante",
+          "uncommitted": "{{value0}} sin confirmar",
+          "clean": "limpio",
+          "confirmRemove": "Este worktree tiene trabajo que no está guardado en ningún otro sitio. ¿Eliminarlo de todos modos?",
+          "confirmRemoveAction": "Eliminar de todos modos",
+          "cancel": "Cancelar",
+          "open": "Abrir",
+          "reviewDiff": "Revisar diferencias",
+          "removeWorktree": "Eliminar el worktree {{value0}}",
+          "remove": "Eliminar"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "No se pudo eliminar el worktree del agente. Inténtalo de nuevo."
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "1 agente trabajando",
+          "manyAgents": "{{value0}} agentes trabajando",
+          "collapseLabel": "Contraer los worktrees de agentes de {{value0}}",
+          "expandLabel": "Expandir los worktrees de agentes de {{value0}}",
+          "listLabel": "Worktrees de agentes"
         }
       },
       "shared": {

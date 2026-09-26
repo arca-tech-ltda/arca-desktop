@@ -6470,6 +6470,32 @@
           "architectureMismatch": "A Git-related executable could not run because its CPU architecture is incompatible with this execution host. Install Git and related tools for the host architecture.",
           "copyCommand": "Copy command",
           "copyDiagnostics": "Copy diagnostics"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "started {{value0}}",
+          "updated": "updated {{value0}}",
+          "checking": "checking…",
+          "unknownState": "state unknown",
+          "commitsAhead": "{{value0}} ahead",
+          "uncommitted": "{{value0}} uncommitted",
+          "clean": "clean",
+          "confirmRemove": "This worktree has work that is not saved anywhere else. Remove it anyway?",
+          "confirmRemoveAction": "Remove anyway",
+          "cancel": "Cancel",
+          "open": "Open",
+          "reviewDiff": "Review diff",
+          "removeWorktree": "Remove worktree {{value0}}",
+          "remove": "Remove"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "Could not remove the agent worktree. Try again."
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "1 agent working",
+          "manyAgents": "{{value0}} agents working",
+          "collapseLabel": "Collapse agent worktrees for {{value0}}",
+          "expandLabel": "Expand agent worktrees for {{value0}}",
+          "listLabel": "Agent worktrees"
         }
       },
       "shared": {

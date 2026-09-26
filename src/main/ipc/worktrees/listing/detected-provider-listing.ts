@@ -37,6 +37,7 @@ import {
 import { readAllWorktreeMetaForRepo } from '../../../persistence/host-qualified-worktree-meta'
 import { classifyWorktreeScanFailure } from '../../../../shared/worktree-scan-failure'
 import { scanUntilNotOvertaken } from './overtaken-scan-rerun'
+import { annotateAgentWorktrees } from '../../../worktree-agent-detection'
 
 // Why here: an SSH listing bypasses the scan cache, so nothing else witnesses a mutation overtaking
 // it. The generation is the one the cache compares, bumped by every worktree change invalidator.
@@ -168,7 +169,9 @@ export async function listDetectedWorktreesForCapturedRepo(
       repoId: repo.id,
       authoritative: true,
       source: 'git',
-      worktrees: buildDetectedGitWorktrees(store, repo, gitWorktrees, allMeta)
+      worktrees: repo.connectionId
+        ? buildDetectedGitWorktrees(store, repo, gitWorktrees, allMeta)
+        : annotateAgentWorktrees(buildDetectedGitWorktrees(store, repo, gitWorktrees, allMeta))
     }
   } catch (err) {
     const aborted = abortedResult()

@@ -41,6 +41,8 @@ export function buildImportedWorktreesCardRow(
     key: `imported-worktrees-card:${placement}:${candidate.repo.id}`,
     repo: candidate.repo,
     hiddenWorktrees: candidate.hiddenWorktrees,
+    agentWorktrees: candidate.agentWorktrees,
+    ...(candidate.agentBaseRef ? { agentBaseRef: candidate.agentBaseRef } : {}),
     placement,
     ...(hostContext
       ? { hostContextLabel: hostContext.label, hostContextHostId: hostContext.hostId }

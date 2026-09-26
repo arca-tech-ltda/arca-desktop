@@ -5410,6 +5410,32 @@
           "3b7ea51793": "検索をクリア",
           "7f1c2e94a5": "検索テキストが長すぎます — ボードは絞り込まれていません",
           "9a4d0f6b21": "長すぎます"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "{{value0}}に開始",
+          "updated": "{{value0}}に更新",
+          "checking": "確認中…",
+          "unknownState": "状態不明",
+          "commitsAhead": "{{value0}} 件先行",
+          "uncommitted": "未コミット {{value0}} 件",
+          "clean": "変更なし",
+          "confirmRemove": "このワークツリーには他のどこにも保存されていない作業があります。それでも削除しますか？",
+          "confirmRemoveAction": "それでも削除",
+          "cancel": "キャンセル",
+          "open": "開く",
+          "reviewDiff": "差分を確認",
+          "removeWorktree": "ワークツリー {{value0}} を削除",
+          "remove": "削除"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "Agent のワークツリーを削除できませんでした。もう一度お試しください。"
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "1 個の Agent が作業中",
+          "manyAgents": "{{value0}} 個の Agent が作業中",
+          "collapseLabel": "{{value0}} の Agent ワークツリーを折りたたむ",
+          "expandLabel": "{{value0}} の Agent ワークツリーを展開",
+          "listLabel": "Agent のワークツリー"
         }
       },
       "shared": {

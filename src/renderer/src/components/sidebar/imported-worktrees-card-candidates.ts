@@ -12,6 +12,8 @@ import {
   effectiveExternalWorktreeVisibility,
   isLegacyRepoForExternalWorktreeVisibility
 } from '../../../../shared/worktree/ownership'
+import { partitionAgentWorktrees } from '../../../../shared/worktree/agent-worktree'
+import { resolveAgentWorktreeBaseRef } from './agent-worktree-rows'
 import type { ImportedWorktreesCardCandidate } from './worktree-list/grouping/row-types'
 
 export function getHiddenImportedWorktrees(
@@ -44,9 +46,6 @@ export function buildImportedWorktreesCardCandidates(args: {
     if (!isGitRepoKind(repo)) {
       continue
     }
-    if (typeof repo.externalWorktreeVisibilityPromptDismissedAt === 'number') {
-      continue
-    }
     const visibility = effectiveExternalWorktreeVisibility(
       repo,
       isLegacyRepoForExternalWorktreeVisibility(repo),
@@ -56,12 +55,24 @@ export function buildImportedWorktreesCardCandidates(args: {
         args.visibilityDefaultsByHost ?? {}
       )
     )
-    if (visibility !== 'hide' && !args.forceVisibleRepoIds?.has(repo.id)) {
-      continue
-    }
-    const hiddenWorktrees = getHiddenImportedWorktrees(args.detectedWorktreesByRepo[repo.id])
-    if (hiddenWorktrees.length > 0) {
-      candidates.set(repo.id, { repo, hiddenWorktrees })
+    const detected = args.detectedWorktreesByRepo[repo.id]
+    const { agentWorktrees, otherWorktrees } = partitionAgentWorktrees(
+      getHiddenImportedWorktrees(detected)
+    )
+    // Agent worktrees are never prompted about, so they outlive both the dismissal and the
+    // hide/show policy the discovery prompt is gated on.
+    const promptsDiscovery =
+      typeof repo.externalWorktreeVisibilityPromptDismissedAt !== 'number' &&
+      (visibility === 'hide' || args.forceVisibleRepoIds?.has(repo.id) === true)
+    const hiddenWorktrees = promptsDiscovery ? otherWorktrees : []
+    if (agentWorktrees.length > 0 || hiddenWorktrees.length > 0) {
+      const agentBaseRef = resolveAgentWorktreeBaseRef(detected?.worktrees ?? [])
+      candidates.set(repo.id, {
+        repo,
+        hiddenWorktrees,
+        agentWorktrees,
+        ...(agentBaseRef ? { agentBaseRef } : {})
+      })
     }
   }
   return candidates
