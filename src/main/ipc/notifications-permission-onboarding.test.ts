@@ -271,7 +271,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(requestAuthorizationMock).toHaveBeenCalledTimes(1)
     expect(notificationShowMock).toHaveBeenCalledTimes(1)
@@ -284,7 +284,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(requestAuthorizationMock).not.toHaveBeenCalled()
   })
@@ -295,7 +295,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(store.updateUI).toHaveBeenCalledWith({ notificationPermissionRequested: true })
     expect(notificationCtorMock).toHaveBeenCalledWith({
@@ -311,7 +311,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(notificationCtorMock).not.toHaveBeenCalled()
   })
@@ -323,7 +323,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
 
     expect(notificationCtorMock).not.toHaveBeenCalled()
   })
@@ -334,7 +334,7 @@ describe('triggerStartupNotificationRegistration', () => {
       updateUI: vi.fn()
     }
 
-    await triggerStartupNotificationRegistration(store as never)
+    await triggerStartupNotificationRegistration(store)
     expect(vi.getTimerCount()).toBe(1)
 
     getStartupNotificationEventHandler('click')()
@@ -354,7 +354,7 @@ describe('triggerStartupNotificationRegistration', () => {
         updateUI: vi.fn()
       }
 
-      await triggerStartupNotificationRegistration(store as never)
+      await triggerStartupNotificationRegistration(store)
       expect(vi.getTimerCount()).toBe(1)
 
       const failedHandler = getStartupNotificationEventHandler('failed')

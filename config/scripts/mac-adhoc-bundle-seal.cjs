@@ -77,7 +77,6 @@ function requireOsxSign() {
     return require('@electron/osx-sign')
   } catch {
     const appBuilderLib = dirname(require.resolve('app-builder-lib/package.json'))
-    // oxlint-disable-next-line typescript/no-require-imports -- resolved path, CJS build script
     return require(require.resolve('@electron/osx-sign', { paths: [appBuilderLib] }))
   }
 }
