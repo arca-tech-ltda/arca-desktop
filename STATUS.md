@@ -1,5 +1,5 @@
 # STATUS — arca-desktop
-> Última verificação: 2026-09-25 · Branch padrão: `arca-desktop` · Versão publicada: **1.5.8** (stable, Windows + Mac)
+> Última verificação: 2026-09-26 · Branch padrão: `arca-desktop` · Versão publicada: **1.5.10** (stable, Windows + Mac)
 
 ## Resumo
 ARCA Desktop é um fork do Orca (MIT, stablyai/orca, base `dac82f61b`) mantido pela ARCA Tech:
@@ -20,15 +20,22 @@ Claude/Codex compartilhadas com o `/accounts` do Pi.
   stash/reset/rebase/force.
 - Tarefas: card flutuante "Project tasks" (Este projeto / Recentes / Prioridades) lido dos
   `STATUS.md`; recolhido vira botão acima do floating workspace.
-- Contas: seção "Contas do Pi" em Configurações troca a conta ativa do bucket
-  `~/.pi/agent/accounts.json` (mesmo usado pelo `/accounts`), com lock compartilhado.
+- Contas: seção "Contas do Pi" em Configurações adiciona (login Claude/Codex pelo app),
+  usa, renomeia e remove contas do bucket `~/.pi/agent/accounts.json` (o mesmo do
+  `/accounts`), com lock compartilhado `auth.json.lock`. Próximo passo planejado em
+  `docs/reference/arca-accounts-v2.md`.
+- Terminal: tema escuro padrão "ARCA Black" (fundo `#000000`).
 - Pi dentro do app: roda o `pi` do PATH e `~/.pi/agent` do usuário; subagentes com modelos
   diferentes testados (Claude + Codex em paralelo).
 
-## Prioridade: estabilizar a 1.5.x para uso diário dos sócios
-- [ ] Login, adição e remoção de contas Claude/Codex pela tela do app, usadas pelo Pi — Responsável: Gabriel Mendonça
-- [ ] Notificações do macOS não aparecem (app sem assinatura completa; ARCA não entra em Ajustes › Notificações) — Responsável: Gabriel Mendonça
-- [ ] Teste Windows real: atualização por clique, clone em `%USERPROFILE%\ARCA`, card de tarefas, Pi no PowerShell (`pi.cmd`), troca de contas nos dois sentidos — Responsável: Leonardo Vasconcelos de Campos · Ref: `docs/ARCA-TESTE-WINDOWS.md`
+## Prioridade: contas v2 (conta por projeto, uso/cota, quem está usando) — 1.6.0
+Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.md`.
+- [ ] 1. Decidir o mecanismo de conta por sessão do Pi (extensão com credencial em memória + refresh sob lock por conta vs env do app no PTY), com prova de duas sessões simultâneas em contas diferentes — Responsável: Gabriel Mendonça
+- [ ] 2. Mapeamento projeto → conta no bucket (leitura compatível v1/v2 no app e no core do `arca`) e resolução cwd → projeto pelo `projects.json` — Responsável: Gabriel Mendonça
+- [ ] 3. Configurar a conta do projeto no menu "⋯" da barra lateral (submenu Conta), selo ao lado do nome, Project Settings, tela de contas e `/accounts project` — Responsável: Gabriel Mendonça
+- [ ] 4. Redesenhar a tela de contas: card por provedor ("Claude"/"Codex"), conta com e-mail e selo Ativa, ações em "⋯", "Adicionar conta" em destaque, detalhes técnicos recolhidos, Megamind/Gemini/OpenCode separados — Responsável: Gabriel Mendonça
+- [ ] 5. Uso e cota por conta (ativas e inativas): barras 5 h/semanal, gráfico 24 h/7 dias com histórico local, refresh de inativas gravando no bucket sob lock — Responsável: Gabriel Mendonça
+- [ ] 6. Quem está usando cada conta via presença do Megamind (só nome/e-mail/projeto, nunca token) e alerta de cota compartilhada — depende de mudança no Mainframe — Responsável: Gabriel Mendonça
 
 ## Tarefas
 ### 🔴 Bloqueado
@@ -36,19 +43,20 @@ _Nenhuma._
 
 ### 🟡 Em andamento
 - [ ] Teste manual do login de conta pelo app (Claude e Codex, Mac e Windows) — código na 1.5.9
-- [ ] Investigar notificações no macOS (registro no Notification Center exige identidade de bundle assinada)
+- [ ] Notificações no macOS: selar a assinatura ad-hoc do bundle com o id `br.com.arcatech.arca-desktop` no build (worktree `/tmp/arca-notif-wt`, branch `arca-notif`)
+- [ ] Onboarding só "Install CLI" (sem as 3 skills do Orca) + botão de tarefas acompanhando o floating workspace (worktree `/tmp/arca-ui-wt`, branch `arca-ui`)
+- [ ] Limpeza B2 (estados mortos do updater herdado) e B3 (debounce/cache do git blame do STATUS.md) (worktree `/tmp/arca-cleanup-wt`, branch `arca-cleanup`)
+- [ ] Planner: mecanismo de conta por sessão do Pi (resultado vai para `docs/reference/arca-accounts-v2.md`, etapa 1)
 
 ### ⚪ A fazer (priorizado)
+- [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.10 e apagar `dist/mac-arm64/ARCA.app`
 - [ ] Teste manual da troca de contas app ↔ `/accounts` no Mac (Gabriel) e no Windows (sócios)
-- [ ] Esconder no onboarding/checklist os 3 cards de skills do Orca (orchestration, browser, computer use); deixar só "Instalar CLI" — duplicam `subagent`, `cua` e `arca-app` do Pi
-- [ ] Mover o app do Gabriel de `dist/mac-arm64/ARCA.app` para `/Applications` (build local sobrescreve a cópia em uso)
-- [ ] Botão de tarefas arrastável acompanhando o floating workspace (hoje fixo)
-- [ ] Revisão B2/B3: remover estados mortos do updater herdado do Orca; reduzir processos git a cada gravação de `STATUS.md`
-- [ ] Conta por aba/agente no Pi (hoje uma conta ativa por provedor por computador)
 - [ ] Assinatura de código Windows (Authenticode) e Mac (Developer ID + notarização) — depende de certificado
 - [ ] Reescrever `AGENTS.md` e este `STATUS.md` para que qualquer sócio edite sem contexto prévio
 
 ### ✅ Concluído recentemente (últimos ~30 dias)
+- [x] 1.5.10: tema de terminal "ARCA Black" (fundo preto) como padrão escuro, com migração única; login de contas passando pelo wrapper de processos
+- [x] 1.5.9: adicionar/renomear/remover contas pelo app (login Claude/Codex) gravando no bucket do Pi; logo ao lado do nome no titlebar do Mac
 - [x] 1.5.8: card de tarefas como botão flutuante; contas do Pi no app; correções da revisão de credenciais (lock `auth.json.lock`, refresh Codex nunca perdido, Keychain escopado, `CLAUDE_CONFIG_DIR`)
 - [x] 1.5.7: atualização por clique; card de tarefas com STATUS.md; clone + sync automático dos projetos; correções Windows (`fs.watch` EPERM, `pi.cmd`); bloqueadores do `/skill:review`
 - [x] E2E real de atualização no Mac (canal `e2e`, removido depois)
