@@ -65,10 +65,9 @@ export default function AgentWorktreesGroupLine({
         )
 
   const toggleExpanded = (): void => {
-    setIsExpanded((value) => {
-      onExpandedChange?.(!value)
-      return !value
-    })
+    const next = !isExpanded
+    setIsExpanded(next)
+    onExpandedChange?.(next)
   }
 
   return (

@@ -28,18 +28,33 @@ function createLinkedWorktree(name: string, marker?: string): string {
   return worktreePath
 }
 
-function detectedWorktree(path: string, overrides: Partial<DetectedWorktree> = {}) {
+function detectedWorktree(
+  path: string,
+  overrides: Partial<DetectedWorktree> = {}
+): DetectedWorktree {
   return {
     id: `repo::${path}`,
     repoId: 'repo',
     path,
     displayName: 'wt',
+    branch: 'refs/heads/wt',
+    head: 'abc123',
+    isBare: false,
     isMainWorktree: false,
     selectedCheckout: false,
     ownership: 'external',
     visible: false,
+    comment: '',
+    linkedIssue: null,
+    linkedPR: null,
+    linkedLinearIssue: null,
+    isArchived: false,
+    isUnread: false,
+    isPinned: false,
+    sortOrder: 0,
+    lastActivityAt: 0,
     ...overrides
-  } as DetectedWorktree
+  }
 }
 
 describe('readWorktreeAdminDir', () => {

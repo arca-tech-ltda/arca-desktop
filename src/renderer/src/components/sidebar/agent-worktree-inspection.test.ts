@@ -1,23 +1,33 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   agentWorktreeRemovalNeedsExtraConfirmation,
-  inspectAgentWorktree
+  inspectAgentWorktree,
+  type AgentWorktreeInspectionGit
 } from './agent-worktree-inspection'
 import { removeAgentWorktree } from './agent-worktree-removal'
+import type { GitStatusEntry } from '../../../../shared/git-status-types'
+
+function changedFiles(count: number): GitStatusEntry[] {
+  return Array.from({ length: count }, (_unused, index) => ({
+    path: `file-${index}.ts`,
+    status: 'modified',
+    area: 'unstaged'
+  }))
+}
 
 function gitStub(overrides: {
-  entries?: unknown[]
+  entryCount?: number
   upstreamAhead?: number
   commitsAhead?: number
   statusRejects?: boolean
   compareRejects?: boolean
-}) {
+}): AgentWorktreeInspectionGit {
   return {
     status: vi.fn(() =>
       overrides.statusRejects
         ? Promise.reject(new Error('status failed'))
         : Promise.resolve({
-            entries: overrides.entries ?? [],
+            entries: changedFiles(overrides.entryCount ?? 0),
             ...(overrides.upstreamAhead === undefined
               ? {}
               : {
@@ -33,12 +43,20 @@ function gitStub(overrides: {
       overrides.compareRejects
         ? Promise.reject(new Error('compare failed'))
         : Promise.resolve({
-            summary: { status: 'ready', commitsAhead: overrides.commitsAhead ?? 0 },
+            summary: {
+              baseRef: 'main',
+              baseOid: 'base',
+              compareRef: 'HEAD',
+              headOid: 'head',
+              mergeBase: 'base',
+              changedFiles: 0,
+              commitsAhead: overrides.commitsAhead ?? 0,
+              status: 'ready' as const
+            },
             entries: []
           })
     )
-    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: stub only implements the two calls the inspection makes.
-  } as unknown as Parameters<typeof inspectAgentWorktree>[0]['git']
+  }
 }
 
 describe('inspectAgentWorktree', () => {
@@ -46,7 +64,7 @@ describe('inspectAgentWorktree', () => {
     const result = await inspectAgentWorktree({
       worktreePath: '/tmp/arca-notif-wt',
       baseRef: 'main',
-      git: gitStub({ entries: [{}, {}], commitsAhead: 4 })
+      git: gitStub({ entryCount: 2, commitsAhead: 4 })
     })
 
     expect(result).toEqual({ state: 'ready', uncommittedChanges: 2, commitsAhead: 4 })

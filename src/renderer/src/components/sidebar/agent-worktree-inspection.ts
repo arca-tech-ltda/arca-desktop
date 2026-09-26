@@ -7,7 +7,7 @@ export type AgentWorktreeInspection = {
   commitsAhead?: number
 }
 
-type AgentWorktreeInspectionGit = {
+export type AgentWorktreeInspectionGit = {
   status: (args: {
     worktreePath: string
     admissionTier?: 'interactive' | 'status' | 'background'

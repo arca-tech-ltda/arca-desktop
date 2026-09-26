@@ -36,14 +36,24 @@ function agentWorktree(overrides: Partial<DetectedWorktree> = {}): DetectedWorkt
     path: '/tmp/arca-notif-wt',
     displayName: 'arca-notif-wt',
     branch: 'refs/heads/arca-notif',
+    head: 'abc123',
+    isBare: false,
     isMainWorktree: false,
     ownership: 'external',
     selectedCheckout: false,
     visible: false,
     agentWork: { source: 'temp-dir' },
+    comment: '',
+    linkedIssue: null,
+    linkedPR: null,
+    linkedLinearIssue: null,
+    isArchived: false,
+    isUnread: false,
+    isPinned: false,
+    sortOrder: 0,
+    lastActivityAt: 0,
     ...overrides
-    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: test fixture only needs the fields the group reads.
-  } as DetectedWorktree
+  }
 }
 
 const TWO_AGENT_WORKTREES = [
