@@ -30,7 +30,7 @@ Claude/Codex compartilhadas com o `/accounts` do Pi.
 
 ## Prioridade: contas v2 (conta por projeto, uso/cota, quem está usando) — 1.6.0
 Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.md`.
-- [ ] 1. Decidir o mecanismo de conta por sessão do Pi (extensão com credencial em memória + refresh sob lock por conta vs env do app no PTY), com prova de duas sessões simultâneas em contas diferentes — Responsável: Gabriel Mendonça
+- [ ] 1. **BLOQUEADO na API pública do Pi:** prova negativa com dois CLIs e auth compartilhado reproduz a precedência do OAuth global (Claude/Codex). Autorizar ponte de credenciais em cópia isolada do runtime antes da prova de isolamento/refresh/subagentes — Responsável: Gabriel Mendonça
 - [ ] 2. Mapeamento projeto → conta no bucket (leitura compatível v1/v2 no app e no core do `arca`) e resolução cwd → projeto pelo `projects.json` — Responsável: Gabriel Mendonça
 - [ ] 3. Configurar a conta do projeto no menu "⋯" da barra lateral (submenu Conta), selo ao lado do nome, Project Settings, tela de contas e `/accounts project` — Responsável: Gabriel Mendonça
 - [ ] 4. Redesenhar a tela de contas: card por provedor ("Claude"/"Codex"), conta com e-mail e selo Ativa, ações em "⋯", "Adicionar conta" em destaque, detalhes técnicos recolhidos, Megamind/Gemini/OpenCode separados — Responsável: Gabriel Mendonça
@@ -39,14 +39,13 @@ Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.m
 
 ## Tarefas
 ### 🔴 Bloqueado
-_Nenhuma._
+- [ ] Contas v2, etapa 1: a extensão não pode substituir a origem da credencial da sessão normal sem alterar o Pi. [Evidências e comando](tests/tools/pi-accounts-session/README.md). Worktree `/tmp/arca-accounts-v2-wt`, branch `arca-accounts-v2`; etapas 2–6 não iniciadas.
 
 ### 🟡 Em andamento
 - [ ] Teste manual do login de conta pelo app (Claude e Codex, Mac e Windows) — código na 1.5.9
 - [ ] Notificações no macOS: selar a assinatura ad-hoc do bundle com o id `br.com.arcatech.arca-desktop` no build (worktree `/tmp/arca-notif-wt`, branch `arca-notif`)
 - [ ] Onboarding só "Install CLI" (sem as 3 skills do Orca) + botão de tarefas acompanhando o floating workspace (worktree `/tmp/arca-ui-wt`, branch `arca-ui`)
 - [ ] Limpeza B2 (estados mortos do updater herdado) e B3 (debounce/cache do git blame do STATUS.md) (worktree `/tmp/arca-cleanup-wt`, branch `arca-cleanup`)
-- [ ] Planner: mecanismo de conta por sessão do Pi (resultado vai para `docs/reference/arca-accounts-v2.md`, etapa 1)
 
 ### ⚪ A fazer (priorizado)
 - [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.10 e apagar `dist/mac-arm64/ARCA.app`
