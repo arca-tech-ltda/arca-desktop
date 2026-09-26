@@ -32,21 +32,29 @@ function shouldSealMacAdhocBundle({ platformName, isMacRelease, env = process.en
   return env.ARCA_MAC_ADHOC_SEAL !== '0'
 }
 
-/** True while the bundle still carries Electron's ad-hoc signature, i.e. nothing real to preserve. */
-function isAdhocMacSignature(codesignOutput) {
-  return /^Signature=adhoc$/m.test(codesignOutput)
+/**
+ * Throws unless the freshly sealed bundle reports the app's own code identifier and
+ * passes deep verification — a silent miss here ships an app macOS files under
+ * "Electron", which permanently breaks its notification record.
+ */
+function assertSealedMacAdhocBundle(appPath, expectedIdentifier, commands = codesignCommands) {
+  const report = commands.readSignature(appPath)
+  const identifier = report.match(/^Identifier=(.+)$/m)?.[1]
+  if (identifier !== expectedIdentifier) {
+    throw new Error(
+      `Ad-hoc seal produced identifier ${identifier ?? '(none)'} for ${appPath}, expected ${expectedIdentifier}`
+    )
+  }
+  commands.verifyBundle(appPath)
+  return identifier
 }
 
-async function sealMacAdhocBundle(appPath) {
+async function sealMacAdhocBundle(appPath, expectedIdentifier) {
   if (!existsSync(appPath)) {
     throw new Error(`Missing macOS app bundle to seal: ${appPath}`)
   }
-  // Why the re-check: a machine with a Developer ID in its keychain gets a real
-  // signature from electron-builder even off the release path, and re-signing
-  // ad-hoc would throw that identity (and its TCC grants) away.
-  if (!isAdhocMacSignature(readMacSignature(appPath))) {
-    console.log('[mac-adhoc-seal] bundle already carries a real signature; leaving it alone')
-    return
+  if (!expectedIdentifier) {
+    throw new Error(`Ad-hoc seal needs the target bundle identifier for ${appPath}`)
   }
   const { signAsync } = requireOsxSign()
   await signAsync({
@@ -60,14 +68,24 @@ async function sealMacAdhocBundle(appPath) {
     preEmbedProvisioningProfile: false,
     optionsForFile: () => ({ hardenedRuntime: false, timestamp: 'none' })
   })
-  execFileSync('codesign', ['--verify', '--deep', '--strict', appPath], { stdio: 'inherit' })
-  const identifier = readMacSignature(appPath).match(/^Identifier=(.+)$/m)?.[1]
-  console.log(`[mac-adhoc-seal] sealed ${appPath} as ${identifier ?? 'unknown identifier'}`)
+  const identifier = assertSealedMacAdhocBundle(appPath, expectedIdentifier)
+  console.log(`[mac-adhoc-seal] sealed ${appPath} as ${identifier}`)
 }
 
-// Why stderr: `codesign -dv` writes its whole report there, not to stdout.
-function readMacSignature(appPath) {
-  return spawnSync('codesign', ['-dv', appPath], { encoding: 'utf8' }).stderr ?? ''
+const codesignCommands = {
+  // Why stderr: `codesign -dv` writes its whole report there, not to stdout.
+  readSignature(appPath) {
+    const result = spawnSync('codesign', ['-dv', appPath], { encoding: 'utf8' })
+    if (result.error || result.status !== 0) {
+      throw new Error(
+        `codesign -dv failed for ${appPath}: ${result.error?.message ?? result.stderr ?? `exit ${result.status}`}`
+      )
+    }
+    return result.stderr ?? ''
+  },
+  verifyBundle(appPath) {
+    execFileSync('codesign', ['--verify', '--deep', '--strict', appPath], { stdio: 'inherit' })
+  }
 }
 
 // Why resolved through app-builder-lib: @electron/osx-sign is electron-builder's
@@ -81,4 +99,4 @@ function requireOsxSign() {
   }
 }
 
-module.exports = { shouldSealMacAdhocBundle, isAdhocMacSignature, sealMacAdhocBundle }
+module.exports = { shouldSealMacAdhocBundle, assertSealedMacAdhocBundle, sealMacAdhocBundle }

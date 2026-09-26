@@ -411,7 +411,8 @@ module.exports = {
         })
       ) {
         await sealMacAdhocBundle(
-          join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`)
+          join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`),
+          appId
         )
       }
     }
