@@ -22,12 +22,29 @@ import {
   type AgentCapabilityInstallStatus
 } from './agent-capability-setup-status'
 import { FullDiskAccessSetupPrompt } from './FullDiskAccessSetupPrompt'
+import { ArcaCliSetupAction } from './ArcaCliSetupAction'
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
 import { translate } from '@/i18n/i18n'
 
-export function AgentCapabilitiesSetupAction(props: {
+type AgentCapabilitiesSetupActionProps = {
   onOrchestrationSkillInstalledChange: (installed: boolean) => void
   onBrowserUseSkillInstalledChange: (installed: boolean) => void
-}): React.JSX.Element {
+}
+
+export function AgentCapabilitiesSetupAction(
+  props: AgentCapabilitiesSetupActionProps
+): React.JSX.Element {
+  // Why: with Pi as the authority the step registers the CLI only — no Orca skill cards.
+  return ARCA_PI_IS_AUTHORITY ? (
+    <ArcaCliSetupAction />
+  ) : (
+    <AgentSkillCapabilitiesSetupAction {...props} />
+  )
+}
+
+function AgentSkillCapabilitiesSetupAction(
+  props: AgentCapabilitiesSetupActionProps
+): React.JSX.Element {
   const { onBrowserUseSkillInstalledChange, onOrchestrationSkillInstalledChange } = props
   const capabilitySetupStatus = useAgentCapabilitySetupStatus()
   const { readiness } = capabilitySetupStatus

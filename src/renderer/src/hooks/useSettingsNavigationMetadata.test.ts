@@ -1,8 +1,17 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { buildSettingsNavigationMetadata } from './useSettingsNavigationMetadata'
 import type { Repo } from '../../../shared/repo-types'
+import type * as ArcaProduct from '../../../shared/arca-product'
+
+const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
+vi.mock('../../../shared/arca-product', async (importOriginal) => ({
+  ...(await importOriginal<typeof ArcaProduct>()),
+  get ARCA_PI_IS_AUTHORITY() {
+    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  }
+}))
 
 const repo = {
   id: 'repo-1',
@@ -32,6 +41,17 @@ function ids(
 }
 
 describe('settings navigation metadata', () => {
+  beforeEach(() => {
+    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+  })
+
+  it('drops the Orchestration pane when Pi is the authority', () => {
+    arcaProduct.ARCA_PI_IS_AUTHORITY = true
+    expect(ids()).not.toContain('orchestration')
+    expect(ids({ isWebClient: true })).not.toContain('orchestration')
+    expect(ids({ isLinearConnected: true })).toContain('linear')
+  })
+
   it('puts AI capability panes at the top on desktop', () => {
     expect(ids().slice(0, 9)).toEqual([
       'agents',

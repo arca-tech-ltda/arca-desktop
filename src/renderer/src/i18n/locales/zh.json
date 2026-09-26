@@ -15120,6 +15120,26 @@
           "arcaProjects": "ARCA 项目"
         }
       }
+    },
+    "featureWall": {
+      "arcaCli": {
+        "statusChecking": "检查中",
+        "statusRegistered": "已注册",
+        "statusNotRegistered": "未注册",
+        "warningTitle": "CLI 设置需要处理",
+        "successTitle": "已注册 ARCA shell 命令",
+        "failureTitle": "CLI 注册失败",
+        "title": "ARCA shell 命令",
+        "description": "将 `arca` 命令添加到你的 shell，以便从终端驱动 ARCA。",
+        "installedAction": "已安装",
+        "installAction": "安装 CLI"
+      },
+      "setupChecklist": {
+        "installCli": {
+          "name": "安装 CLI",
+          "description": "注册 ARCA shell 命令，让 Pi 可以驱动应用（worktree、终端、内置浏览器、计算机操作）。"
+        }
+      }
     }
   },
   "dashboardPopout": {

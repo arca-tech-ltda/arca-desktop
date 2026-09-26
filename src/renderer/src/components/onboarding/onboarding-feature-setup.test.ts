@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import type {
   ComputerUsePermissionSetupResult,
@@ -28,6 +28,16 @@ import {
   type OnboardingFeatureSetupSelection
 } from './onboarding-feature-setup'
 import { getOnboardingFeatureSetupAgentRuntime } from './onboarding-feature-setup-runtime'
+import type * as ArcaProduct from '../../../../shared/arca-product'
+
+// Module-load value stays production-true so the exported default selection is the real one.
+const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: true }))
+vi.mock('../../../../shared/arca-product', async (importOriginal) => ({
+  ...(await importOriginal<typeof ArcaProduct>()),
+  get ARCA_PI_IS_AUTHORITY() {
+    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  }
+}))
 
 const ALL_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
   ORCA_CLI_SKILL_NAME,
@@ -102,6 +112,10 @@ function createDeps(
 }
 
 describe('onboarding feature setup runner', () => {
+  beforeEach(() => {
+    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+  })
+
   afterEach(() => {
     vi.unstubAllGlobals()
   })
@@ -424,5 +438,42 @@ describe('onboarding feature setup runner', () => {
     expect(result.warnings).toContainEqual({ featureId: 'cli', message: unknownStatus.detail })
     expect(deps.showCliRegistrationPrompt).not.toHaveBeenCalled()
     expect(deps.installCli).not.toHaveBeenCalled()
+  })
+
+  describe('with Pi as the authority', () => {
+    beforeEach(() => {
+      arcaProduct.ARCA_PI_IS_AUTHORITY = true
+    })
+
+    it('registers the CLI without preparing any skill install', async () => {
+      const notInstalled: CliInstallStatus = { ...INSTALLED_CLI_STATUS, state: 'not_installed' }
+      const deps = createDeps({
+        getCliStatus: vi.fn(async () => notInstalled),
+        installCli: vi.fn(async () => INSTALLED_CLI_STATUS)
+      })
+
+      const result = await runOnboardingFeatureSetup(
+        { browserUse: false, computerUse: false, orchestration: false, linearTickets: false },
+        deps
+      )
+
+      expect(deps.installCli).toHaveBeenCalledTimes(1)
+      expect(result.cliTouched).toBe(true)
+      expect(result.skillInstallCommand).toBeNull()
+      expect(result.skillCommandsCopied).toBe(false)
+      expect(deps.clipboardWrites).toEqual([])
+      expect(result.warnings).toEqual([])
+    })
+
+    it('never builds a skill install command, even for a selection', () => {
+      expect(
+        buildOnboardingFeatureSetupClipboardText({
+          browserUse: true,
+          computerUse: true,
+          orchestration: true,
+          linearTickets: true
+        })
+      ).toBeNull()
+    })
   })
 })

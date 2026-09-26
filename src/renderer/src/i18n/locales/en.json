@@ -18040,6 +18040,26 @@
       "added": "Added",
       "onDisk": "Already on disk",
       "ready": "Ready to clone"
+    },
+    "featureWall": {
+      "arcaCli": {
+        "statusChecking": "Checking",
+        "statusRegistered": "Registered",
+        "statusNotRegistered": "Not registered",
+        "warningTitle": "CLI setup needs attention",
+        "successTitle": "ARCA shell command registered",
+        "failureTitle": "CLI registration failed",
+        "title": "ARCA shell command",
+        "description": "Adds the `arca` command to your shell so ARCA can be driven from the terminal.",
+        "installedAction": "Installed",
+        "installAction": "Install CLI"
+      },
+      "setupChecklist": {
+        "installCli": {
+          "name": "Install CLI",
+          "description": "Register the ARCA shell command so Pi can drive the app (worktrees, terminals, built-in browser, computer use)."
+        }
+      }
     }
   },
   "dashboardPopout": {

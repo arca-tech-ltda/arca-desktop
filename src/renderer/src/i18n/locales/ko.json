@@ -15146,6 +15146,26 @@
       "onDisk": "디스크에 이미 있음",
       "ready": "복제 준비됨",
       "title": "ARCA 프로젝트"
+    },
+    "featureWall": {
+      "arcaCli": {
+        "statusChecking": "확인 중",
+        "statusRegistered": "등록됨",
+        "statusNotRegistered": "등록되지 않음",
+        "warningTitle": "CLI 설정에 확인이 필요합니다",
+        "successTitle": "ARCA 셸 명령이 등록되었습니다",
+        "failureTitle": "CLI 등록에 실패했습니다",
+        "title": "ARCA 셸 명령",
+        "description": "셸에 `arca` 명령을 추가해 터미널에서 ARCA를 제어할 수 있게 합니다.",
+        "installedAction": "설치됨",
+        "installAction": "CLI 설치"
+      },
+      "setupChecklist": {
+        "installCli": {
+          "name": "CLI 설치",
+          "description": "ARCA 셸 명령을 등록해 Pi가 앱(worktree, 터미널, 내장 브라우저, 컴퓨터 제어)을 조작할 수 있게 합니다."
+        }
+      }
     }
   },
   "dashboardPopout": {
