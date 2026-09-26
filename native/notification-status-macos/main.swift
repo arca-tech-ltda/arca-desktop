@@ -51,13 +51,22 @@ if CommandLine.arguments.contains("--request") {
   let application = NSApplication.shared
   application.setActivationPolicy(.accessory)
 
-  // Why so long: the prompt stays up until the user answers, and macOS records
-  // a denial if the asking process dies first.
-  let requestTimeoutSeconds = 300.0
-  DispatchQueue.main.asyncAfter(deadline: .now() + requestTimeoutSeconds) {
-    printSettings("unknown", "unknown")
-    exit(0)
+  // Why no deadline: macOS records a denial when the asking process dies with the
+  // prompt still open, so the only safe exits are the authorization callback and
+  // an answer observed in the settings (e.g. decided from System Settings).
+  let decisionPollSeconds = 30.0
+  func exitOnceDecided() {
+    DispatchQueue.main.asyncAfter(deadline: .now() + decisionPollSeconds) {
+      readSettings { authorization, alert in
+        guard authorization == "not-determined" || authorization == "unknown" else {
+          printSettings(authorization, alert)
+          exit(0)
+        }
+        exitOnceDecided()
+      }
+    }
   }
+  exitOnceDecided()
   DispatchQueue.main.async {
     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
       _, _ in
