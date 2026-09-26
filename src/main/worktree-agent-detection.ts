@@ -8,8 +8,18 @@ import {
 } from '../shared/worktree/agent-worktree'
 import type { DetectedWorktree } from '../shared/worktree/types'
 
-/** Temp roots an agent worktree can live under on this host. `/private/tmp` is the macOS
- *  real path behind `/tmp`, and both spellings reach the filesystem. */
+/** A path cannot be compared against a root it spells differently: Windows hands out 8.3 temp
+ *  paths (`C:\\Users\\GABRIE~1\\...`) and macOS fronts `/private/tmp` as `/tmp`. */
+function nativeRealPath(path: string): string | undefined {
+  try {
+    return realpathSync.native(path)
+  } catch {
+    return undefined
+  }
+}
+
+/** Temp roots an agent worktree can live under on this host, in every spelling that reaches
+ *  the filesystem: the raw value plus its resolved real path. */
 export function listAgentWorktreeTempRoots(): string[] {
   const roots = [tmpdir()]
   if (process.platform === 'win32') {
@@ -18,14 +28,10 @@ export function listAgentWorktreeTempRoots(): string[] {
     roots.push('/tmp')
     if (process.platform === 'darwin') {
       roots.push('/private/tmp')
-      try {
-        roots.push(realpathSync(tmpdir()))
-      } catch {
-        // A tmpdir that cannot be resolved just contributes no extra spelling.
-      }
     }
   }
-  return [...new Set(roots.filter(Boolean))]
+  const raw = roots.filter(Boolean)
+  return [...new Set([...raw, ...raw.map(nativeRealPath).filter((root) => root !== undefined)])]
 }
 
 /** `<worktree>/.git` is a file holding `gitdir: <admin dir>` for every linked worktree; the
@@ -79,11 +85,15 @@ export function detectAgentWorktree(
   tempRoots: readonly string[] = listAgentWorktreeTempRoots()
 ): AgentWorktreeInfo | undefined {
   const adminDir = readWorktreeAdminDir(worktreePath)
-  const info = classifyAgentWorktree({
-    worktreePath,
-    markerContents: readAgentWorktreeMarkerContents(adminDir),
-    tempRoots
-  })
+  const markerContents = readAgentWorktreeMarkerContents(adminDir)
+  let info = classifyAgentWorktree({ worktreePath, markerContents, tempRoots })
+  if (!info) {
+    // The checkout can be reached through a short/symlinked spelling that no temp root matches.
+    const realWorktreePath = nativeRealPath(worktreePath)
+    if (realWorktreePath && realWorktreePath !== worktreePath) {
+      info = classifyAgentWorktree({ worktreePath: realWorktreePath, markerContents, tempRoots })
+    }
+  }
   if (!info) {
     return undefined
   }
