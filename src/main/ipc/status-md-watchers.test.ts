@@ -3,8 +3,16 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import { BrowserWindow } from 'electron'
 import { Store } from '../persistence'
 import { registerStatusMdTaskHandlers } from './status-md-tasks'
+import { resetStatusMdTaskRecencyCacheForTests } from '../git/status-md-task-recency'
 
-const mocks = vi.hoisted(() => ({ watch: vi.fn(), handle: vi.fn(), trusted: vi.fn(() => true) }))
+const mocks = vi.hoisted(() => ({
+  watch: vi.fn(),
+  handle: vi.fn(),
+  trusted: vi.fn(() => true),
+  git: vi.fn(async (_args: string[]) => ({ stdout: '' })),
+  readFile: vi.fn(async () => '- [ ] Task'),
+  mtimeMs: 123
+}))
 vi.mock('./ui', () => ({ isTrustedUIRenderer: mocks.trusted }))
 vi.mock('node:fs', () => ({ watch: mocks.watch }))
 vi.mock('electron', async () => {
@@ -26,8 +34,14 @@ vi.mock('../persistence', () => ({
 vi.mock('../arca-priorities/priority-service', () => ({
   registerArcaPriorityHandlers: () => vi.fn()
 }))
-vi.mock('../git/status-md-task-recency', () => ({ statusMdTaskTimestamps: vi.fn() }))
+vi.mock('../git/runner', () => ({ gitExecFileAsync: mocks.git }))
+vi.mock('node:fs/promises', () => ({
+  readFile: mocks.readFile,
+  stat: async () => ({ mtimeMs: mocks.mtimeMs, size: 10 })
+}))
 beforeEach(() => {
+  resetStatusMdTaskRecencyCacheForTests()
+  mocks.mtimeMs = 123
   vi.clearAllMocks()
   mocks.watch.mockReset()
 })
@@ -78,7 +92,7 @@ it('accepts mixed-case names and isolates window cleanup and IPC callers', async
     expect(watchers[0].close).toHaveBeenCalledOnce()
     expect(watchers[1].close).not.toHaveBeenCalled()
     mocks.watch.mock.calls[1][2]('change', 'Status.md')
-    await vi.advanceTimersByTimeAsync(120)
+    await vi.advanceTimersByTimeAsync(1_500)
     expect(second.webContents.send).toHaveBeenCalledWith('status-md-tasks:changed', { repoId: 'r' })
     expect(first.webContents.send).not.toHaveBeenCalled()
     mocks.trusted.mockReturnValueOnce(false)
@@ -109,5 +123,36 @@ it('backs off failed watches from two seconds up to thirty seconds', () => {
     expect(mocks.watch).toHaveBeenCalledTimes(6)
   } finally {
     window.emit('closed')
+  }
+})
+
+it('coalesces rapid writes into one blame shared by both windows', async () => {
+  vi.useFakeTimers()
+  mocks.watch.mockImplementation(() => Object.assign(new EventEmitter(), { close: vi.fn() }))
+  const first = new BrowserWindow()
+  const second = new BrowserWindow()
+  registerStatusMdTaskHandlers(first, new Store())
+  registerStatusMdTaskHandlers(second, new Store())
+  const recent = mocks.handle.mock.calls.find(
+    ([channel]) => channel === 'status-md-tasks:recent'
+  )![1]
+  try {
+    for (let write = 0; write < 10; write++) {
+      mocks.mtimeMs++
+      for (const [, , changed] of mocks.watch.mock.calls) {
+        changed('change', 'STATUS.md')
+      }
+      await vi.advanceTimersByTimeAsync(200)
+    }
+    expect(mocks.git).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1_500)
+    await Promise.all([first, second].map((window) => recent({ sender: window.webContents })))
+    expect(first.webContents.send).toHaveBeenCalledTimes(1)
+    expect(second.webContents.send).toHaveBeenCalledTimes(1)
+    expect(mocks.git.mock.calls.filter(([args]) => args[0] === 'blame')).toHaveLength(1)
+    expect(mocks.readFile).toHaveBeenCalledTimes(1)
+  } finally {
+    first.emit('closed')
+    second.emit('closed')
   }
 })
