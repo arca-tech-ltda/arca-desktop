@@ -7,8 +7,9 @@ export type NotificationAuthorizationStatus = 'authorized' | 'denied' | 'not-det
 const HELPER_EXECUTABLE = 'orca-notification-status'
 const HELPER_TIMEOUT_MS = 4000
 // Why: the prompt waits for the user, and macOS records a denial if the asking
-// process exits first.
-const HELPER_REQUEST_TIMEOUT_MS = 5 * 60 * 1000
+// process exits first. Kept above the helper's own 5-minute self-exit so the
+// helper always answers before execFile would kill it mid-prompt.
+const HELPER_REQUEST_TIMEOUT_MS = 6 * 60 * 1000
 
 let cachedHelperPath: string | null | undefined
 

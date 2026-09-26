@@ -1,7 +1,8 @@
 // Prints the app's macOS notification settings as JSON and exits. With
 // --request it first asks UNUserNotificationCenter for authorization, which is
-// the only call that shows the macOS permission prompt — Electron's
-// Notification.show() never asks, so without this the app stays undecided.
+// the only call that registers the app with the Notification Center and puts it
+// in System Settings › Notifications — Electron's Notification.show() never
+// asks, so without this the app stays undecided and every banner is dropped.
 //
 // Why this exists: Electron exposes no API for UNUserNotificationCenter
 // authorization, and scheduling silently succeeds even while macOS suppresses
@@ -11,40 +12,71 @@
 // code-signed with the app's identifier — macOS keys notification records to
 // the signing identifier, which is why the build embeds an Info.plist section
 // with the target CFBundleIdentifier.
+import AppKit
 import Foundation
 import UserNotifications
 
-// Why so long: the prompt stays up until the user answers, and macOS records a
-// denial if the asking process dies first.
-let requestTimeoutSeconds = 300.0
-if CommandLine.arguments.contains("--request") {
-  let requestSemaphore = DispatchSemaphore(value: 0)
-  UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
-    _, _ in
-    requestSemaphore.signal()
+func readSettings(_ report: @escaping (String, String) -> Void) {
+  UNUserNotificationCenter.current().getNotificationSettings { settings in
+    var authorization = "unknown"
+    var alert = "unknown"
+    switch settings.authorizationStatus {
+    case .authorized: authorization = "authorized"
+    case .provisional: authorization = "provisional"
+    case .ephemeral: authorization = "ephemeral"
+    case .denied: authorization = "denied"
+    case .notDetermined: authorization = "not-determined"
+    @unknown default: authorization = "unknown"
+    }
+    switch settings.alertSetting {
+    case .enabled: alert = "enabled"
+    case .disabled: alert = "disabled"
+    case .notSupported: alert = "not-supported"
+    @unknown default: alert = "unknown"
+    }
+    report(authorization, alert)
   }
-  _ = requestSemaphore.wait(timeout: .now() + requestTimeoutSeconds)
+}
+
+func printSettings(_ authorization: String, _ alert: String) {
+  print("{\"authorization\":\"\(authorization)\",\"alert\":\"\(alert)\"}")
+}
+
+if CommandLine.arguments.contains("--request") {
+  // Why AppKit: usernoted refuses requestAuthorization from a process with no
+  // AppKit connection — it answers UNErrorDomain 1 immediately, with no prompt
+  // and no registration. Verified on macOS 26: the identical binary succeeds
+  // with an NSApplication run loop and fails without one. `.accessory` keeps it
+  // out of the Dock and never takes focus.
+  let application = NSApplication.shared
+  application.setActivationPolicy(.accessory)
+
+  // Why so long: the prompt stays up until the user answers, and macOS records
+  // a denial if the asking process dies first.
+  let requestTimeoutSeconds = 300.0
+  DispatchQueue.main.asyncAfter(deadline: .now() + requestTimeoutSeconds) {
+    printSettings("unknown", "unknown")
+    exit(0)
+  }
+  DispatchQueue.main.async {
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+      _, _ in
+      readSettings { authorization, alert in
+        printSettings(authorization, alert)
+        exit(0)
+      }
+    }
+  }
+  application.run()
 }
 
 let semaphore = DispatchSemaphore(value: 0)
-var authorization = "unknown"
-var alert = "unknown"
-UNUserNotificationCenter.current().getNotificationSettings { settings in
-  switch settings.authorizationStatus {
-  case .authorized: authorization = "authorized"
-  case .provisional: authorization = "provisional"
-  case .ephemeral: authorization = "ephemeral"
-  case .denied: authorization = "denied"
-  case .notDetermined: authorization = "not-determined"
-  @unknown default: authorization = "unknown"
-  }
-  switch settings.alertSetting {
-  case .enabled: alert = "enabled"
-  case .disabled: alert = "disabled"
-  case .notSupported: alert = "not-supported"
-  @unknown default: alert = "unknown"
-  }
+var finalAuthorization = "unknown"
+var finalAlert = "unknown"
+readSettings { authorization, alert in
+  finalAuthorization = authorization
+  finalAlert = alert
   semaphore.signal()
 }
 _ = semaphore.wait(timeout: .now() + 3)
-print("{\"authorization\":\"\(authorization)\",\"alert\":\"\(alert)\"}")
+printSettings(finalAuthorization, finalAlert)
