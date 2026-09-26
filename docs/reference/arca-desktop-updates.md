@@ -64,6 +64,51 @@ Limitações:
   O callback de encerramento existente é preservado; nenhuma sessão remota é morta
   ou declarada encerrada por este updater.
 
+## Notificações no macOS sem Developer ID
+
+Até esta correção o ARCA não aparecia em Ajustes › Notificações e nenhuma
+notificação era exibida. A causa tem duas partes, ambas verificadas
+empiricamente no macOS 26 com builds sem Developer ID:
+
+1. **Identidade de código errada.** O executável que a Electron distribui vem
+   `linker-signed adhoc` com `Identifier=Electron` e sem recursos selados. O
+   macOS indexa as autorizações de notificação pelo identificador de código do
+   processo, não pelo `CFBundleIdentifier` do Info.plist. Com `Electron` no
+   lugar de `br.com.arcatech.arca-desktop`, o `usernoted` recusa tudo: o app
+   nunca é registrado e `dispatch` devolve `blocked-by-system`.
+2. **Nada pedia permissão.** `Notification.show()` da Electron não chama
+   `UNUserNotificationCenter.requestAuthorization`, e só essa chamada registra o
+   app e abre o prompt. Sem ela o app fica `not-determined` para sempre.
+
+O que o build e o runtime fazem hoje:
+
+- `config/scripts/mac-adhoc-bundle-seal.cjs` sela o bundle com assinatura ad-hoc
+  (`codesign -s -`) no `afterPack`, depois dos helpers aninhados e apenas quando
+  não há identidade real (`isMacRelease` falso; `ARCA_MAC_ADHOC_SEAL=0` desliga
+  para iteração local). Selar faz o `codesign` derivar o identificador do
+  `CFBundleIdentifier`. Runtime endurecido fica desligado: uma assinatura ad-hoc
+  não tem team id e a library validation recusaria o Electron Framework.
+- `native/notification-status-macos/main.swift --request` sobe uma
+  `NSApplication` `.accessory` antes de pedir autorização. Sem conexão AppKit o
+  `usernoted` responde `UNErrorDomain 1` na hora, sem prompt e sem registro —
+  o mesmo binário funciona com o run loop e falha sem ele. `.accessory` mantém
+  o helper fora do Dock e não rouba foco.
+
+A autorização é gravada por bundle id, não por cdhash: um segundo build, com
+cdhash diferente, continua autorizado e entrega banners sem novo prompt. Quebrar
+o selo (editar um arquivo dentro do bundle) também não derruba a entrega — só
+`codesign --verify` acusa. O helper precisa continuar em `Contents/MacOS`, ao
+lado do executável principal, e assinado com o identificador do app.
+
+Para reproduzir o teste: **o bundle não pode ficar em `/private/tmp`**. O
+`usernoted` falha com `sandbox_extension_issue_file_to_process ... Operation not
+permitted` e nada é entregue, independentemente da assinatura. Copie o `.app`
+para o home antes de testar; o `--user-data-dir` pode continuar em `/tmp`.
+A prova confiável é `log show --predicate 'process == "usernoted"'` procurando
+`Presenting <NotificationRecord app:"br.com.arcatech.arca-desktop" ...> as
+banner`; `defaults read com.apple.ncprefs apps` não reflete mais o estado real
+nessa versão do macOS e o banco do `usernoted` é bloqueado por TCC.
+
 ## CI e produção
 
 `.github/workflows/arca-desktop-build.yml` injeta `ARCA_RELEASE_VERSION=1.5.<run_number>`;
