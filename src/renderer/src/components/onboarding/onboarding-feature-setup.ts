@@ -122,9 +122,10 @@ export function buildOnboardingFeatureSetupClipboardText(
 export function buildOnboardingFeatureSetupSkillCommand(
   selection: OnboardingFeatureSetupSelection
 ): string | null {
-  const skillNames = selectedOnboardingFeatureSetupIds(selection).map(
-    (id) => FEATURE_SKILL_NAMES[id]
-  )
+  // Why: Pi drives the app through the CLI itself; the fork never installs Orca skills.
+  const skillNames = ARCA_PI_IS_AUTHORITY
+    ? []
+    : selectedOnboardingFeatureSetupIds(selection).map((id) => FEATURE_SKILL_NAMES[id])
   if (skillNames.length === 0) {
     return null
   }
@@ -232,7 +233,7 @@ export async function runOnboardingFeatureSetup(
   }
   deps.notifyOrchestrationStateChanged()
 
-  if (selectedIds.length === 0) {
+  if (selectedIds.length === 0 && !ARCA_PI_IS_AUTHORITY) {
     return {
       selectedIds,
       cliTouched,

@@ -16559,6 +16559,26 @@
           "arcaProjects": "Projets ARCA"
         }
       }
+    },
+    "featureWall": {
+      "arcaCli": {
+        "statusChecking": "Vérification",
+        "statusRegistered": "Enregistrée",
+        "statusNotRegistered": "Non enregistrée",
+        "warningTitle": "La configuration de la CLI nécessite votre attention",
+        "successTitle": "Commande shell ARCA enregistrée",
+        "failureTitle": "Échec de l’enregistrement de la CLI",
+        "title": "Commande shell ARCA",
+        "description": "Ajoute la commande `arca` à votre shell pour piloter ARCA depuis le terminal.",
+        "installedAction": "Installée",
+        "installAction": "Installer la CLI"
+      },
+      "setupChecklist": {
+        "installCli": {
+          "name": "Installer la CLI",
+          "description": "Enregistre la commande shell ARCA pour que Pi puisse piloter l’application (worktrees, terminaux, navigateur intégré, contrôle de l’ordinateur)."
+        }
+      }
     }
   },
   "dashboardPopout": {

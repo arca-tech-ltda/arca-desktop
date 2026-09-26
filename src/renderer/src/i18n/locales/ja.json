@@ -15008,6 +15008,26 @@
       "onDisk": "ディスクに存在します",
       "ready": "クローンできます",
       "title": "ARCA プロジェクト"
+    },
+    "featureWall": {
+      "arcaCli": {
+        "statusChecking": "確認中",
+        "statusRegistered": "登録済み",
+        "statusNotRegistered": "未登録",
+        "warningTitle": "CLI のセットアップに対応が必要です",
+        "successTitle": "ARCA シェルコマンドを登録しました",
+        "failureTitle": "CLI の登録に失敗しました",
+        "title": "ARCA シェルコマンド",
+        "description": "`arca` コマンドをシェルに追加し、ターミナルから ARCA を操作できるようにします。",
+        "installedAction": "インストール済み",
+        "installAction": "CLI をインストール"
+      },
+      "setupChecklist": {
+        "installCli": {
+          "name": "CLI をインストール",
+          "description": "ARCA シェルコマンドを登録して、Pi がアプリ（worktree、ターミナル、内蔵ブラウザー、コンピュータ操作）を操作できるようにします。"
+        }
+      }
     }
   },
   "dashboardPopout": {

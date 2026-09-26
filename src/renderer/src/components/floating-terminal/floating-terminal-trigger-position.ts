@@ -1,8 +1,12 @@
-const TRIGGER_SIZE = 36
+export const FLOATING_TERMINAL_TRIGGER_SIZE = 36
+export const FLOATING_TERMINAL_TRIGGER_EDGE_MARGIN = 8
+export const FLOATING_TERMINAL_TRIGGER_SAFE_TOP = 36
+
+const TRIGGER_SIZE = FLOATING_TERMINAL_TRIGGER_SIZE
 const DEFAULT_RIGHT_GAP = 24
 const DEFAULT_BOTTOM_GAP = 72
-const DRAG_MARGIN = 8
-const TITLEBAR_SAFE_TOP = 36
+const DRAG_MARGIN = FLOATING_TERMINAL_TRIGGER_EDGE_MARGIN
+const TITLEBAR_SAFE_TOP = FLOATING_TERMINAL_TRIGGER_SAFE_TOP
 
 export const FLOATING_TERMINAL_TRIGGER_POSITION_STORAGE_KEY =
   'orca-floating-terminal-trigger-position-v2'
@@ -28,7 +32,13 @@ export type FloatingTerminalTriggerCommittedPosition =
 
 export type FloatingTerminalTriggerPositionSource = 'default' | 'user'
 
-function getViewport(): { width: number; height: number } {
+export type FloatingTerminalViewport = { width: number; height: number }
+
+export function getFloatingTerminalViewport(): FloatingTerminalViewport {
+  return getViewport()
+}
+
+function getViewport(): FloatingTerminalViewport {
   return {
     width: typeof window === 'undefined' ? 1200 : window.innerWidth,
     height: typeof window === 'undefined' ? 800 : window.innerHeight

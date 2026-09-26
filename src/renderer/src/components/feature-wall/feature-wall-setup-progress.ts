@@ -6,6 +6,7 @@ import {
 } from '../../../../shared/feature-wall-setup-steps'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { Worktree } from '../../../../shared/worktree/types'
+import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
 
 export type FeatureWallSetupProgressInput = {
   ready?: boolean
@@ -17,6 +18,8 @@ export type FeatureWallSetupProgressInput = {
   computerUsePermissionsReady: boolean
   computerUseUnavailable?: boolean
   orchestrationSkillInstalled: boolean
+  /** Only consulted when Pi is the authority: the step is CLI registration alone. */
+  cliRegistered?: boolean
   gitRepoCount: number
   worktreesByRepo: Record<string, Worktree[]>
   hasSetupScript: boolean
@@ -45,11 +48,12 @@ function countAvailableNonMainWorktrees(worktreesByRepo: Record<string, Worktree
 export function getFeatureWallSetupProgress(
   input: FeatureWallSetupProgressInput
 ): FeatureWallSetupProgress {
-  const agentCapabilitiesDone =
-    input.browserUseSkillInstalled &&
-    input.computerUseSkillInstalled &&
-    (input.computerUsePermissionsReady || input.computerUseUnavailable === true) &&
-    input.orchestrationSkillInstalled
+  const agentCapabilitiesDone = ARCA_PI_IS_AUTHORITY
+    ? input.cliRegistered === true
+    : input.browserUseSkillInstalled &&
+      input.computerUseSkillInstalled &&
+      (input.computerUsePermissionsReady || input.computerUseUnavailable === true) &&
+      input.orchestrationSkillInstalled
   const stepDone: Record<FeatureWallSetupStepId, boolean> = {
     'default-agent':
       Boolean(input.settings?.defaultTuiAgent) && input.settings?.defaultTuiAgent !== 'blank',

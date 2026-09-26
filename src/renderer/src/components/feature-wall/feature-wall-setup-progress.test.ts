@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FeatureWallSetupProgressInput } from './feature-wall-setup-progress'
 import { getFeatureWallSetupProgress } from './feature-wall-setup-progress'
 import {
@@ -9,6 +9,15 @@ import {
   getFirstIncompleteFeatureWallSetupStepId
 } from '../../../../shared/feature-wall-setup-steps'
 import type { Worktree } from '../../../../shared/worktree/types'
+import type * as ArcaProduct from '../../../../shared/arca-product'
+
+const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
+vi.mock('../../../../shared/arca-product', async (importOriginal) => ({
+  ...(await importOriginal<typeof ArcaProduct>()),
+  get ARCA_PI_IS_AUTHORITY() {
+    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  }
+}))
 
 function makeInput(
   overrides: Partial<FeatureWallSetupProgressInput> = {}
@@ -41,6 +50,10 @@ function makeWorktree(
 }
 
 describe('getFeatureWallSetupProgress', () => {
+  beforeEach(() => {
+    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+  })
+
   it('tracks Add 2 projects from durable git repo count', () => {
     expect(getFeatureWallSetupProgress(makeInput({ gitRepoCount: 1 })).stepDone).toMatchObject({
       'add-two-repos': false
@@ -303,5 +316,32 @@ describe('getFeatureWallSetupProgress', () => {
     expect(getFirstIncompleteFeatureWallSetupStepId(progress.stepDone)).not.toBe(
       'agent-capabilities'
     )
+  })
+
+  describe('with Pi as the authority', () => {
+    beforeEach(() => {
+      arcaProduct.ARCA_PI_IS_AUTHORITY = true
+    })
+
+    it('completes the CLI step from registration alone', () => {
+      expect(
+        getFeatureWallSetupProgress(makeInput({ cliRegistered: true })).stepDone[
+          'agent-capabilities'
+        ]
+      ).toBe(true)
+    })
+
+    it('leaves the CLI step open while the command is unregistered, whatever skills exist', () => {
+      expect(
+        getFeatureWallSetupProgress(
+          makeInput({
+            browserUseSkillInstalled: true,
+            computerUseSkillInstalled: true,
+            computerUsePermissionsReady: true,
+            orchestrationSkillInstalled: true
+          })
+        ).stepDone['agent-capabilities']
+      ).toBe(false)
+    })
   })
 })

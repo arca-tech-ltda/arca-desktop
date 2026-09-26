@@ -19,6 +19,7 @@ import {
   type FloatingTerminalTriggerPosition,
   type FloatingTerminalTriggerPositionSource
 } from './floating-terminal-trigger-position'
+import { publishFloatingTerminalTriggerPosition } from './floating-terminal-trigger-layout-store'
 import { translate } from '@/i18n/i18n'
 
 const FLOATING_TERMINAL_TRIGGER_DRAG_THRESHOLD = 4
@@ -136,6 +137,11 @@ export function FloatingTerminalToggleButton({
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [reconcilePosition])
+
+  useLayoutEffect(() => {
+    publishFloatingTerminalTriggerPosition(position)
+    return () => publishFloatingTerminalTriggerPosition(null)
+  }, [position])
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) {
