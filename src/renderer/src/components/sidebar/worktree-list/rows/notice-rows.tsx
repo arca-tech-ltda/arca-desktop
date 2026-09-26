@@ -4,6 +4,7 @@ import type { Row } from '../grouping/row-types'
 import { getVirtualRowTransform } from '../viewport/virtual-rows'
 import { PendingWorktreeRow } from '../../PendingWorktreeRow'
 import ImportedWorktreesVisibilityLine from '../../ImportedWorktreesVisibilityLine'
+import AgentWorktreesGroup from '../../AgentWorktreesGroup'
 import NewExternalWorktreesInboxLine from '../../NewExternalWorktreesInboxLine'
 import type { ImportedWorktreeCardActionState } from '../../imported-worktrees-card-actions'
 import type { NewExternalWorktreesInboxActionState } from '../../new-external-worktrees-inbox-actions'
@@ -60,6 +61,15 @@ export function renderImportedWorktreesVirtualRow(args: {
       vItem={args.vItem}
       measureVirtualRowElement={args.measureVirtualRowElement}
     >
+      {row.agentWorktrees.length > 0 ? (
+        <AgentWorktreesGroup
+          repo={row.repo}
+          agentWorktrees={row.agentWorktrees}
+          {...(row.agentBaseRef ? { baseRef: row.agentBaseRef } : {})}
+          {...(row.hostContextLabel ? { hostContextLabel: row.hostContextLabel } : {})}
+          {...(row.hostContextHostId ? { hostContextHostId: row.hostContextHostId } : {})}
+        />
+      ) : null}
       <ImportedWorktreesVisibilityLine
         repoDisplayName={row.repo.displayName}
         hostContextLabel={row.hostContextLabel}

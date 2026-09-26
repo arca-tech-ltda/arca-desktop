@@ -1,4 +1,4 @@
-import { readFileSync, realpathSync } from 'node:fs'
+import { readFileSync, realpathSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 import {
@@ -45,8 +45,7 @@ export function readWorktreeAdminDir(worktreePath: string): string | undefined {
   return isAbsolute(gitdir) ? gitdir : resolve(worktreePath, gitdir)
 }
 
-function readAgentWorktreeMarkerContents(worktreePath: string): string | null {
-  const adminDir = readWorktreeAdminDir(worktreePath)
+function readAgentWorktreeMarkerContents(adminDir: string | undefined): string | null {
   if (!adminDir) {
     return null
   }
@@ -57,15 +56,39 @@ function readAgentWorktreeMarkerContents(worktreePath: string): string | null {
   }
 }
 
+function modifiedAt(path: string): number {
+  try {
+    return statSync(path).mtimeMs
+  } catch {
+    return 0
+  }
+}
+
+/** The admin dir moves on commit/index writes, the checkout on top-level file churn; the later
+ *  of the two is the closest cheap stand-in for "the agent touched this". */
+function lastAgentWorktreeActivityAt(
+  worktreePath: string,
+  adminDir: string | undefined
+): number | undefined {
+  const latest = Math.max(modifiedAt(worktreePath), adminDir ? modifiedAt(adminDir) : 0)
+  return latest > 0 ? latest : undefined
+}
+
 export function detectAgentWorktree(
   worktreePath: string,
   tempRoots: readonly string[] = listAgentWorktreeTempRoots()
 ): AgentWorktreeInfo | undefined {
-  return classifyAgentWorktree({
+  const adminDir = readWorktreeAdminDir(worktreePath)
+  const info = classifyAgentWorktree({
     worktreePath,
-    markerContents: readAgentWorktreeMarkerContents(worktreePath),
+    markerContents: readAgentWorktreeMarkerContents(adminDir),
     tempRoots
   })
+  if (!info) {
+    return undefined
+  }
+  const lastModifiedAt = lastAgentWorktreeActivityAt(worktreePath, adminDir)
+  return lastModifiedAt ? { ...info, lastModifiedAt } : info
 }
 
 function isAgentWorktreeCandidate(worktree: DetectedWorktree): boolean {

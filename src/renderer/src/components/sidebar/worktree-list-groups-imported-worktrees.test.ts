@@ -26,7 +26,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: hidden }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: hidden, agentWorktrees: [] }]])
     )
 
     expect(rows).toMatchObject([
@@ -36,7 +36,8 @@ describe('buildRows with pinned worktrees', () => {
         key: 'imported-worktrees-card:repo-group:repo-1',
         placement: 'repo-group',
         repo: { id: 'repo-1' },
-        hiddenWorktrees: [{ id: 'hidden-1' }, { id: 'hidden-2' }, { id: 'hidden-3' }]
+        hiddenWorktrees: [{ id: 'hidden-1' }, { id: 'hidden-2' }, { id: 'hidden-3' }],
+        agentWorktrees: []
       },
       { type: 'item', worktree: { id: 'wt-1' } }
     ])
@@ -58,7 +59,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows).toMatchObject([{ type: 'header', key: 'repo:repo-1' }])
@@ -80,7 +81,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows).toMatchObject([
@@ -109,7 +110,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set([repo.id]),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows).toMatchObject([
@@ -159,7 +160,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows.some((row) => row.type === 'imported-worktrees-card')).toBe(false)
@@ -200,12 +201,20 @@ describe('buildRows with pinned worktrees', () => {
       [],
       new Set(),
       new Map([
-        [repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })] }],
+        [
+          repo.id,
+          {
+            repo,
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })],
+            agentWorktrees: []
+          }
+        ],
         [
           repoTwo.id,
           {
             repo: repoTwo,
-            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })]
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })],
+            agentWorktrees: []
           }
         ]
       ])
@@ -264,12 +273,20 @@ describe('buildRows with pinned worktrees', () => {
       [],
       new Set(),
       new Map([
-        [repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })] }],
+        [
+          repo.id,
+          {
+            repo,
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })],
+            agentWorktrees: []
+          }
+        ],
         [
           repoTwo.id,
           {
             repo: repoTwo,
-            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })]
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })],
+            agentWorktrees: []
           }
         ]
       ])
@@ -472,12 +489,20 @@ describe('buildRows with pinned worktrees', () => {
       [],
       new Set(),
       new Map([
-        [repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })] }],
+        [
+          repo.id,
+          {
+            repo,
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-one' })],
+            agentWorktrees: []
+          }
+        ],
         [
           repoTwo.id,
           {
             repo: repoTwo,
-            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })]
+            hiddenWorktrees: [makeDetectedWorktree({ id: 'hidden-two', repoId: repoTwo.id })],
+            agentWorktrees: []
           }
         ]
       ])
@@ -534,7 +559,7 @@ describe('buildRows with pinned worktrees', () => {
       { showPinnedWorktreesInGroups: true } as never,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows).toEqual(
@@ -555,7 +580,9 @@ describe('buildRows with pinned worktrees', () => {
 
   it('suppresses duplicate-mode imported fallback only when a natural anchor renders', () => {
     const pinnedWorktree = { ...worktree, id: 'wt-pinned', isPinned: true }
-    const imported = new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+    const imported = new Map([
+      [repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]
+    ])
     const expanded = buildRows(
       'none',
       [pinnedWorktree],
@@ -619,7 +646,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows.filter((row) => row.type === 'imported-worktrees-card')).toMatchObject([
@@ -644,7 +671,7 @@ describe('buildRows with pinned worktrees', () => {
       undefined,
       [],
       new Set(),
-      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()] }]])
+      new Map([[repo.id, { repo, hiddenWorktrees: [makeDetectedWorktree()], agentWorktrees: [] }]])
     )
 
     expect(rows).toMatchObject([

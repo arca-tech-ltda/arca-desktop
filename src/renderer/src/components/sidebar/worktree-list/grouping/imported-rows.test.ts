@@ -70,6 +70,7 @@ const makeImportedCardRow = (): Extract<Row, { type: 'imported-worktrees-card' }
   key: 'imported-worktrees-card:repo-group:repo-1',
   repo,
   hiddenWorktrees: [],
+  agentWorktrees: [],
   placement: 'repo-group'
 })
 

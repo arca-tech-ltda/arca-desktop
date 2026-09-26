@@ -49,6 +49,10 @@ export type WorktreeRow = {
 export type ImportedWorktreesCardCandidate = {
   repo: Repo
   hiddenWorktrees: DetectedWorktree[]
+  /** Hidden checkouts classified as a parallel agent's work; never prompted about. */
+  agentWorktrees: DetectedWorktree[]
+  /** Branch the project's main checkout has out, for the agent group's ahead counts. */
+  agentBaseRef?: string
 }
 
 export type ImportedWorktreesCardRow = {
@@ -56,6 +60,8 @@ export type ImportedWorktreesCardRow = {
   key: string
   repo: Repo
   hiddenWorktrees: DetectedWorktree[]
+  agentWorktrees: DetectedWorktree[]
+  agentBaseRef?: string
   placement: 'repo-group' | 'pinned-fallback'
   /** Set only when the row's project is checked out on more than one host. */
   hostContextLabel?: string

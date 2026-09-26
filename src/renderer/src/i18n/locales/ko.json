@@ -5415,6 +5415,32 @@
           "3b7ea51793": "검색 지우기",
           "7f1c2e94a5": "검색어가 너무 깁니다 — 보드가 필터링되지 않았습니다",
           "9a4d0f6b21": "너무 김"
+        },
+        "AgentWorktreeGroupRow": {
+          "started": "{{value0}} 시작됨",
+          "updated": "{{value0}} 업데이트됨",
+          "checking": "확인 중…",
+          "unknownState": "상태 알 수 없음",
+          "commitsAhead": "{{value0}}개 앞섬",
+          "uncommitted": "커밋되지 않은 변경 {{value0}}개",
+          "clean": "변경 없음",
+          "confirmRemove": "이 worktree에는 다른 곳에 저장되지 않은 작업이 있습니다. 그래도 제거할까요?",
+          "confirmRemoveAction": "그래도 제거",
+          "cancel": "취소",
+          "open": "열기",
+          "reviewDiff": "변경 사항 검토",
+          "removeWorktree": "worktree {{value0}} 제거",
+          "remove": "제거"
+        },
+        "AgentWorktreesGroup": {
+          "removeFailed": "에이전트 worktree를 제거하지 못했습니다. 다시 시도하세요."
+        },
+        "AgentWorktreesGroupLine": {
+          "oneAgent": "에이전트 1개 작업 중",
+          "manyAgents": "에이전트 {{value0}}개 작업 중",
+          "collapseLabel": "{{value0}}의 에이전트 worktree 접기",
+          "expandLabel": "{{value0}}의 에이전트 worktree 펼치기",
+          "listLabel": "에이전트 worktree"
         }
       },
       "shared": {

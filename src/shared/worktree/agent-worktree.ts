@@ -14,6 +14,8 @@ export type AgentWorktreeMarker = {
 export type AgentWorktreeInfo = AgentWorktreeMarker & {
   /** `marker` is an explicit claim; `temp-dir` is the path heuristic. */
   source: 'marker' | 'temp-dir'
+  /** Host-observed mtime of the checkout or its git admin dir. Not part of the marker. */
+  lastModifiedAt?: number
 }
 
 const MAX_MARKER_FIELD_LENGTH = 500
@@ -63,10 +65,7 @@ export function parseAgentWorktreeMarker(raw: string): AgentWorktreeMarker | nul
 }
 
 /** Case folding follows the path flavour: Windows roots fold, POSIX roots do not. */
-export function isTempDirWorktreePath(
-  worktreePath: string,
-  tempRoots: readonly string[]
-): boolean {
+export function isTempDirWorktreePath(worktreePath: string, tempRoots: readonly string[]): boolean {
   return tempRoots.some((root) => {
     if (!root) {
       return false
@@ -75,6 +74,21 @@ export function isTempDirWorktreePath(
     // Why not `''`: the temp root itself is not a worktree inside it.
     return relative !== null && relative !== ''
   })
+}
+
+export function isAgentWorktree(worktree: { agentWork?: AgentWorktreeInfo }): boolean {
+  return worktree.agentWork !== undefined
+}
+
+export function partitionAgentWorktrees<T extends { agentWork?: AgentWorktreeInfo }>(
+  worktrees: readonly T[]
+): { agentWorktrees: T[]; otherWorktrees: T[] } {
+  const agentWorktrees: T[] = []
+  const otherWorktrees: T[] = []
+  for (const worktree of worktrees) {
+    ;(isAgentWorktree(worktree) ? agentWorktrees : otherWorktrees).push(worktree)
+  }
+  return { agentWorktrees, otherWorktrees }
 }
 
 export function classifyAgentWorktree(args: {

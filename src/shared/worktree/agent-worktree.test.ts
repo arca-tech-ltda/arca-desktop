@@ -85,9 +85,9 @@ describe('classifyAgentWorktree', () => {
   })
 
   it('falls back to the temp-dir heuristic without a marker', () => {
-    expect(
-      classifyAgentWorktree({ worktreePath: '/tmp/arca-cleanup-wt', tempRoots })
-    ).toEqual({ source: 'temp-dir' })
+    expect(classifyAgentWorktree({ worktreePath: '/tmp/arca-cleanup-wt', tempRoots })).toEqual({
+      source: 'temp-dir'
+    })
   })
 
   it('falls back to the heuristic when the marker is unreadable', () => {

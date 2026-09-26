@@ -61,16 +61,22 @@ describe('detectAgentWorktree', () => {
       'marked',
       JSON.stringify({ agent: 'claude', task: 'Wire the sidebar' })
     )
-    expect(detectAgentWorktree(worktreePath, ['/nowhere'])).toEqual({
+    expect(detectAgentWorktree(worktreePath, ['/nowhere'])).toMatchObject({
       source: 'marker',
       agent: 'claude',
       task: 'Wire the sidebar'
     })
   })
 
+  it('reports a host-observed last modification time', () => {
+    const worktreePath = createLinkedWorktree('touched', '{}')
+    const detected = detectAgentWorktree(worktreePath, ['/nowhere'])
+    expect(detected?.lastModifiedAt).toBeGreaterThan(0)
+  })
+
   it('classifies an unmarked worktree under a temp root by path', () => {
     const worktreePath = createLinkedWorktree('unmarked')
-    expect(detectAgentWorktree(worktreePath, [root])).toEqual({ source: 'temp-dir' })
+    expect(detectAgentWorktree(worktreePath, [root])).toMatchObject({ source: 'temp-dir' })
   })
 
   it('leaves an unmarked worktree outside every temp root unclassified', () => {
@@ -102,7 +108,7 @@ describe('annotateAgentWorktrees', () => {
       detectedWorktree(managedPath, { ownership: 'orca-managed' }),
       detectedWorktree(join(root, 'main'), { isMainWorktree: true, selectedCheckout: true })
     ])
-    expect(rows[0].agentWork).toEqual({ source: 'marker', agent: 'codex' })
+    expect(rows[0].agentWork).toMatchObject({ source: 'marker', agent: 'codex' })
     expect(rows[1].agentWork).toBeUndefined()
     expect(rows[2].agentWork).toBeUndefined()
   })
