@@ -16,6 +16,8 @@ import { CurrentProjectPane } from './CurrentProjectPane'
 import { PriorityRow } from './PriorityRow'
 import { RecentTasksPane } from './RecentTasksPane'
 import { selectCurrentStatusProject } from './priority-card-data'
+import { getPriorityCardPlacement, getPriorityLauncherPosition } from './priority-card-placement'
+import { useFloatingTerminalTriggerLayout } from '@/components/floating-terminal/floating-terminal-trigger-layout-store'
 import { usePriorityActions } from './usePriorityActions'
 
 const COLLAPSED_KEY = 'arca.priority-card.collapsed'
@@ -43,6 +45,9 @@ export function PriorityCard(): React.JSX.Element | null {
   const [tab, setTab] = useState<CardTab>(() => savedTab(Boolean(activeWorktree)))
   const priorityActions = usePriorityActions()
   const taskActions = useStatusMdTaskActions()
+  const triggerLayout = useFloatingTerminalTriggerLayout()
+  const launcherPosition = getPriorityLauncherPosition(triggerLayout)
+  const cardPlacement = getPriorityCardPlacement(triggerLayout)
   const currentProject = useMemo(
     () => selectCurrentStatusProject(projects, activeWorktree),
     [activeWorktree, projects]
@@ -118,9 +123,9 @@ export function PriorityCard(): React.JSX.Element | null {
     return (
       <div
         data-arca-priority-card
-        // Parked above the floating-workspace launcher (24px right gap, 72px
-        // bottom gap, 36px control) with the same 8px stacking gap.
-        className="fixed right-6 bottom-[116px] z-[46]"
+        // Follows the draggable floating-workspace trigger, 8px above it.
+        className="fixed z-[46]"
+        style={{ left: launcherPosition.left, top: launcherPosition.top }}
       >
         <FloatingLauncherButton
           data-arca-priority-launcher
@@ -151,9 +156,15 @@ export function PriorityCard(): React.JSX.Element | null {
   return (
     <aside
       data-arca-priority-card
-      className="fixed right-[72px] bottom-10 z-30 w-[380px] max-w-[calc(100vw-96px)] rounded-xl border border-border bg-card shadow-floating"
+      className="fixed z-30 flex flex-col rounded-xl border border-border bg-card shadow-floating"
+      style={{
+        left: cardPlacement.left,
+        bottom: cardPlacement.bottom,
+        width: cardPlacement.width,
+        maxHeight: cardPlacement.maxHeight
+      }}
     >
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="flex shrink-0 items-center gap-2 px-3 py-2">
         <ListTodo className="size-4 text-muted-foreground" />
         <h2 className="flex-1 text-sm font-semibold">
           {translate('auto.components.priorities.cardTitle', 'Project tasks')}
@@ -168,7 +179,7 @@ export function PriorityCard(): React.JSX.Element | null {
           <ChevronDown className="size-3.5" />
         </Button>
       </div>
-      <div className="flex gap-1 border-y border-border px-2 py-1">
+      <div className="flex shrink-0 gap-1 border-y border-border px-2 py-1">
         {currentProject ? (
           <button
             type="button"
@@ -202,7 +213,7 @@ export function PriorityCard(): React.JSX.Element | null {
           {translate('auto.components.priorities.title', 'Priorities')}
         </button>
       </div>
-      <div className="scrollbar-sleek max-h-[min(60vh,520px)] overflow-y-auto">
+      <div className="scrollbar-sleek min-h-0 flex-1 overflow-y-auto">
         {tab === 'current' && currentProject ? (
           <CurrentProjectPane
             project={currentProject}

@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FLOATING_TERMINAL_TRIGGER_POSITION_STORAGE_KEY } from './floating-terminal-trigger-position'
+import {
+  getFloatingTerminalTriggerLayout,
+  publishFloatingTerminalTriggerPosition
+} from './floating-terminal-trigger-layout-store'
 
 type EffectCallback = () => void | (() => void)
 
@@ -253,6 +257,31 @@ describe('FloatingTerminalToggleButton positioning', () => {
       FLOATING_TERMINAL_TRIGGER_POSITION_STORAGE_KEY,
       '{"anchorX":"right","anchorY":"bottom","offsetX":124,"offsetY":172}'
     )
+  })
+
+  it('publishes the live position so stacked launchers follow the drag', async () => {
+    let element = await renderToggle()
+    runEffects()
+    expect(getFloatingTerminalTriggerLayout().position).toEqual({ left: 1140, top: 692 })
+
+    const button = getToggleButton(element)
+    ;(button.props.onPointerDown as (event: unknown) => void)({
+      button: 0,
+      clientX: 0,
+      clientY: 0,
+      currentTarget: { setPointerCapture: vi.fn() },
+      pointerId: 1
+    })
+    ;(button.props.onPointerMove as (event: unknown) => void)({
+      clientX: -100,
+      clientY: -100,
+      pointerId: 1
+    })
+    element = await renderToggle()
+    runEffects()
+
+    expect(getFloatingTerminalTriggerLayout().position).toEqual({ left: 1040, top: 592 })
+    publishFloatingTerminalTriggerPosition(null)
   })
 })
 

@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
+import { publishFloatingTerminalTriggerPosition } from '@/components/floating-terminal/floating-terminal-trigger-layout-store'
 import { PriorityCard } from './PriorityCard'
 
 const statusChangeListeners = vi.hoisted(() => [] as (() => void)[])
@@ -71,6 +72,10 @@ function launcher(): HTMLElement | null {
   return document.querySelector('[data-arca-priority-launcher]')
 }
 
+function launcherFrame(): HTMLElement | null {
+  return document.querySelector('[data-arca-priority-card]')
+}
+
 describe('PriorityCard collapsed launcher', () => {
   beforeEach(() => {
     statusChangeListeners.length = 0
@@ -80,6 +85,39 @@ describe('PriorityCard collapsed launcher', () => {
 
   afterEach(() => {
     cleanup()
+    publishFloatingTerminalTriggerPosition(null)
+  })
+
+  it('parks the launcher above the dragged floating workspace trigger', async () => {
+    localStorage.setItem('arca.priority-card.collapsed', 'true')
+    await renderCard()
+    await act(async () => {
+      publishFloatingTerminalTriggerPosition({ left: 120, top: 400 })
+    })
+    expect(launcherFrame()?.style.left).toBe('120px')
+    expect(launcherFrame()?.style.top).toBe('356px')
+
+    await act(async () => {
+      publishFloatingTerminalTriggerPosition({ left: 300, top: 40 })
+    })
+    expect(launcherFrame()?.style.left).toBe('300px')
+    // No room above the trigger, so the launcher stacks below it.
+    expect(launcherFrame()?.style.top).toBe('84px')
+  })
+
+  it('opens the expanded card beside the button column without covering it', async () => {
+    localStorage.setItem('arca.priority-card.collapsed', 'true')
+    await renderCard()
+    await act(async () => {
+      publishFloatingTerminalTriggerPosition({ left: 600, top: 500 })
+    })
+    await act(async () => {
+      fireEvent.click(launcher() as HTMLElement)
+    })
+    const card = launcherFrame() as HTMLElement
+    const width = Number.parseFloat(card.style.width)
+    expect(Number.parseFloat(card.style.left) + width).toBe(592)
+    expect(card.style.bottom).toBe(`${window.innerHeight - 536}px`)
   })
 
   it('renders a floating launcher button instead of the card when collapsed', async () => {
