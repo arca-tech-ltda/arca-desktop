@@ -13,7 +13,7 @@ export type { FeedbackImageAttachment }
 // cross-origin POST from fetch() triggers a CORS preflight that the feedback
 // endpoint rejects. Electron's net module runs in the main process and is not
 // subject to CORS, so we proxy the submission through IPC. This mirrors the
-// same pattern used by updater-changelog.ts and updater-nudge.ts.
+// same pattern used by updater-changelog.ts.
 const FEEDBACK_API_URL = 'https://www.onorca.dev/v1/feedback'
 const FEEDBACK_REQUEST_TIMEOUT_MS = 10_000
 const FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS = 60_000

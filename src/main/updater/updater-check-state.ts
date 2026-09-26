@@ -2,8 +2,7 @@ import { writeMainThreadDiagnosticMarker } from '../diagnostics/main-thread-chur
 import { isWindowsSignatureCheckUnavailableFailure } from '../../shared/updater-windows-signature-check'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
 import { getRetainedLinuxPackageManualInstallStatus } from '../linux-package-downloaded-status'
-import type { UpdateCheckOptions, UpdateStatus } from '../../shared/update-status-types'
-import type { UpdateCheckVariant } from './updater-types'
+import type { UpdateStatus } from '../../shared/update-status-types'
 import { UpdaterStatus } from './updater-status'
 import {
   AUTO_UPDATE_CHECK_INTERVAL_MS,
@@ -13,44 +12,6 @@ import {
 } from './updater-state'
 
 export abstract class UpdaterCheckState extends UpdaterStatus {
-  protected getOptionsForUpdateCheckVariant(variant: UpdateCheckVariant): UpdateCheckOptions {
-    switch (variant) {
-      case 'perf':
-        return { includePrerelease: true, includePerfPrerelease: true }
-      case 'prerelease':
-        return { includePrerelease: true }
-      case 'default':
-        return { includePrerelease: false }
-    }
-  }
-
-  protected getUpdateCheckVariant(options?: UpdateCheckOptions): UpdateCheckVariant {
-    if (options?.includePerfPrerelease) {
-      return 'perf'
-    }
-    if (options?.includePrerelease) {
-      return 'prerelease'
-    }
-    // Why: a persisted 'rc' override makes every routine check follow the RC series
-    // without the user re-holding shift; the dev channels need an explicit tag, so
-    // neither is a routine-check variant.
-    if (this.getReleaseChannelOverride?.() === 'rc') {
-      return 'prerelease'
-    }
-    return 'default'
-  }
-
-  protected launchPendingUserInitiatedCheckAfterInFlight(variant: UpdateCheckVariant): void {
-    this.pendingUserInitiatedCheckAfterInFlight = null
-    setTimeout(() => {
-      // Why: defer one tick after electron-updater clears its in-flight promise so the queued modifier check starts fresh instead of deduping into the stable one.
-      if (this.currentStatus.state === 'checking') {
-        this.currentStatus = { state: 'idle' }
-      }
-      this.checkForUpdatesFromMenu(this.getOptionsForUpdateCheckVariant(variant))
-    }, 0)
-  }
-
   protected clearBackgroundCheckLaunchPending(): void {
     this.backgroundCheckLaunchPending = false
   }
@@ -115,17 +76,6 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
     this.activeUpdateCheckLaunchAttemptId = attemptId
   }
 
-  protected markUpdateAvailableEventPending(attemptId: number | null): void {
-    this.updateAvailableEventPendingAttemptId = attemptId
-  }
-
-  protected clearUpdateAvailableEventPending(attemptId: number | null): void {
-    if (this.updateAvailableEventPendingAttemptId !== attemptId) {
-      return
-    }
-    this.updateAvailableEventPendingAttemptId = null
-  }
-
   protected armUpdateCheckStallTimer(attemptId: number): void {
     this.clearUpdateCheckStallTimer()
     this.updateCheckStallTimer = setTimeout(() => {
@@ -141,8 +91,7 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
         this.userInitiatedCheck = false
         void this.sendCheckFailureStatus(
           'Update check timed out. Try again in a few minutes.',
-          wasUserInitiated,
-          'promise'
+          wasUserInitiated
         )
         return
       }
@@ -158,7 +107,6 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
 
   protected beginUpdateCheckAttempt(): number {
     this.finishActiveUpdateCheckAttempt()
-    this.updateAvailableEventPendingAttemptId = null
     this.updateCheckAttemptSequence += 1
     this.activeUpdateCheckAttemptId = this.updateCheckAttemptSequence
     this.armUpdateCheckStallTimer(this.activeUpdateCheckAttemptId)
@@ -189,33 +137,16 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
     )
   }
 
-  protected consumeSilentCheckShortRetryReason(): boolean {
-    if (this.publishingWindowLastGoodCheck !== null) {
-      return true
-    }
-    return this.consumeMissingManifestPrereleaseFallbackResult() !== null
-  }
-
-  protected completeSilentUpdateCheck(userInitiated: boolean | undefined): boolean {
-    const shouldRetrySoon = this.consumeSilentCheckShortRetryReason()
+  protected completeSilentUpdateCheck(userInitiated: boolean | undefined): void {
     this.clearAvailableUpdateContext()
-    if (shouldRetrySoon) {
-      // Why: a silent result against a temporary last-good feed is still a release transition, so it must not suppress the short publish retry.
-      this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_RETRY_INTERVAL_MS)
-      return true
-    }
     this.recordCompletedUpdateCheck()
     if (!userInitiated) {
       this.scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
     }
-    return false
   }
 
   protected settleSilentUpdateCheck(attemptId: number, userInitiated: boolean | undefined): void {
     if (!this.isActiveUpdateCheckAttempt(attemptId)) {
-      return
-    }
-    if (this.updateAvailableEventPendingAttemptId === attemptId) {
       return
     }
     if (this.currentStatus.state !== 'checking') {
@@ -224,14 +155,7 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
         this.clearBackgroundCheckLaunchPending()
         this.backgroundCheckPromotedToUserInitiated = false
         this.userInitiatedCheck = false
-        const shouldRetrySoon = this.completeSilentUpdateCheck(userInitiated)
-        if (this.awaitingNudgeCheckOutcome) {
-          if (shouldRetrySoon) {
-            this.deferPendingUpdateNudgeUntilRetry()
-            return
-          }
-          this.sendSettledCheckStatus({ state: 'not-available', userInitiated })
-        }
+        this.completeSilentUpdateCheck(userInitiated)
       }
       return
     }
@@ -300,14 +224,10 @@ export abstract class UpdaterCheckState extends UpdaterStatus {
     }
   }
 
-  protected abstract consumeMissingManifestPrereleaseFallbackResult(): {
-    userInitiated: boolean
-  } | null
   protected abstract recordCompletedUpdateCheck(): void
   protected abstract sendCheckFailureStatus(
     message: string,
     userInitiated?: boolean,
-    source?: 'event' | 'promise' | 'fallback-promise',
     sourceError?: unknown
   ): Promise<void>
   protected abstract scheduleAutomaticUpdateCheck(delayMs: number): void

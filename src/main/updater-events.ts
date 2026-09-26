@@ -17,15 +17,11 @@ import { isExternallyManagedLinuxInstall } from './linux-update-package-type'
 import * as linuxPackageRecovery from './linux-package-update-recovery'
 
 const AUTO_UPDATE_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
-const AUTO_UPDATE_RETRY_INTERVAL_MS = 60 * 60 * 1000
 
 type UpdaterHandlerContext = {
   autoUpdater: ElectronAutoUpdater
   clearBackgroundCheckLaunchPending: () => void
   clearAvailableUpdateContext: () => void
-  consumeMissingManifestPrereleaseFallbackResult: () => { userInitiated: boolean } | null
-  getPublishingWindowLastGoodCheck: () => { lastGoodTag: string } | null
-  getMissingManifestPrereleaseFallbackUserInitiated: () => boolean | null
   getCurrentStatus: () => UpdateStatus
   getActiveUpdateCheckEventAttemptId: () => number | null
   getKnownReleaseUrl: () => string | undefined
@@ -34,29 +30,19 @@ type UpdaterHandlerContext = {
   handleQuitAndInstallFailure: (error?: unknown) => boolean
   isQuitAndInstallHandoffActive: () => boolean
   hasInstallableDownloadedVersion: () => boolean
-  isLocalBuildCheck: () => boolean
-  isPinnedBuildCheck: () => boolean
   shouldHandleUpdaterErrorEvent: () => boolean
-  clearUpdateAvailableEventPending: (attemptId: number | null) => void
-  isActiveUpdateCheckAttempt: (attemptId: number) => boolean
   markUpdateCheckEventAttempt: () => boolean
-  markUpdateAvailableEventPending: (attemptId: number | null) => void
-  markMissingManifestPrereleaseFallbackChecking: () => void
   performQuitAndInstall: () => void | Promise<void>
   shouldDeferMacQuitForInstall: () => boolean
   recordCompletedUpdateCheck: () => void
-  restoreReleaseUpdateSource: () => void
   sendCheckFailureStatus: (
     message: string,
     userInitiated?: boolean,
-    source?: 'event' | 'promise' | 'fallback-promise',
     sourceError?: unknown
   ) => Promise<void>
   sendErrorStatus: (message: string, userInitiated?: boolean) => void
   sendStatus: (status: UpdateStatus) => void
   scheduleAutomaticUpdateCheck: (delayMs: number) => void
-  shouldSuppressMissingManifestPrereleaseFallbackEvent: (message: string, error: unknown) => boolean
-  suppressMissingManifestPrereleaseFallbackPromiseFailure: (message: string) => void
   setAvailableReleaseUrl: (releaseUrl: string | null) => void
   setAvailableVersion: (version: string | null) => void
   setUserInitiatedCheck: (value: boolean) => void
@@ -66,9 +52,6 @@ export function registerAutoUpdaterHandlers({
   autoUpdater,
   clearBackgroundCheckLaunchPending,
   clearAvailableUpdateContext,
-  consumeMissingManifestPrereleaseFallbackResult,
-  getPublishingWindowLastGoodCheck,
-  getMissingManifestPrereleaseFallbackUserInitiated,
   getCurrentStatus,
   getActiveUpdateCheckEventAttemptId,
   getKnownReleaseUrl,
@@ -77,24 +60,15 @@ export function registerAutoUpdaterHandlers({
   handleQuitAndInstallFailure,
   isQuitAndInstallHandoffActive,
   hasInstallableDownloadedVersion,
-  isLocalBuildCheck,
-  isPinnedBuildCheck,
   shouldHandleUpdaterErrorEvent,
-  clearUpdateAvailableEventPending,
-  isActiveUpdateCheckAttempt,
   markUpdateCheckEventAttempt,
-  markUpdateAvailableEventPending,
-  markMissingManifestPrereleaseFallbackChecking,
   performQuitAndInstall,
   shouldDeferMacQuitForInstall,
   recordCompletedUpdateCheck,
-  restoreReleaseUpdateSource,
   sendCheckFailureStatus,
   sendErrorStatus,
   sendStatus,
   scheduleAutomaticUpdateCheck,
-  shouldSuppressMissingManifestPrereleaseFallbackEvent,
-  suppressMissingManifestPrereleaseFallbackPromiseFailure,
   setAvailableReleaseUrl,
   setAvailableVersion,
   setUserInitiatedCheck
@@ -116,9 +90,7 @@ export function registerAutoUpdaterHandlers({
     clearBackgroundCheckLaunchPending()
     resetMacInstallState()
     clearAvailableUpdateContext()
-    markMissingManifestPrereleaseFallbackChecking()
-    const fallbackUserInitiated = getMissingManifestPrereleaseFallbackUserInitiated()
-    const wasUserInitiated = fallbackUserInitiated ?? getUserInitiatedCheck()
+    const wasUserInitiated = getUserInitiatedCheck()
     sendStatus({ state: 'checking', userInitiated: wasUserInitiated || undefined })
   })
 
@@ -128,27 +100,14 @@ export function registerAutoUpdaterHandlers({
       return
     }
     clearBackgroundCheckLaunchPending()
-    // --- synchronous preamble (runs before any await) ---
-    const missingManifestFallback = consumeMissingManifestPrereleaseFallbackResult()
-    const publishingWindowLastGoodCheck = getPublishingWindowLastGoodCheck()
-    const wasUserInitiated = missingManifestFallback?.userInitiated ?? getUserInitiatedCheck()
+    const wasUserInitiated = getUserInitiatedCheck()
     setUserInitiatedCheck(false)
 
-    // Release checks remain newer-only; validated local builds and pinned dev jumps may intentionally downgrade.
-    if (
-      !isLocalBuildCheck() &&
-      !isPinnedBuildCheck() &&
-      compareVersions(info.version, app.getVersion()) <= 0
-    ) {
+    if (compareVersions(info.version, app.getVersion()) <= 0) {
       clearAvailableUpdateContext()
-      if (missingManifestFallback || publishingWindowLastGoodCheck) {
-        // Why: a current-version fallback manifest means the primary is transiently missing; keep the short retry cadence.
-        scheduleAutomaticUpdateCheck(AUTO_UPDATE_RETRY_INTERVAL_MS)
-      } else {
-        recordCompletedUpdateCheck()
-        if (!wasUserInitiated) {
-          scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
-        }
+      recordCompletedUpdateCheck()
+      if (!wasUserInitiated) {
+        scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
       }
       sendStatus(
         getRetainedLinuxPackageManualInstallStatus() ?? {
@@ -163,52 +122,24 @@ export function registerAutoUpdaterHandlers({
     // momentarily resolves an older tag must not destroy a still-valid recovery path.
     linuxPackageRecovery.clearTrackedLinuxPackageArtifactForOtherVersion(info.version)
 
-    // Why: fetch the changelog in main to avoid renderer-side CORS on onorca.dev.
-    markUpdateAvailableEventPending(attemptId)
-    void (async () => {
-      try {
-        const changelog = null
-
-        // Why: async fetch may take seconds; bail if a newer event superseded this attempt to avoid a stale 'available' broadcast.
-        if (!isActiveUpdateCheckAttempt(attemptId)) {
-          return
-        }
-        if (getCurrentStatus().state !== 'checking' && getCurrentStatus().state !== 'idle') {
-          return
-        }
-
-        // Why: side effects must run after the guard so a concurrent 'error' during the fetch can't leave orphaned state.
-        setAvailableVersion(info.version)
-        setAvailableReleaseUrl(null)
-        // Why: a pinned dev jump is not a release check. Letting it call
-        // recordCompletedUpdateCheck() would persist lastUpdateCheckAt and
-        // suppress the next real background check for a full day.
-        if (!isLocalBuildCheck() && !isPinnedBuildCheck()) {
-          if (missingManifestFallback || publishingWindowLastGoodCheck) {
-            // Why: last-good release is a temporary fallback; keep probing so users can move to the newest tag once it publishes.
-            scheduleAutomaticUpdateCheck(AUTO_UPDATE_RETRY_INTERVAL_MS)
-          } else {
-            recordCompletedUpdateCheck()
-            if (!wasUserInitiated) {
-              scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
-            }
-          }
-        }
-
-        sendStatus(
-          getRetainedLinuxPackageManualInstallStatus() ?? {
-            state: 'available',
-            releaseDate: info.releaseDate,
-            version: info.version,
-            changelog,
-            // Why: the offer is real, but this host can never apply it — say so before a download is offered.
-            ...(isExternallyManagedLinuxInstall() ? { externallyManaged: true } : {})
-          }
-        )
-      } finally {
-        clearUpdateAvailableEventPending(attemptId)
+    if (getCurrentStatus().state !== 'checking' && getCurrentStatus().state !== 'idle') {
+      return
+    }
+    setAvailableVersion(info.version)
+    setAvailableReleaseUrl(null)
+    recordCompletedUpdateCheck()
+    if (!wasUserInitiated) {
+      scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
+    }
+    sendStatus(
+      getRetainedLinuxPackageManualInstallStatus() ?? {
+        state: 'available',
+        releaseDate: info.releaseDate,
+        version: info.version,
+        changelog: null,
+        ...(isExternallyManagedLinuxInstall() ? { externallyManaged: true } : {})
       }
-    })()
+    )
   })
 
   autoUpdater.on('update-not-available', () => {
@@ -218,34 +149,18 @@ export function registerAutoUpdaterHandlers({
     clearBackgroundCheckLaunchPending()
     resetMacInstallState()
     const retainedStatus = getRetainedLinuxPackageManualInstallStatus()
-    const missingManifestFallback = consumeMissingManifestPrereleaseFallbackResult()
-    const publishingWindowLastGoodCheck = getPublishingWindowLastGoodCheck()
-    const wasUserInitiated = missingManifestFallback?.userInitiated ?? getUserInitiatedCheck()
-    const localBuildCheck = isLocalBuildCheck()
-    // Why: an unpinned outcome must hand the feed back, else the pin blocks every
-    // later background check for the process lifetime.
-    const pinnedBuildCheck = isPinnedBuildCheck()
+    const wasUserInitiated = getUserInitiatedCheck()
     setUserInitiatedCheck(false)
     clearAvailableUpdateContext()
-    if (!localBuildCheck && !pinnedBuildCheck) {
-      if (missingManifestFallback || publishingWindowLastGoodCheck) {
-        // Why: last-good not-available is a transient release-transition outcome; keep the short retry, don't suppress for 24h.
-        scheduleAutomaticUpdateCheck(AUTO_UPDATE_RETRY_INTERVAL_MS)
-      } else {
-        recordCompletedUpdateCheck()
-        if (!wasUserInitiated) {
-          scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
-        }
-      }
+    recordCompletedUpdateCheck()
+    if (!wasUserInitiated) {
+      scheduleAutomaticUpdateCheck(AUTO_UPDATE_CHECK_INTERVAL_MS)
     }
     // Why: a later check can report no newer release while a verified deb/rpm is still waiting for
     // the user to install it outside ARCA. Keep both the artifact and its recovery card reachable.
     sendStatus(
       retainedStatus ?? { state: 'not-available', userInitiated: wasUserInitiated || undefined }
     )
-    if (localBuildCheck || pinnedBuildCheck) {
-      restoreReleaseUpdateSource()
-    }
   })
 
   autoUpdater.on('download-progress', (progress) => {
@@ -273,12 +188,7 @@ export function registerAutoUpdaterHandlers({
       return
     }
     clearBackgroundCheckLaunchPending()
-    // Release downloads remain newer-only; the local source was validated before checking, and a pinned jump is explicit.
-    if (
-      !isLocalBuildCheck() &&
-      !isPinnedBuildCheck() &&
-      compareVersions(info.version, app.getVersion()) <= 0
-    ) {
+    if (compareVersions(info.version, app.getVersion()) <= 0) {
       clearAvailableUpdateContext()
       linuxPackageRecovery.clearTrackedLinuxPackageArtifact()
       sendStatus({ state: 'not-available' })
@@ -311,26 +221,17 @@ export function registerAutoUpdaterHandlers({
     if (isQuitAndInstallHandoffActive()) {
       return
     }
-    // Why: fallback promise handlers may already own this failure; don't consume fallback context here.
-    if (shouldSuppressMissingManifestPrereleaseFallbackEvent(message, err)) {
-      return
-    }
     if (!shouldHandleUpdaterErrorEvent()) {
       return
     }
     clearBackgroundCheckLaunchPending()
     resetMacInstallState()
-    suppressMissingManifestPrereleaseFallbackPromiseFailure(message)
-    const missingManifestFallback = consumeMissingManifestPrereleaseFallbackResult()
-    const wasUserInitiated = missingManifestFallback?.userInitiated ?? getUserInitiatedCheck()
+    const wasUserInitiated = getUserInitiatedCheck()
     setUserInitiatedCheck(false)
     if (getCurrentStatus().state === 'checking') {
-      void sendCheckFailureStatus(message, wasUserInitiated || undefined, 'event', err)
+      void sendCheckFailureStatus(message, wasUserInitiated || undefined, err)
       return
     }
     sendErrorStatus(message, wasUserInitiated || undefined)
-    if (isLocalBuildCheck() || isPinnedBuildCheck()) {
-      restoreReleaseUpdateSource()
-    }
   })
 }

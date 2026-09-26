@@ -20,11 +20,7 @@ export abstract class UpdaterInstallSupport extends UpdaterCheckState {
 
   protected hasInstallableDownloadedVersion(): boolean {
     return (
-      this.availableVersion !== null &&
-      // Why: local builds and pinned dev jumps may intentionally move backwards.
-      (this.activeUpdateSource !== 'release' ||
-        this.isPinnedBuildActive ||
-        compareVersions(this.availableVersion, app.getVersion()) > 0)
+      this.availableVersion !== null && compareVersions(this.availableVersion, app.getVersion()) > 0
     )
   }
 

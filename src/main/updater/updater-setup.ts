@@ -2,7 +2,7 @@ import { app, powerMonitor } from 'electron'
 import type { BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import type { ReleaseBuild, ReleaseChannel } from '../../shared/release-channel'
-import type { ReleaseBuildListOptions } from '../updater-release-build-cache'
+import type { ReleaseBuildListOptions } from '../updater-release-build-options'
 import type {
   LinuxPackageInstallInstructions,
   UpdateCheckOptions,
@@ -26,10 +26,8 @@ export type UpdaterSetupOptions = {
   onBeforeQuit?: () => void | Promise<void>
   setLastUpdateCheckAt?: (timestamp: number) => void
   getPendingUpdateNudgeId?: () => string | null
-  getDismissedUpdateNudgeId?: () => string | null
   setPendingUpdateNudgeId?: (id: string | null) => void
   setDismissedUpdateNudgeId?: (id: string | null) => void
-  getReleaseChannelOverride?: () => ReleaseChannel | null
   installMode?: UpdateInstallMode
 }
 
@@ -39,7 +37,7 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     this.checkForUpdatesInBackground()
   }
 
-  checkForUpdatesFromMenu(_options?: UpdateCheckOptions): void {
+  checkForUpdatesFromMenu(): void {
     super.checkForUpdatesFromMenu()
   }
 
@@ -115,10 +113,8 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     this.persistLastUpdateCheckAt = opts?.setLastUpdateCheckAt ?? null
     this._getLastUpdateCheckAt = opts?.getLastUpdateCheckAt ?? null
     this._getPendingUpdateNudgeId = opts?.getPendingUpdateNudgeId ?? null
-    this._getDismissedUpdateNudgeId = opts?.getDismissedUpdateNudgeId ?? null
     this._setPendingUpdateNudgeId = opts?.setPendingUpdateNudgeId ?? null
     this._setDismissedUpdateNudgeId = opts?.setDismissedUpdateNudgeId ?? null
-    this.getReleaseChannelOverride = null
     this.updateInstallMode = opts?.installMode ?? 'interactive'
     this.lastInstallDeferralVersion = { download: null, install: null }
 
@@ -141,10 +137,8 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
 
     const autoUpdater = this.getAutoUpdater()
     autoUpdater.autoDownload = false
-    if (this.activeUpdateSource === 'release') {
-      autoUpdater.allowDowngrade = false
-      autoUpdater.disableDifferentialDownload = false
-    }
+    autoUpdater.allowDowngrade = false
+    autoUpdater.disableDifferentialDownload = false
     // Why: supervised serve installs require an explicit handoff; ordinary service quits must never install implicitly.
     // Only an explicit AppImage/non-root marker may opt into electron-updater's implicit quit install.
     autoUpdater.autoInstallOnAppQuit =
@@ -164,11 +158,6 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
       autoUpdater,
       clearBackgroundCheckLaunchPending: () => this.clearBackgroundCheckLaunchPending(),
       clearAvailableUpdateContext: () => this.clearAvailableUpdateContext(),
-      consumeMissingManifestPrereleaseFallbackResult: () =>
-        this.consumeMissingManifestPrereleaseFallbackResult(),
-      getPublishingWindowLastGoodCheck: () => this.getPublishingWindowLastGoodCheck(),
-      getMissingManifestPrereleaseFallbackUserInitiated: () =>
-        this.getMissingManifestPrereleaseFallbackUserInitiated(),
       getCurrentStatus: () => this.currentStatus,
       getActiveUpdateCheckEventAttemptId: () => this.getActiveUpdateCheckEventAttemptId(),
       getKnownReleaseUrl: () => this.getKnownReleaseUrl(),
@@ -177,31 +166,16 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
       handleQuitAndInstallFailure: (error) => this.handleQuitAndInstallFailure(error),
       isQuitAndInstallHandoffActive: () => this.isQuitAndInstallHandoffActive(),
       hasInstallableDownloadedVersion: () => this.hasInstallableDownloadedVersion(),
-      isLocalBuildCheck: () => this.activeUpdateSource === 'local',
-      // Why: pinned jumps are deliberate, so update-available/-downloaded must not reject them for being older than the running version.
-      isPinnedBuildCheck: () => this.isPinnedBuildActive,
       shouldHandleUpdaterErrorEvent: () => this.shouldHandleUpdaterErrorEvent(),
-      clearUpdateAvailableEventPending: (attemptId) =>
-        this.clearUpdateAvailableEventPending(attemptId),
-      isActiveUpdateCheckAttempt: (attemptId) => this.isActiveUpdateCheckAttempt(attemptId),
       markUpdateCheckEventAttempt: () => this.markUpdateCheckEventAttempt(),
-      markUpdateAvailableEventPending: (attemptId) =>
-        this.markUpdateAvailableEventPending(attemptId),
-      markMissingManifestPrereleaseFallbackChecking: () =>
-        this.markMissingManifestPrereleaseFallbackChecking(),
       performQuitAndInstall: () => this.performQuitAndInstall(),
       shouldDeferMacQuitForInstall: () => this.updateInstallMode === 'interactive',
       recordCompletedUpdateCheck: () => this.recordCompletedUpdateCheck(),
-      restoreReleaseUpdateSource: () => this.restoreReleaseUpdateSource(),
-      sendCheckFailureStatus: (message, userInitiated, source, sourceError) =>
-        this.sendCheckFailureStatus(message, userInitiated, source, sourceError),
+      sendCheckFailureStatus: (message, userInitiated, sourceError) =>
+        this.sendCheckFailureStatus(message, userInitiated, sourceError),
       sendErrorStatus: (message, userInitiated) => this.sendErrorStatus(message, userInitiated),
       sendStatus: (status) => this.sendStatus(status),
       scheduleAutomaticUpdateCheck: (delayMs) => this.scheduleAutomaticUpdateCheck(delayMs),
-      shouldSuppressMissingManifestPrereleaseFallbackEvent: (message, error) =>
-        this.shouldSuppressMissingManifestPrereleaseFallbackEvent(message, error),
-      suppressMissingManifestPrereleaseFallbackPromiseFailure: (message) =>
-        this.suppressMissingManifestPrereleaseFallbackPromiseFailure(message),
       setAvailableReleaseUrl: (releaseUrl) => {
         this.availableReleaseUrl = releaseUrl
       },

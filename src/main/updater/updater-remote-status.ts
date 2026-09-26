@@ -63,12 +63,13 @@ export abstract class UpdaterRemoteStatus extends UpdaterNudge {
     }
   }
 
+  // Keep the remote request shape compatible; channel options were already ignored by ARCA.
   protected checkForRemoteServerUpdate(
     runtimeId: string,
-    options?: UpdateCheckOptions
+    _options?: UpdateCheckOptions
   ): RemoteServerUpdaterSnapshot {
     this.assertRemoteServerUpdateAvailable()
-    this.checkForUpdatesFromMenu(options)
+    this.checkForUpdatesFromMenu()
     return this.getRemoteServerUpdaterSnapshot(runtimeId)
   }
 

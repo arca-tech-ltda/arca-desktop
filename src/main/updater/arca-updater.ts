@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import type { BrowserWindow } from 'electron'
-import type { UpdateCheckOptions, UpdateStatus } from '../../shared/update-status-types'
+import type { UpdateStatus } from '../../shared/update-status-types'
 import { UpdaterSetup, type UpdaterSetupOptions } from './updater-setup'
 import { ArcaMacUpdate } from './arca-mac-update'
 import { updateArcaMenuStatus } from '../menu/arca-update-menu'
@@ -44,7 +44,7 @@ export class ArcaUpdater extends UpdaterSetup {
     }
   }
 
-  override checkForUpdatesFromMenu(_options?: UpdateCheckOptions): void {
+  override checkForUpdatesFromMenu(): void {
     if (
       !app.isPackaged ||
       this.currentStatus.state === 'downloading' ||
@@ -107,7 +107,4 @@ export class ArcaUpdater extends UpdaterSetup {
     super.sendStatus(status, options)
     updateArcaMenuStatus(status)
   }
-
-  protected override async checkForUpdateNudge(): Promise<void> {}
-  protected override scheduleUpdateNudgeCheck(): void {}
 }

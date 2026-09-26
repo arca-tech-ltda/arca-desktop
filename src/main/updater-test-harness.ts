@@ -52,17 +52,10 @@ type UpdaterModuleFactories = {
   }
   updaterLifecycleDiagnostics: () => { recordUpdaterLifecycle: UpdaterSpy }
   updaterChangelog: () => { fetchChangelog: UpdaterSpy }
-  updaterNudge: () => { fetchNudge: UpdaterSpy; shouldApplyNudge: UpdaterSpy }
   updateInstallExitWatchdog: () => {
     armUpdateInstallExitWatchdog: UpdaterSpy
     disarmUpdateInstallExitWatchdog: UpdaterSpy
   }
-  updaterPrereleaseFeed: () => {
-    fetchNewerReleaseTagsWithReadiness: (...args: unknown[]) => Promise<unknown>
-    getReleaseDownloadUrl: (tag: string) => string
-  }
-  localBuildSwitch: () => { chooseLocalBuild: UpdaterSpy }
-  localBuildFeedServer: () => { startLocalBuildFeed: UpdaterSpy }
 }
 
 export type UpdaterMocks = {
@@ -78,14 +71,8 @@ export type UpdaterMocks = {
   isExternallyManagedLinuxInstallMock: Mock<() => boolean>
   recordUpdaterLifecycleMock: UpdaterSpy
   fetchChangelogMock: UpdaterSpy
-  fetchNudgeMock: UpdaterSpy
-  shouldApplyNudgeMock: UpdaterSpy
   armExitWatchdogMock: UpdaterSpy
   disarmExitWatchdogMock: UpdaterSpy
-  fetchNewerReleaseTagsMock: UpdaterSpy
-  chooseLocalBuildMock: UpdaterSpy
-  startLocalBuildFeedMock: UpdaterSpy
-  closeLocalBuildFeedMock: UpdaterSpy
   moduleFactories: UpdaterModuleFactories
   resetUpdaterMocks: () => void
 }
@@ -220,14 +207,8 @@ export function createUpdaterMocks(): UpdaterMocks {
   const isExternallyManagedLinuxInstallMock = vi.fn<() => boolean>(() => false)
   const recordUpdaterLifecycleMock = vi.fn()
   const fetchChangelogMock = vi.fn()
-  const fetchNudgeMock = vi.fn()
-  const shouldApplyNudgeMock = vi.fn()
   const armExitWatchdogMock = vi.fn()
   const disarmExitWatchdogMock = vi.fn()
-  const fetchNewerReleaseTagsMock = vi.fn()
-  const chooseLocalBuildMock = vi.fn()
-  const startLocalBuildFeedMock = vi.fn()
-  const closeLocalBuildFeedMock = vi.fn()
 
   /** One factory per module `updater.ts` pulls in; test files pass these to their own `vi.mock`. */
   const moduleFactories: UpdaterModuleFactories = {
@@ -251,23 +232,10 @@ export function createUpdaterMocks(): UpdaterMocks {
     }),
     updaterLifecycleDiagnostics: () => ({ recordUpdaterLifecycle: recordUpdaterLifecycleMock }),
     updaterChangelog: () => ({ fetchChangelog: fetchChangelogMock }),
-    updaterNudge: () => ({ fetchNudge: fetchNudgeMock, shouldApplyNudge: shouldApplyNudgeMock }),
     updateInstallExitWatchdog: () => ({
       armUpdateInstallExitWatchdog: armExitWatchdogMock,
       disarmUpdateInstallExitWatchdog: disarmExitWatchdogMock
-    }),
-    updaterPrereleaseFeed: () => ({
-      fetchNewerReleaseTagsWithReadiness: async (...args: unknown[]) => {
-        const result = await fetchNewerReleaseTagsMock(...args)
-        return Array.isArray(result)
-          ? { tags: result, state: result.length > 0 ? 'ready' : 'no-newer' }
-          : result
-      },
-      getReleaseDownloadUrl: (tag: string) =>
-        `https://github.com/stablyai/orca/releases/download/${tag}`
-    }),
-    localBuildSwitch: () => ({ chooseLocalBuild: chooseLocalBuildMock }),
-    localBuildFeedServer: () => ({ startLocalBuildFeed: startLocalBuildFeedMock })
+    })
   }
 
   /** Shared `beforeEach` body: fresh module registry plus every mock back to its default. */
@@ -297,16 +265,7 @@ export function createUpdaterMocks(): UpdaterMocks {
     })
     isExternallyManagedLinuxInstallMock.mockReset().mockReturnValue(false)
     recordUpdaterLifecycleMock.mockReset()
-    fetchNudgeMock.mockReset().mockResolvedValue(null)
-    shouldApplyNudgeMock.mockReset().mockReturnValue(false)
     fetchChangelogMock.mockReset().mockResolvedValue(null)
-    fetchNewerReleaseTagsMock.mockReset().mockResolvedValue([])
-    chooseLocalBuildMock.mockReset()
-    closeLocalBuildFeedMock.mockReset()
-    startLocalBuildFeedMock.mockReset().mockResolvedValue({
-      url: 'http://127.0.0.1:1234/token/',
-      close: closeLocalBuildFeedMock
-    })
     vi.unstubAllGlobals()
     trackRealTimers()
   }
@@ -331,14 +290,8 @@ export function createUpdaterMocks(): UpdaterMocks {
     isExternallyManagedLinuxInstallMock,
     recordUpdaterLifecycleMock,
     fetchChangelogMock,
-    fetchNudgeMock,
-    shouldApplyNudgeMock,
     armExitWatchdogMock,
     disarmExitWatchdogMock,
-    fetchNewerReleaseTagsMock,
-    chooseLocalBuildMock,
-    startLocalBuildFeedMock,
-    closeLocalBuildFeedMock,
     moduleFactories,
     resetUpdaterMocks
   }
