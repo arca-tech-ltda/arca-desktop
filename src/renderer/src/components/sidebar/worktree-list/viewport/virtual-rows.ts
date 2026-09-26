@@ -89,7 +89,14 @@ export function estimateRenderRowSize(
   if (row?.type === 'lineage-group') {
     return 100 + Math.max(0, row.rows.length - 1) * 96
   }
-  if (row?.type === 'imported-worktrees-card' || row?.type === 'new-external-worktrees-inbox') {
+  if (row?.type === 'imported-worktrees-card') {
+    // The agent group adds a second collapsed line above the discovery line.
+    return (
+      IMPORTED_WORKTREES_LINE_ROW_HEIGHT *
+      (row.agentWorktrees.length > 0 && row.hiddenWorktrees.length > 0 ? 2 : 1)
+    )
+  }
+  if (row?.type === 'new-external-worktrees-inbox') {
     return IMPORTED_WORKTREES_LINE_ROW_HEIGHT
   }
   if (row?.type === 'pending-creation') {
