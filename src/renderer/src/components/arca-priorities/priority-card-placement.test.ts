@@ -68,7 +68,9 @@ describe('getPriorityLauncherPosition', () => {
   })
 
   it('keeps the launcher inside a short viewport', () => {
-    const launcher = getPriorityLauncherPosition(layout({ left: 10, top: 36 }, { width: 400, height: 120 }))
+    const launcher = getPriorityLauncherPosition(
+      layout({ left: 10, top: 36 }, { width: 400, height: 120 })
+    )
     expect(launcher.top).toBe(120 - TRIGGER_SIZE - 8)
     expect(launcher.left).toBe(10)
   })

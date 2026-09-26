@@ -76,6 +76,13 @@ function launcherFrame(): HTMLElement | null {
   return document.querySelector('[data-arca-priority-card]')
 }
 
+function requireElement(element: HTMLElement | null, name: string): HTMLElement {
+  if (element === null) {
+    throw new Error(`${name} is not rendered`)
+  }
+  return element
+}
+
 describe('PriorityCard collapsed launcher', () => {
   beforeEach(() => {
     statusChangeListeners.length = 0
@@ -112,9 +119,9 @@ describe('PriorityCard collapsed launcher', () => {
       publishFloatingTerminalTriggerPosition({ left: 600, top: 500 })
     })
     await act(async () => {
-      fireEvent.click(launcher() as HTMLElement)
+      fireEvent.click(requireElement(launcher(), 'tasks launcher'))
     })
-    const card = launcherFrame() as HTMLElement
+    const card = requireElement(launcherFrame(), 'tasks card')
     const width = Number.parseFloat(card.style.width)
     expect(Number.parseFloat(card.style.left) + width).toBe(592)
     expect(card.style.bottom).toBe(`${window.innerHeight - 536}px`)

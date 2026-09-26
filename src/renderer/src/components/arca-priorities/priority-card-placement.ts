@@ -57,11 +57,7 @@ export function getPriorityCardPlacement(
   const leftSide = columnLeft - STACK_GAP - width
   const rightSide = columnRight + STACK_GAP
   const besideLeft =
-    leftSide >= MARGIN
-      ? leftSide
-      : rightSide + width <= viewport.width - MARGIN
-        ? rightSide
-        : null
+    leftSide >= MARGIN ? leftSide : rightSide + width <= viewport.width - MARGIN ? rightSide : null
   if (besideLeft !== null) {
     const spaceAboveColumnBottom = columnBottom - SAFE_TOP
     if (spaceAboveColumnBottom >= CARD_MIN_HEIGHT) {

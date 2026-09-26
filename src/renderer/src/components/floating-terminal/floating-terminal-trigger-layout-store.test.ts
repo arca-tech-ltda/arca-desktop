@@ -4,11 +4,17 @@ import type * as FloatingTerminalTriggerLayoutStore from './floating-terminal-tr
 type ResizeListener = () => void
 
 const resizeListeners: ResizeListener[] = []
+const stubbedViewport = { width: 0, height: 0 }
 
 function stubWindow(width: number, height: number): void {
+  setViewportSize(width, height)
   vi.stubGlobal('window', {
-    innerWidth: width,
-    innerHeight: height,
+    get innerWidth() {
+      return stubbedViewport.width
+    },
+    get innerHeight() {
+      return stubbedViewport.height
+    },
     addEventListener: (type: string, listener: ResizeListener) => {
       if (type === 'resize') {
         resizeListeners.push(listener)
@@ -23,10 +29,13 @@ function stubWindow(width: number, height: number): void {
   })
 }
 
+function setViewportSize(width: number, height: number): void {
+  stubbedViewport.width = width
+  stubbedViewport.height = height
+}
+
 function setViewport(width: number, height: number): void {
-  const viewport = window as unknown as { innerWidth: number; innerHeight: number }
-  viewport.innerWidth = width
-  viewport.innerHeight = height
+  setViewportSize(width, height)
   for (const listener of resizeListeners.slice()) {
     listener()
   }
