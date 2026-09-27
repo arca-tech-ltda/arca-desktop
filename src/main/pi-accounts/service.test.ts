@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import { existsSync } from 'node:fs'
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -195,6 +196,85 @@ it('aborts the switch when Pi refreshes the same slot mid-mirror, keeping both c
   expect(bucket.active.anthropic).toBe('work')
   expect(bucket.accounts.anthropic.work.access).toBe('fixture-concurrent')
   expect(bucket.accounts.anthropic.personal.refresh).toBe('fixture-rotated')
+})
+
+it('never writes back a snapshot when another writer renewed the account during the mirror', async () => {
+  const f = await fixture()
+  const renewed = {
+    type: 'oauth',
+    access: 'fixture-personal-renewed',
+    refresh: 'fixture-personal-renewed-refresh',
+    expires: 9000
+  }
+  const service = new PiAccountsService({
+    // Stands in for a Pi session with PI_ACCOUNT_ANTHROPIC=personal rotating the entry mid-mirror.
+    mirror: async (_provider, _key, cred) => {
+      const bucket = await f.bucket()
+      bucket.accounts.anthropic.personal = renewed
+      await writeJson(join(f.agentDir, 'accounts.json'), bucket)
+      return { cred }
+    }
+  })
+  await expect(service.use('anthropic', 'personal')).rejects.toThrow('refreshed this account')
+  const bucket = await f.bucket()
+  expect(bucket.accounts.anthropic.personal).toEqual(renewed)
+  expect(bucket.active.anthropic).toBe('work')
+  expect((await f.auth()).anthropic.access).toBe('fixture-renewed')
+})
+
+it('leaves a remirror alone when the account was renewed while it ran', async () => {
+  const f = await fixture()
+  const renewed = { type: 'oauth', access: 'fixture-live', refresh: 'fixture-live-refresh' }
+  const service = new PiAccountsService({
+    mirror: async (_provider, _key, cred) => {
+      const bucket = await f.bucket()
+      bucket.accounts.anthropic.work = renewed
+      await writeJson(join(f.agentDir, 'accounts.json'), bucket)
+      return { cred: { ...cred, access: 'fixture-mirror-rotated' } }
+    }
+  })
+  await service.remirror('anthropic')
+  expect((await f.bucket()).accounts.anthropic.work).toEqual(renewed)
+})
+
+it('refreshes the Codex token under the bucket lock, on the entry as it stands there', async () => {
+  const f = await fixture()
+  const bucket = await f.bucket()
+  bucket.active['openai-codex'] = 'work'
+  bucket.accounts['openai-codex'] = {
+    work: { access: 'fixture-codex-old', refresh: 'fixture-codex-stale-refresh', accountId: 'acct' }
+  }
+  await writeJson(join(f.agentDir, 'accounts.json'), bucket)
+  const requests: { body: string; locked: boolean }[] = []
+  const network = vi.fn(async (_url: unknown, init?: RequestInit) => {
+    requests.push({
+      body: String(init?.body ?? ''),
+      locked: existsSync(join(f.agentDir, 'accounts.json.lock'))
+    })
+    return new Response(
+      JSON.stringify({
+        access_token: 'fixture-codex-fresh',
+        refresh_token: 'fixture-codex-rotated',
+        id_token: 'fixture-id',
+        expires_in: 3600
+      })
+    )
+  })
+  const real = createAccountMirror({ home: f.home, platform: 'linux', fetch: network })
+  const service = new PiAccountsService({
+    mirror: async (provider, key, cred, statePath, renewal) => {
+      // Another Pi session renews the same account between the snapshot read and the mirror.
+      const fresh = await f.bucket()
+      fresh.accounts['openai-codex'].work.refresh = 'fixture-codex-live-refresh'
+      await writeJson(join(f.agentDir, 'accounts.json'), fresh)
+      return real(provider, key, cred, statePath, renewal)
+    }
+  })
+  await service.use('openai-codex', 'work')
+  expect(requests).toHaveLength(1)
+  expect(requests[0].locked).toBe(true)
+  expect(requests[0].body).toContain('fixture-codex-live-refresh')
+  expect((await f.bucket()).accounts['openai-codex'].work.refresh).toBe('fixture-codex-rotated')
 })
 
 it('treats a transient read error as no change instead of publishing a failure', async () => {

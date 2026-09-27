@@ -37,6 +37,13 @@ const keychainNotFoundExit = 44
 export type SecurityResult = { code: number; stdout: string }
 /** `cred` is always the credential the caller must persist, even when `error` is set (B1). */
 export type MirrorResult = { cred: Credential; error?: string }
+/**
+ * Runs a credential renewal the way contract v1 §3 requires: the caller holds the bucket lock,
+ * re-reads the entry, hands it here, and persists what comes back — all before the lock is released.
+ */
+export type CredentialRenewal = (
+  renew: (current: Credential) => Promise<Credential>
+) => Promise<Credential>
 
 export type MirrorOptions = {
   home?: string
@@ -139,13 +146,15 @@ export function createAccountMirror(options: MirrorOptions = {}) {
   const mirrorCodex = async (
     key: string,
     cred: Credential,
-    statePath: string
+    statePath: string,
+    renewal: CredentialRenewal
   ): Promise<MirrorResult> => {
     if (!cred.accountId) {
       throw new Error('Incomplete Pi Codex credential')
     }
     let idToken = await readCodexIdToken(statePath, key)
     let next = cred
+    let rotated = false
     let error: string | undefined
     let expires: number | undefined
     try {
@@ -159,30 +168,37 @@ export function createAccountMirror(options: MirrorOptions = {}) {
       /* Pi also accepts cached opaque id tokens. */
     }
     if (!idToken || (expires !== undefined && expires < Date.now() + 60_000)) {
-      const response = await (options.fetch ?? fetch)('https://auth.openai.com/oauth/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: cred.refresh ?? '',
-          client_id: 'app_EMoamEEZ73f0CkXaXp7hrann'
-        }),
-        signal: AbortSignal.timeout(15_000)
+      // Under the caller's bucket lock: the token this consumes must be the one on disk right now,
+      // and the rotation it produces has to land there before anyone else reads the entry.
+      let refreshedIdToken = ''
+      next = await renewal(async (current) => {
+        const response = await (options.fetch ?? fetch)('https://auth.openai.com/oauth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: current.refresh ?? '',
+            client_id: 'app_EMoamEEZ73f0CkXaXp7hrann'
+          }),
+          signal: AbortSignal.timeout(15_000)
+        })
+        if (!response.ok) {
+          throw new Error(`Codex refresh failed (${response.status})`)
+        }
+        const fresh = tokenSchema.parse(await response.json())
+        refreshedIdToken = fresh.id_token
+        // Past this point the old refresh token is dead: report failures, never throw them (B1).
+        return {
+          ...current,
+          access: fresh.access_token,
+          refresh: fresh.refresh_token,
+          expires: Date.now() + fresh.expires_in * 1000
+        }
       })
-      if (!response.ok) {
-        throw new Error(`Codex refresh failed (${response.status})`)
-      }
-      const fresh = tokenSchema.parse(await response.json())
-      idToken = fresh.id_token
-      // Past this point the old refresh token is dead: report failures, never throw them (B1).
-      next = {
-        ...cred,
-        access: fresh.access_token,
-        refresh: fresh.refresh_token,
-        expires: Date.now() + fresh.expires_in * 1000
-      }
+      idToken = refreshedIdToken
+      rotated = true
       try {
-        await rememberCodexIdToken(statePath, key, idToken)
+        await rememberCodexIdToken(statePath, key, refreshedIdToken)
       } catch {
         error = 'mirror-failed'
       }
@@ -208,7 +224,7 @@ export function createAccountMirror(options: MirrorOptions = {}) {
         last_refresh: new Date().toISOString()
       })
     } catch (writeError) {
-      if (next === cred) {
+      if (!rotated) {
         throw writeError
       }
       error = 'mirror-failed'
@@ -220,11 +236,14 @@ export function createAccountMirror(options: MirrorOptions = {}) {
     provider: PiAccountProvider,
     key: string,
     cred: Credential,
-    statePath: string
+    statePath: string,
+    renewal: CredentialRenewal = (renew) => renew(cred)
   ): Promise<MirrorResult> => {
     if (!cred.access || !cred.refresh) {
       throw new Error('Incomplete Pi OAuth credential')
     }
-    return provider === 'anthropic' ? mirrorClaude(cred) : mirrorCodex(key, cred, statePath)
+    return provider === 'anthropic'
+      ? mirrorClaude(cred)
+      : mirrorCodex(key, cred, statePath, renewal)
   }
 }

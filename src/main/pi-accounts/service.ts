@@ -7,6 +7,7 @@ import type {
   PiAccountsState
 } from '../../shared/pi-accounts'
 import { withBucketAndAuthLock } from './auth-lock'
+import { captureSlots, isSlotCopyOf, sameCredential, saveFirst } from './active-slot-capture'
 import {
   authSchema,
   bucketSchema,
@@ -17,7 +18,7 @@ import {
   type Bucket,
   type Credential
 } from './files'
-import { createAccountMirror, type MirrorResult } from './mirror'
+import { createAccountMirror, type CredentialRenewal, type MirrorResult } from './mirror'
 import { PiAccountEditor } from './pi-account-editor'
 import type { PiAccountProjectsService } from './account-project-map'
 
@@ -28,35 +29,6 @@ const transientCodes = new Set(['EPERM', 'EBUSY', 'ENOENT', 'EACCES', 'EAGAIN'])
 function isTransientFileError(error: unknown): boolean {
   const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
   return typeof code === 'string' && transientCodes.has(code)
-}
-
-function saveFirst(provider: string): Error {
-  return new Error(`Save the current slot first: /accounts save ${provider} <name>`)
-}
-
-// Match /accounts: capture refreshed slots into their accounts, but never across identities.
-function captureSlots(
-  bucket: Bucket,
-  auth: Auth,
-  options: { strict?: boolean; exclude?: string } = {}
-): void {
-  for (const [activeProvider, activeName] of Object.entries(bucket.active)) {
-    if (activeProvider === options.exclude) {
-      continue
-    }
-    const slot = auth[activeProvider]
-    const stored = bucket.accounts[activeProvider]?.[activeName]
-    if (!slot || !stored) {
-      continue
-    }
-    if (slot.accountId && stored.accountId && slot.accountId !== stored.accountId) {
-      if (options.strict) {
-        throw saveFirst(activeProvider)
-      }
-      continue
-    }
-    bucket.accounts[activeProvider][activeName] = slot
-  }
 }
 
 export class PiAccountsService {
@@ -205,11 +177,35 @@ export class PiAccountsService {
         provider,
         `${provider}/${name}`,
         cred,
-        join(this.agentDir, 'accounts-mirror.json')
+        join(this.agentDir, 'accounts-mirror.json'),
+        this.renewBucketCredential(provider, name)
       )
     } catch {
       return { cred, error: 'mirror-failed' }
     }
+  }
+
+  /**
+   * Renewing a bucket credential is a read-modify-write of `accounts.json` around a network call,
+   * so it happens inside the lock: the entry read here is the live one, and the rotation it returns
+   * is persisted before any other writer can spend the old refresh token (contract v1 §3).
+   */
+  private renewBucketCredential(provider: PiAccountProvider, name: string): CredentialRenewal {
+    return (renew) =>
+      withBucketAndAuthLock(this.agentDir, async () => {
+        const { bucket, auth } = await this.read()
+        const current = bucket.accounts[provider]?.[name]
+        if (!current) {
+          throw new Error('Pi account not found')
+        }
+        const next = await renew(current)
+        bucket.accounts[provider][name] = next
+        await writeJson(this.bucketPath, bucket)
+        if (bucket.active[provider] === name && isSlotCopyOf(auth[provider], current)) {
+          await writeJson(this.authPath, { ...auth, [provider]: next })
+        }
+        return next
+      })
   }
 
   private async switchAccount(provider: PiAccountProvider, name: string): Promise<PiAccountsState> {
@@ -224,7 +220,8 @@ export class PiAccountsService {
     // Capture before mirroring: a slot Pi already refreshed is the credential to push, and the
     // strict identity check has to reject before anything is written.
     captureSlots(snapshot.bucket, snapshot.auth, { strict: true })
-    const mirrored = await this.runMirror(provider, name, snapshot.bucket.accounts[provider][name])
+    const snapshotCred = snapshot.bucket.accounts[provider][name]
+    const mirrored = await this.runMirror(provider, name, snapshotCred)
     // Why the locks and the re-read: mirroring does network and Keychain work, and Pi can refresh
     // the same credential meanwhile. Only the switched provider's slot is ours to replace.
     await withBucketAndAuthLock(this.agentDir, async () => {
@@ -233,6 +230,12 @@ export class PiAccountsService {
         throw new Error('Pi account not found')
       }
       captureSlots(bucket, fresh, { strict: true })
+      const current = bucket.accounts[provider][name]
+      // The entry moved on while we mirrored: whoever wrote it holds the live token, so the
+      // snapshot we carry is dead weight and must never be written back over it.
+      if (!sameCredential(current, snapshotCred) && !sameCredential(current, mirrored.cred)) {
+        throw new Error('Another Pi session refreshed this account while switching; try again')
+      }
       if (JSON.stringify(fresh[provider] ?? null) !== before) {
         // Keep the refresh Pi just made and the one the mirror rotated; the switch is aborted.
         bucket.accounts[provider][name] = mirrored.cred
@@ -261,6 +264,11 @@ export class PiAccountsService {
       await withBucketAndAuthLock(this.agentDir, async () => {
         const { bucket, auth: fresh } = await this.read()
         if (!Object.hasOwn(bucket.accounts[provider] ?? {}, name)) {
+          return
+        }
+        const current = bucket.accounts[provider][name]
+        // Another writer renewed this account during the mirror; its entry is newer than ours.
+        if (!sameCredential(current, cred) && !sameCredential(current, mirrored.cred)) {
           return
         }
         bucket.accounts[provider][name] = mirrored.cred
