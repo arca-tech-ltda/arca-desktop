@@ -1,5 +1,5 @@
 # STATUS — arca-desktop
-> Última verificação: 2026-09-26 · Branch padrão: `arca-desktop` · Versão publicada: **1.5.10** (stable, Windows + Mac)
+> Última verificação: 2026-09-26 · Branch padrão: `arca-desktop` · Versão publicada: **1.5.11** (stable, Windows + Mac)
 
 ## Resumo
 ARCA Desktop é um fork do Orca (MIT, stablyai/orca, base `dac82f61b`) mantido pela ARCA Tech:
@@ -42,19 +42,17 @@ Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.m
 _Nenhuma._
 
 ### 🟡 Em andamento
+- [ ] Contas v2, etapa 1 (Pi na aba "contas v2", worktree `/tmp/arca-accounts-v2-wt`)
 - [ ] Teste manual do login de conta pelo app (Claude e Codex, Mac e Windows) — código na 1.5.9
-- [ ] Notificações no macOS: selar a assinatura ad-hoc do bundle com o id `br.com.arcatech.arca-desktop` no build (worktree `/tmp/arca-notif-wt`, branch `arca-notif`)
-- [ ] Onboarding só "Install CLI" (sem as 3 skills do Orca) + botão de tarefas acompanhando o floating workspace (worktree `/tmp/arca-ui-wt`, branch `arca-ui`)
-- [ ] Limpeza B2 (estados mortos do updater herdado) e B3 (debounce/cache do git blame do STATUS.md) (worktree `/tmp/arca-cleanup-wt`, branch `arca-cleanup`)
-- [ ] Planner: mecanismo de conta por sessão do Pi (resultado vai para `docs/reference/arca-accounts-v2.md`, etapa 1)
 
 ### ⚪ A fazer (priorizado)
-- [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.10 e apagar `dist/mac-arm64/ARCA.app`
+- [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.11, aceitar a permissão de notificação e confirmar o ARCA em Ajustes › Notificações e apagar `dist/mac-arm64/ARCA.app`
 - [ ] Teste manual da troca de contas app ↔ `/accounts` no Mac (Gabriel) e no Windows (sócios)
 - [ ] Assinatura de código Windows (Authenticode) e Mac (Developer ID + notarização) — depende de certificado
 - [ ] Reescrever `AGENTS.md` e este `STATUS.md` para que qualquer sócio edite sem contexto prévio
 
 ### ✅ Concluído recentemente (últimos ~30 dias)
+- [x] 1.5.11: notificações no Mac (bundle selado ad-hoc com o id do app + pedido de permissão via AppKit); onboarding só "Install CLI"; botão de tarefas preso ao floating workspace; grupo "agentes trabalhando" na barra lateral (marcador `arca-agent.json` ou pasta temporária); limpeza do updater herdado e cache/debounce do STATUS.md; menu de contas compacto na barra de status
 - [x] 1.5.10: tema de terminal "ARCA Black" (fundo preto) como padrão escuro, com migração única; login de contas passando pelo wrapper de processos
 - [x] 1.5.9: adicionar/renomear/remover contas pelo app (login Claude/Codex) gravando no bucket do Pi; logo ao lado do nome no titlebar do Mac
 - [x] 1.5.8: card de tarefas como botão flutuante; contas do Pi no app; correções da revisão de credenciais (lock `auth.json.lock`, refresh Codex nunca perdido, Keychain escopado, `CLAUDE_CONFIG_DIR`)
