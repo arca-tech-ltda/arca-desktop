@@ -6,6 +6,7 @@ import { isValidPiAccountName } from './bucket-account-edits'
 import { PiAccountsService } from './service'
 import { PiAccountProjectsService, setPiAccountProjectsService } from './account-project-map'
 import {
+  onPiAccountSelectionSupportChanged,
   refreshPiAccountSelectionSupport,
   setPiAccountSelectionSupportProbe
 } from './pi-account-selection-support'
@@ -91,7 +92,8 @@ export function registerPiAccounts(): void {
   setPiAccountProjectsService(projects)
   setPiAccountSelectionSupportProbe(probePiAccountEnvSupport)
   void projects.load()
-  void refreshPiAccountSelectionSupport().then(() => projects.publish())
+  const stopSupport = onPiAccountSelectionSupportChanged(() => projects.publish())
+  void refreshPiAccountSelectionSupport()
   registerPiAccountProjects(projects)
   const service = new PiAccountsService({ projects })
   piAccounts = service
@@ -147,6 +149,7 @@ export function registerPiAccounts(): void {
   app.once('before-quit', () => {
     stopLoginUrl()
     stopProjects()
+    stopSupport()
     stop()
   })
 }
