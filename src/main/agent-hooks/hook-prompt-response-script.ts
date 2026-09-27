@@ -11,6 +11,22 @@ export function buildPosixHookResponseMaxTimeLine(): string {
   return `case "$payload" in *UserPromptSubmit*) max_time=${HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS} ;; esac`
 }
 
+/** cmd lines around the post: declare the response file, then print it (empty \u21d2 nothing) and drop it. */
+export function buildWindowsHookResponseLines(variable: string): {
+  declare: string
+  reference: string
+  emit: string[]
+} {
+  return {
+    declare: `set "${variable}=%TEMP%\\orca-hook-%RANDOM%%RANDOM%.txt"`,
+    reference: `%${variable}%`,
+    emit: [
+      `if exist "%${variable}%" type "%${variable}%" 2>nul`,
+      `if exist "%${variable}%" del /q "%${variable}%" 2>nul`
+    ]
+  }
+}
+
 export function buildPosixHookResponseEmitLines(
   variable = 'orca_hook_response'
 ): readonly string[] {

@@ -17,6 +17,12 @@ const END_EVENTS = new Set(['SessionEnd'])
 let sessions: MegamindAgentSessions | null = null
 let stopTeardown: (() => void) | null = null
 
+/** Minutes of silence after which a pane stops being renewed; `ARCA_MEGAMIND_IDLE_MINUTES` overrides. */
+export function configuredIdleMs(env: NodeJS.ProcessEnv = process.env): number | undefined {
+  const minutes = Number(env.ARCA_MEGAMIND_IDLE_MINUTES)
+  return Number.isFinite(minutes) && minutes > 0 ? Math.min(minutes, 1440) * 60_000 : undefined
+}
+
 /**
  * Presence for the agent terminals of this app: the hooks are the only signal that a Claude Code
  * or Codex session is alive in a pane, and the credential decides whether any of it leaves the
@@ -27,7 +33,9 @@ export function startMegamindAgentPresence(configPath: string, development: bool
     return
   }
   let credential: DeviceCredential | undefined
+  const idleMs = configuredIdleMs()
   const service = new MegamindAgentSessions({
+    ...(idleMs === undefined ? {} : { idleMs }),
     callTool: async (name: string, args: MegamindRecord) => {
       credential ??= await readCredential(configPath, development)
       try {

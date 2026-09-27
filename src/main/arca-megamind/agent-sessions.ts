@@ -150,7 +150,9 @@ export class MegamindAgentSessions {
 
   private async beat(): Promise<void> {
     const now = this.deps.now()
-    for (const [paneKey, pane] of [...this.panes]) {
+    // Snapshot: the loop awaits and drops panes as it goes.
+    const panes = Array.from(this.panes)
+    for (const [paneKey, pane] of panes) {
       if (now - pane.lastActivityAt > this.deps.idleMs) {
         // Stop does not unregister: an idle pane just stops being renewed and expires (§2.3).
         this.panes.delete(paneKey)

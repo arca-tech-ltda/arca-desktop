@@ -5,18 +5,16 @@ import {
   buildWindowsHookEnvironmentGuardLines,
   buildWindowsHookStdinDrainEpilogue
 } from '../agent-hooks/hook-stdin-contract'
-import {
-  buildWindowsAgentHookCurlPostCommand,
-  buildWindowsAgentHookResponseLines
-} from '../agent-hooks/installer-utils'
+import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-utils'
 import {
   buildPosixHookResponseEmitLines,
   buildPosixHookResponseMaxTimeLine,
+  buildWindowsHookResponseLines,
   HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
 } from '../agent-hooks/hook-prompt-response-script'
 
 export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
-  const windowsResponse = buildWindowsAgentHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
+  const windowsResponse = buildWindowsHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',

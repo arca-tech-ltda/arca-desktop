@@ -206,22 +206,6 @@ export function buildWindowsAgentHookCurlPostCommand(
   ].join(' ')
 }
 
-/** cmd lines around the post: declare the response file, then print it (empty ⇒ nothing) and drop it. */
-export function buildWindowsAgentHookResponseLines(variable: string): {
-  declare: string
-  reference: string
-  emit: string[]
-} {
-  return {
-    declare: `set "${variable}=%TEMP%\\orca-hook-%RANDOM%%RANDOM%.txt"`,
-    reference: `%${variable}%`,
-    emit: [
-      `if exist "%${variable}%" type "%${variable}%" 2>nul`,
-      `if exist "%${variable}%" del /q "%${variable}%" 2>nul`
-    ]
-  }
-}
-
 export function removeManagedCommands(
   definitions: HookDefinition[],
   isManagedCommand: (command: string | undefined) => boolean

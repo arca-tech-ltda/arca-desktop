@@ -1,13 +1,11 @@
 /** The managed Claude-compatible hook script, built for local, POSIX-remote and Windows targets.
  *  Split from hook-service.ts so the service owns install/status and this owns script text,
  *  mirroring the same split under src/main/cursor/. */
-import {
-  buildWindowsAgentHookCurlPostCommand,
-  buildWindowsAgentHookResponseLines
-} from '../agent-hooks/installer-utils'
+import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-utils'
 import {
   buildPosixHookResponseEmitLines,
   buildPosixHookResponseMaxTimeLine,
+  buildWindowsHookResponseLines,
   HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
 } from '../agent-hooks/hook-prompt-response-script'
 import { buildPosixAgentHookPostCommand } from '../agent-hooks/hook-post-command'
@@ -30,7 +28,7 @@ export function getManagedScript(
     skipWhenGrokImportsClaude?: boolean
   } = {}
 ): string {
-  const windowsResponse = buildWindowsAgentHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
+  const windowsResponse = buildWindowsHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
