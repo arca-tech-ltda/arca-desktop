@@ -52,6 +52,38 @@ export async function megamindJson(
   return value
 }
 
+/** Carries what the gateway said, so a caller can tell "unknown argument" from "server is down". */
+export class MegamindToolError extends Error {
+  constructor(
+    message: string,
+    readonly detail: string
+  ) {
+    super(message)
+    this.name = 'MegamindToolError'
+  }
+}
+
+/** The gateway's answer to an argument it does not know, which is what a fallback may retry. */
+export function isMegamindInvalidRequest(error: unknown): boolean {
+  return error instanceof MegamindToolError && error.detail.includes('invalid_request')
+}
+
+function toolErrorDetail(rpc: MegamindRecord): string {
+  const parts: string[] = []
+  if (object(rpc.error)) {
+    parts.push(String(rpc.error.code ?? ''), String(rpc.error.message ?? ''))
+  }
+  const content = object(rpc.result) ? rpc.result.content : undefined
+  if (Array.isArray(content)) {
+    for (const part of content) {
+      if (object(part) && typeof part.text === 'string') {
+        parts.push(part.text)
+      }
+    }
+  }
+  return parts.join(' ').toLowerCase().slice(0, 2000)
+}
+
 export async function callTool(
   fetcher: Fetch,
   credential: DeviceCredential,
@@ -70,7 +102,7 @@ export async function callTool(
     credential.token
   )
   if (rpc.error || !object(rpc.result) || rpc.result.isError) {
-    throw new Error('Megamind tool failed')
+    throw new MegamindToolError('Megamind tool failed', toolErrorDetail(rpc))
   }
   const content = rpc.result.content
   if (Array.isArray(content)) {
