@@ -72,8 +72,10 @@ export class MegamindChatService {
   private fail(reason: ChatFailure): void {
     const availability: MegamindChatAvailability =
       reason === 'login' ? 'login' : reason === 'unsupported' ? 'unsupported' : 'error'
-    if (this.state.availability !== availability) {
-      this.state = { ...this.state, availability }
+    // A signed-out session must be re-read after the next login, not kept from the old one.
+    const viewerHandle = reason === 'login' ? '' : this.state.viewerHandle
+    if (this.state.availability !== availability || this.state.viewerHandle !== viewerHandle) {
+      this.state = { ...this.state, availability, viewerHandle }
       this.publish()
     }
   }
