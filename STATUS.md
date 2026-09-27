@@ -30,7 +30,7 @@ Claude/Codex compartilhadas com o `/accounts` do Pi.
 
 ## Prioridade: contas v2 (conta por projeto, uso/cota, quem está usando) — 1.6.0
 Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.md`.
-- [ ] 1. Decidir o mecanismo de conta por sessão do Pi (extensão com credencial em memória + refresh sob lock por conta vs env do app no PTY), com prova de duas sessões simultâneas em contas diferentes — Responsável: Gabriel Mendonça
+- [ ] 1. Patch no Pi da ARCA: arquivo de login por conta escolhido por env por provedor, com trava do Pi; migração do bucket nos 3 lados (overlay `arca-pi`, `/accounts`, app); prova de 2 sessões simultâneas em contas diferentes + subagentes + refresh concorrente. Decisões em `docs/reference/arca-accounts-v2.md` — Responsável: Gabriel Mendonça
 - [ ] 2. Mapeamento projeto → conta no bucket (leitura compatível v1/v2 no app e no core do `arca`) e resolução cwd → projeto pelo `projects.json` — Responsável: Gabriel Mendonça
 - [ ] 3. Configurar a conta do projeto no menu "⋯" da barra lateral (submenu Conta), selo ao lado do nome, Project Settings, tela de contas e `/accounts project` — Responsável: Gabriel Mendonça
 - [ ] 4. Redesenhar a tela de contas: card por provedor ("Claude"/"Codex"), conta com e-mail e selo Ativa, ações em "⋯", "Adicionar conta" em destaque, detalhes técnicos recolhidos, Megamind/Gemini/OpenCode separados — Responsável: Gabriel Mendonça
@@ -42,7 +42,7 @@ Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.m
 _Nenhuma._
 
 ### 🟡 Em andamento
-- [ ] Contas v2, etapa 1 (Pi na aba "contas v2", worktree `/tmp/arca-accounts-v2-wt`)
+- [ ] Contas v2: desenho decidido (grill 2026-09-26); especificação do patch no Pi em andamento
 - [ ] Teste manual do login de conta pelo app no Windows (Mac ok em 2026-09-26: duas contas novas)
 
 ### ⚪ A fazer (priorizado)
