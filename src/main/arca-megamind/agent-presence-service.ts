@@ -1,4 +1,7 @@
-import { setAgentHookPromptContextProvider } from '../agent-hooks/hook-prompt-context'
+import {
+  setAgentHookPromptContextProvider,
+  type AgentHookPromptContextProvider
+} from '../agent-hooks/hook-prompt-context'
 import { registerPaneKeyTeardownListener } from '../ipc/pty/pane/key-state'
 import type { MegamindRecord } from '../../shared/arca-megamind'
 import { readCredential, type DeviceCredential } from './credentials'
@@ -48,7 +51,16 @@ export function startMegamindAgentPresence(configPath: string, development: bool
     }
   })
   sessions = service
-  setAgentHookPromptContextProvider({
+  setAgentHookPromptContextProvider(createMegamindHookProvider(service))
+  stopTeardown = registerPaneKeyTeardownListener((paneKey) => void service.noteSessionEnd(paneKey))
+}
+
+/** Which hook events of which CLI move presence, and with what session id. */
+export function createMegamindHookProvider(
+  service: Pick<MegamindAgentSessions, 'noteActivity' | 'noteSessionEnd' | 'promptContext'>,
+  sessionIdForPane: (paneKey: string) => string = megamindPaneSessionId
+): AgentHookPromptContextProvider {
+  return {
     observe: (observation) => {
       const harness = HARNESS_BY_SOURCE[observation.source]
       if (!harness) {
@@ -63,14 +75,13 @@ export function startMegamindAgentPresence(configPath: string, development: bool
       }
       void service.noteActivity({
         paneKey: observation.paneKey,
-        sessionId: megamindPaneSessionId(observation.paneKey),
+        sessionId: sessionIdForPane(observation.paneKey),
         harness,
         cwd: observation.cwd
       })
     },
     promptContext: (observation) => service.promptContext(observation.paneKey)
-  })
-  stopTeardown = registerPaneKeyTeardownListener((paneKey) => void service.noteSessionEnd(paneKey))
+  }
 }
 
 export function stopMegamindAgentPresence(): void {
