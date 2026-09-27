@@ -2,8 +2,8 @@ import { hostname } from 'node:os'
 import type { MegamindRecord } from '../../shared/arca-megamind'
 import { records } from './gateway'
 import {
+  createCachedWorkspaceFactsReader,
   indexProjectsByRepoKey,
-  readWorkspaceFacts,
   resolveProjectId,
   type MegamindWorkspaceFacts
 } from './agent-session-project'
@@ -75,7 +75,7 @@ export class MegamindAgentSessions {
       callTool: deps.callTool,
       now: deps.now ?? Date.now,
       hostname: deps.hostname ?? hostname,
-      readWorkspaceFacts: deps.readWorkspaceFacts ?? readWorkspaceFacts,
+      readWorkspaceFacts: deps.readWorkspaceFacts ?? createCachedWorkspaceFactsReader(),
       idleMs: deps.idleMs ?? DEFAULT_IDLE_MS
     }
   }
@@ -84,16 +84,17 @@ export class MegamindAgentSessions {
   noteActivity(activity: MegamindAgentActivity): Promise<boolean> {
     const now = this.deps.now()
     const existing = this.panes.get(activity.paneKey)
-    const pane: PaneSession = existing?.sessionId === activity.sessionId
-      ? { ...existing, cwd: activity.cwd, harness: activity.harness, lastActivityAt: now }
-      : {
-          sessionId: activity.sessionId,
-          harness: activity.harness,
-          cwd: activity.cwd,
-          lastActivityAt: now,
-          lastRegisterAt: 0,
-          registered: false
-        }
+    const pane: PaneSession =
+      existing?.sessionId === activity.sessionId
+        ? { ...existing, cwd: activity.cwd, harness: activity.harness, lastActivityAt: now }
+        : {
+            sessionId: activity.sessionId,
+            harness: activity.harness,
+            cwd: activity.cwd,
+            lastActivityAt: now,
+            lastRegisterAt: 0,
+            registered: false
+          }
     this.panes.set(activity.paneKey, pane)
     this.startHeartbeat()
     return this.ensureRegistered(activity.paneKey)
@@ -121,7 +122,11 @@ export class MegamindAgentSessions {
    */
   async promptContext(paneKey: string): Promise<MegamindPromptContext | null> {
     // The first prompt of a pane races its own registration; the inbox needs the session to exist.
-    if (!(await this.ensureRegistered(paneKey))) {
+    // A pane that is already registered never waits: renewing presence is not what the prompt is
+    // here for, so a stale registration is refreshed behind the inbox call, not in front of it.
+    if (this.panes.get(paneKey)?.registered) {
+      void this.ensureRegistered(paneKey).catch(() => {})
+    } else if (!(await this.ensureRegistered(paneKey))) {
       return null
     }
     const pane = this.panes.get(paneKey)
@@ -275,8 +280,6 @@ export class MegamindAgentSessions {
 
 /** Presence label of the contract: 8..80 runes, no controls (§2.2). */
 export function sessionLabel(harness: string, projectId: string, host: string): string {
-  const label = `${harness} ${projectId}@${host}`
-    .replace(/[\p{Cc}\p{Zl}\p{Zp}\p{Cf}]/gu, '')
-    .trim()
+  const label = `${harness} ${projectId}@${host}`.replace(/[\p{Cc}\p{Zl}\p{Zp}\p{Cf}]/gu, '').trim()
   return [...(label.length >= 8 ? label : `${label} session`)].slice(0, 80).join('')
 }

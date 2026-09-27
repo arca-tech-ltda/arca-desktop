@@ -159,6 +159,29 @@ describe('inbox as prompt context', () => {
     sessions.stop()
   })
 
+  it('does not wait on a stale registration before reading the inbox', async () => {
+    const { calls, callTool, sessions } = harness({ inbox })
+    await sessions.noteActivity(activity)
+
+    // Past the heartbeat period the registration is stale; a gateway that never answers it must
+    // not hold the prompt.
+    vi.setSystemTime(Date.now() + 61_000)
+    callTool.mockImplementation(async (name: string, args: MegamindRecord) => {
+      calls.push({ name, args })
+      if (name === 'register_agent') {
+        return new Promise<MegamindRecord>(() => {})
+      }
+      return name === 'inbox' ? { items: inbox } : { session_id: String(args.session_id ?? '') }
+    })
+
+    const context = await sessions.promptContext(PANE)
+
+    expect(context?.text).toContain('2 itens pendentes')
+    // The refresh still went out, behind the inbox call.
+    expect(calls.map((call) => call.name)).toContain('register_agent')
+    sessions.stop()
+  })
+
   it('returns nothing for a pane with no agent session', async () => {
     const { sessions } = harness({ inbox })
     await expect(sessions.promptContext(PANE)).resolves.toBeNull()

@@ -1,4 +1,5 @@
-import { basename } from 'node:path'
+import { readFileSync, statSync } from 'node:fs'
+import { basename, isAbsolute, join, resolve } from 'node:path'
 import { gitExecFileAsync } from '../git/runner'
 import { normalizeArcaRemote } from '../arca-projects-sync/catalog'
 import type { MegamindRecord } from '../../shared/arca-megamind'
@@ -59,6 +60,60 @@ export async function readWorkspaceFacts(cwd: string): Promise<MegamindWorkspace
     repoKey: remote ? normalizeArcaRemote(remote) : null,
     // `branch` of the contract: ≤120 chars, no spaces.
     branch: branch && branch !== 'HEAD' && !/\s/.test(branch) ? branch.slice(0, 120) : null
+  }
+}
+
+/** `<gitdir>/HEAD` of a workspace: a plain dir, a worktree/submodule `.git` file, or null. */
+export function resolveHeadFilePath(root: string): string | null {
+  const dotGit = join(root, '.git')
+  const stats = statSync(dotGit, { throwIfNoEntry: false })
+  if (!stats) {
+    return null
+  }
+  if (stats.isDirectory()) {
+    return join(dotGit, 'HEAD')
+  }
+  try {
+    const pointer = /^gitdir:\s*(.+)$/m.exec(readFileSync(dotGit, 'utf-8'))?.[1]?.trim()
+    return pointer ? join(isAbsolute(pointer) ? pointer : resolve(root, pointer), 'HEAD') : null
+  } catch {
+    return null
+  }
+}
+
+function headStamp(root: string): number | null {
+  const headPath = resolveHeadFilePath(root)
+  return headPath ? (statSync(headPath, { throwIfNoEntry: false })?.mtimeMs ?? null) : null
+}
+
+/** Panes are few, but a runaway cwd set must not pin memory. */
+const FACTS_CACHE_LIMIT = 64
+
+/**
+ * Same facts, without the three `git` spawns on every prompt. `.git/HEAD` is rewritten by a branch
+ * switch (and by a worktree move), so its mtime is enough to invalidate a hit; a workspace with no
+ * readable HEAD is simply never cached.
+ */
+export function createCachedWorkspaceFactsReader(
+  read: (cwd: string) => Promise<MegamindWorkspaceFacts> = readWorkspaceFacts,
+  stampOf: (root: string) => number | null = headStamp
+): (cwd: string) => Promise<MegamindWorkspaceFacts> {
+  const cache = new Map<string, { facts: MegamindWorkspaceFacts; stamp: number }>()
+  return async (cwd: string) => {
+    const hit = cache.get(cwd)
+    if (hit && stampOf(hit.facts.root) === hit.stamp) {
+      return hit.facts
+    }
+    const facts = await read(cwd)
+    const stamp = stampOf(facts.root)
+    cache.delete(cwd)
+    if (stamp !== null) {
+      if (cache.size >= FACTS_CACHE_LIMIT) {
+        cache.delete(cache.keys().next().value!)
+      }
+      cache.set(cwd, { facts, stamp })
+    }
+    return facts
   }
 }
 

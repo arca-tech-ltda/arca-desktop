@@ -8,9 +8,7 @@ const MAX_BODY_CHARS = 280
 export type MegamindInboxContext = { text: string; ids: string[] }
 
 function oneLine(value: unknown, limit = MAX_BODY_CHARS): string {
-  return typeof value === 'string'
-    ? value.replace(/\s+/g, ' ').trim().slice(0, limit)
-    : ''
+  return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, limit) : ''
 }
 
 function describe(item: MegamindRecord): string {

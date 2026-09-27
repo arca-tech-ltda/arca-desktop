@@ -57,6 +57,12 @@ Windows hook buffers the payload into a temp file, `findstr`s the quoted event n
 `payload@<file>`. `acknowledge` runs **after** the response body
 is written, never before: a prompt that timed out keeps its items pending for the next one.
 
+The prompt path separates *registered* from *fresh*: a pane that is already registered goes straight
+to the inbox and has its stale registration refreshed in the background. Only the first prompt of a
+pane waits for `register_agent`. The workspace facts behind it (root, `origin`, branch) are cached
+per cwd and invalidated by the mtime of that workspace's `HEAD`, so a heartbeat no longer costs
+three `git` spawns per minute per pane.
+
 ## Rate and silence
 
 All presence traffic shares one window of 60 calls/minute, under the gateway's 120/min per device
