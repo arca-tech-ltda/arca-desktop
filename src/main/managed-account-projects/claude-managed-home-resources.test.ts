@@ -64,7 +64,7 @@ it('inherits permissions, model and env from the real settings, keeping the app 
 
   syncClaudeManagedHomeResources(paths)
 
-  const settings: Record<string, unknown> = JSON.parse(
+  const settings: { hooks?: Record<string, unknown> } & Record<string, unknown> = JSON.parse(
     readFileSync(join(paths.configDir, 'settings.json'), 'utf-8')
   )
   expect(settings.permissions).toEqual({ allow: ['Bash(git status)'] })
@@ -73,7 +73,7 @@ it('inherits permissions, model and env from the real settings, keeping the app 
   expect(settings.apiKeyHelper).toBeUndefined()
   // The app's hooks win the hook slot; the real home's hook command is not carried over.
   expect(JSON.stringify(settings.hooks)).not.toContain('do-usuario')
-  expect(Object.keys((settings.hooks ?? {}) as Record<string, unknown>)).toContain('SessionStart')
+  expect(Object.keys(settings.hooks ?? {})).toContain('SessionStart')
 })
 
 it('never overwrites a preference the managed account already set', () => {
