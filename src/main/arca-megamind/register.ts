@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, type WebContents } from 'electron'
+import { app, ipcMain, type WebContents } from 'electron'
 import { join } from 'node:path'
 import { getArcaMainframeEndpoint } from '../arca-mainframe/arca-mainframe-endpoint'
 import { megamindConfigPath } from './credentials'
@@ -17,6 +17,7 @@ import type { MegamindRecord } from '../../shared/arca-megamind'
 import { takeArcaDeepLinks } from './deep-links'
 import { megamindPrerequisites } from './prerequisites'
 import { isTrustedUIRenderer } from '../ipc/ui'
+import { broadcastToTrustedRenderers, MegamindSubscribers } from './renderer-broadcast'
 import { notifyMegamindPrioritiesChanged, setMegamindPriorityProvider } from './priorities'
 
 function requireRenderer(sender: WebContents): void {
@@ -26,23 +27,15 @@ function requireRenderer(sender: WebContents): void {
 }
 
 export function registerMegamind(): void {
-  const publish = (channel: string, value: unknown): void => {
-    for (const window of BrowserWindow.getAllWindows()) {
-      window.webContents.send(channel, value)
-    }
-  }
-  const subscribers = new Set<WebContents>()
+  const publish = broadcastToTrustedRenderers
+  const subscribers = new MegamindSubscribers()
   ipcMain.on('arcaMegamind:subscribe', (event) => {
-    if (!isTrustedUIRenderer(event.sender) || subscribers.has(event.sender)) {
-      return
-    }
-    subscribers.add(event.sender)
-    event.sender.once('destroyed', () => subscribers.delete(event.sender))
-    event.sender.once('render-process-gone', () => subscribers.delete(event.sender))
     // Chat polls for the user's own DMs and mentions whether or not the panel is open.
-    chat.start()
+    if (subscribers.add(event.sender)) {
+      chat.start()
+    }
   })
-  ipcMain.on('arcaMegamind:unsubscribe', (event) => subscribers.delete(event.sender))
+  ipcMain.on('arcaMegamind:unsubscribe', (event) => subscribers.remove(event.sender))
   const client = new MegamindDeviceClient(
     megamindConfigPath(),
     !app.isPackaged,
@@ -56,14 +49,7 @@ export function registerMegamind(): void {
     (connected) => enrollment.connectionChanged(connected)
   )
   setMegamindPriorityProvider(() => client.priorities())
-  const notifySubscriber = (item: MegamindRecord): boolean => {
-    const target = [...subscribers].find((sender) => !sender.isDestroyed())
-    if (!target) {
-      return false
-    }
-    target.send('arcaMegamind:notification', item)
-    return true
-  }
+  const notifySubscriber = (item: MegamindRecord): boolean => subscribers.notify(item)
   const chat = new MegamindChatService({
     client: new MegamindChatClient(runMainframeUserRequest),
     publish: (state) => publish('arcaMegamind:chatState', state),
