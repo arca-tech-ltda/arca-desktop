@@ -84,7 +84,10 @@ export function PiAccountRow({
         </DropdownMenu>
       </div>
       <PiAccountUsageBars usage={usage} />
-      <PiAccountUsageHistoryChart samples={history} />
+      {/* An account with neither usage nor samples would show two empty-state lines. */}
+      {history.length > 0 || usage?.rateLimits ? (
+        <PiAccountUsageHistoryChart samples={history} />
+      ) : null}
       <PiAccountProjectsSlot account={account} />
     </div>
   )
