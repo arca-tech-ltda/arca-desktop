@@ -5,10 +5,35 @@ import {
   decideMegamindApproval,
   megamindApprovalsSnapshot,
   refreshMegamindApprovals,
-  subscribeMegamindApprovals
+  subscribeMegamindApprovals,
+  type MegamindApprovalsProblem
 } from '@/attention/megamind-approvals-store'
 import { megamindApprovalTarget } from '@/attention/megamind-events'
 import { megamindPanelRoute } from '@/attention/megamind-panel-route'
+
+function problemMessage(problem: MegamindApprovalsProblem): string {
+  switch (problem) {
+    case 'transport':
+      return translate(
+        'arca.megamind.approvalsError',
+        'Could not read approvals. Check your connection.'
+      )
+    case 'forbidden':
+      return translate('arca.megamind.approvalForbidden', 'This approval is not yours to decide.')
+    case 'conflict':
+      return translate(
+        'arca.megamind.approvalConflict',
+        'That approval was already decided or expired.'
+      )
+    case 'rate':
+      return translate(
+        'arca.megamind.approvalRateLimited',
+        'Too many decisions at once. Wait a moment and try again.'
+      )
+    case 'decide':
+      return translate('arca.megamind.approvalFailed', 'The decision did not go through.')
+  }
+}
 
 export function MegamindApprovalsTab(): React.JSX.Element {
   const state = useSyncExternalStore(subscribeMegamindApprovals, megamindApprovalsSnapshot)
@@ -51,15 +76,8 @@ export function MegamindApprovalsTab(): React.JSX.Element {
           </Button>
         </div>
       )}
-      {state.error && (
-        <p role="alert">
-          {translate(
-            'arca.megamind.approvalsError',
-            'Could not read approvals. Check your connection.'
-          )}
-        </p>
-      )}
-      {state.items.length === 0 && !state.login && (
+      {state.problem && <p role="alert">{problemMessage(state.problem)}</p>}
+      {state.items.length === 0 && !state.login && !state.problem && (
         <p className="p-2 text-center text-muted-foreground">
           {translate('arca.megamind.approvalsEmpty', 'No approvals waiting for you.')}
         </p>

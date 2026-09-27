@@ -94,7 +94,7 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       startEnrollment: async () => ({ state: 'disconnected' }),
       agents: async () => [],
       requests: async () => [],
-      approvals: async () => [],
+      approvals: async () => ({ ok: false, reason: 'error' }) as const,
       decide: async () => 'login',
       createRequest: async () => {},
       chatState: async () => ({

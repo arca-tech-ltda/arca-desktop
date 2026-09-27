@@ -1,13 +1,19 @@
-import type { MegamindApproval } from '../../../shared/arca-megamind'
+import type { MegamindApproval, MegamindApprovalsResult } from '../../../shared/arca-megamind'
+
+/**
+ * Why the last approvals read or decision did not work. `transport` is a failed read (the list on
+ * screen may be stale), the rest describe a decision the Mainframe refused.
+ */
+export type MegamindApprovalsProblem = 'transport' | 'forbidden' | 'conflict' | 'rate' | 'decide'
 
 export type MegamindApprovalsState = {
   items: MegamindApproval[]
   /** The Mainframe session expired: decisions need a fresh login before they land. */
   login: boolean
-  error: boolean
+  problem: MegamindApprovalsProblem | null
 }
 
-const EMPTY: MegamindApprovalsState = { items: [], login: false, error: false }
+const EMPTY: MegamindApprovalsState = { items: [], login: false, problem: null }
 const POLL_INTERVAL = 30_000
 
 let state = EMPTY
@@ -30,6 +36,14 @@ export function subscribeMegamindApprovals(listener: () => void): () => void {
   return () => listeners.delete(listener)
 }
 
+function applyRead(result: MegamindApprovalsResult): void {
+  if (result.ok) {
+    update({ items: result.items, login: false, problem: null })
+    return
+  }
+  update({ ...state, login: result.reason === 'login', problem: 'transport' })
+}
+
 export function refreshMegamindApprovals(): void {
   const api = window.api.arcaMegamind
   // An older preload, or the paired web client, has no approvals channel to poll.
@@ -38,10 +52,10 @@ export function refreshMegamindApprovals(): void {
   }
   try {
     void Promise.resolve(api.approvals())
-      .then((items) => update({ items, login: false, error: false }))
-      .catch(() => update({ ...state, error: true }))
+      .then(applyRead)
+      .catch(() => update({ ...state, problem: 'transport' }))
   } catch {
-    update({ ...state, error: true })
+    update({ ...state, problem: 'transport' })
   }
 }
 
@@ -58,24 +72,37 @@ export function startMegamindApprovalsPolling(): () => void {
   }
 }
 
+function drop(id: string, problem: MegamindApprovalsProblem | null): void {
+  update({ items: state.items.filter((item) => item.id !== id), login: false, problem })
+}
+
 export async function decideMegamindApproval(
   id: string,
   decision: 'approved' | 'denied'
-): Promise<'ok' | 'login' | 'error'> {
+): Promise<'ok' | 'login' | 'forbidden' | 'conflict' | 'rate' | 'error'> {
   try {
     const result = await window.api.arcaMegamind.decide(id, decision)
     if (result === 'login') {
-      update({ ...state, login: true })
+      update({ ...state, login: true, problem: null })
       return 'login'
     }
-    update({
-      items: state.items.filter((item) => item.id !== id),
-      login: false,
-      error: false
-    })
+    if (result === 'conflict') {
+      // Already decided or expired: keeping the buttons would only fail again.
+      drop(id, 'conflict')
+      return 'conflict'
+    }
+    if (result === 'forbidden' || result === 'rate') {
+      update({ ...state, problem: result })
+      return result
+    }
+    if (result !== 'ok') {
+      update({ ...state, problem: 'decide' })
+      return 'error'
+    }
+    drop(id, null)
     return 'ok'
   } catch {
-    update({ ...state, error: true })
+    update({ ...state, problem: 'decide' })
     return 'error'
   }
 }

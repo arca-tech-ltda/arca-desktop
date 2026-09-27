@@ -14,6 +14,13 @@ export type MegamindStatus = {
 }
 export type MegamindApproval = { id: string; summary: string; relevant?: boolean }
 
+/** A failed read is not an empty list: the panel must say so instead of "no approvals". */
+export type MegamindApprovalsResult =
+  | { ok: true; items: MegamindApproval[] }
+  | { ok: false; reason: 'login' | 'error' }
+
+export type MegamindDecision = 'ok' | 'login' | 'forbidden' | 'conflict' | 'rate' | 'error'
+
 export type MegamindSubTab = 'chat' | 'presence' | 'approvals'
 
 /** Where a notification or deep link wants the Megamind panel to land. */
@@ -34,8 +41,8 @@ export type ArcaMegamindApi = {
   startEnrollment(): Promise<MegamindStatus>
   agents(): Promise<MegamindRecord[]>
   requests(): Promise<MegamindRecord[]>
-  approvals(): Promise<MegamindApproval[]>
-  decide(id: string, decision: 'approved' | 'denied'): Promise<'ok' | 'login'>
+  approvals(): Promise<MegamindApprovalsResult>
+  decide(id: string, decision: 'approved' | 'denied'): Promise<MegamindDecision>
   chatState(): Promise<MegamindChatState>
   chatSetVisible(visible: boolean): Promise<void>
   chatSelectChannel(channel: string): Promise<void>
