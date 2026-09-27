@@ -1,3 +1,4 @@
+import { MEGAMIND_GROUP_CHANNEL } from '../../../shared/arca-megamind-chat'
 import type { MegamindPanelRoute, MegamindSubTab } from '../../../shared/arca-megamind'
 
 /**
@@ -56,7 +57,13 @@ export function consumeMegamindRequestedChannel(): void {
 
 /** Presence → composer: opens the group chat with `@handle-pi` typed in. */
 export function requestMegamindMention(handle: string): void {
-  update({ ...state, tab: 'chat', pendingMention: handle })
+  // An agent mention only wakes the agent in the group channel, never inside someone else's DM.
+  update({
+    ...state,
+    tab: 'chat',
+    requestedChannel: MEGAMIND_GROUP_CHANNEL,
+    pendingMention: handle
+  })
 }
 
 export function consumeMegamindMention(): void {
