@@ -67,6 +67,11 @@ export function isPiAccountSelectionSupported(): boolean {
   return cached === true
 }
 
+/** Tri-state read for the authority mode: `null` while the probe has not answered yet. */
+export function getPiAccountSelectionSupportAnswer(): boolean | null {
+  return devOverride() ? true : cached
+}
+
 export async function refreshPiAccountSelectionSupport(): Promise<boolean> {
   if (devOverride()) {
     return true

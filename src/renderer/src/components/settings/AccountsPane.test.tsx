@@ -6,6 +6,11 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { i18n } from '../../i18n/i18n'
 import { useAppStore } from '../../store'
 import { AccountsPane } from './AccountsPane'
+import {
+  INITIAL_AGENT_AUTHORITY_STATE,
+  MANAGED_AGENT_AUTHORITY_STATE
+} from '../../../../shared/agent-authority'
+import { setAgentAuthorityForTest } from '@/store/agent-authority'
 
 function renderPane(
   settings: GlobalSettings,
@@ -24,6 +29,7 @@ describe('AccountsPane', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAppStore.setState({ settingsSearchQuery: '', runtimeEnvironments: [] })
+    setAgentAuthorityForTest(MANAGED_AGENT_AUTHORITY_STATE)
   })
 
   it('hides the WSL account location controls on platforms without WSL support', () => {
@@ -178,21 +184,48 @@ describe('AccountsPane', () => {
   })
 })
 
-// These cases exercise the retained Orca-managed account UI.
-const authority = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
-vi.mock('../../../../shared/arca-product', () => authority)
+// These cases exercise how the per-machine authority mode picks the account UI.
+describe('AccountsPane account authority', () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage('en')
+    useAppStore.setState({ settingsSearchQuery: '', runtimeEnvironments: [] })
+  })
 
-it('shows Pi accounts instead of Orca account writers when Pi is authoritative', () => {
-  authority.ARCA_PI_IS_AUTHORITY = true
-  try {
+  it('shows Pi accounts instead of Orca account writers in pi authority', () => {
+    setAgentAuthorityForTest({ mode: 'pi', preference: 'auto', resolved: true })
     const markup = renderPane(getDefaultSettings('/tmp'))
+
     expect(markup).toContain('Pi accounts')
     // The /accounts save instructions moved behind the collapsed "Details" disclosure.
     expect(markup).toContain('Details')
     expect(markup).not.toContain('/accounts save')
     expect(markup).not.toContain('id="accounts-claude"')
     expect(markup).not.toContain('id="accounts-codex"')
-  } finally {
-    authority.ARCA_PI_IS_AUTHORITY = false
-  }
+  })
+
+  it('shows the Claude and Codex sections in managed authority', () => {
+    setAgentAuthorityForTest(MANAGED_AGENT_AUTHORITY_STATE)
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).not.toContain('Pi accounts')
+    expect(markup).toContain('id="accounts-claude"')
+    expect(markup).toContain('id="accounts-codex"')
+  })
+
+  it('shows neither owner while the Pi capability probe has not answered', () => {
+    setAgentAuthorityForTest(INITIAL_AGENT_AUTHORITY_STATE)
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Checking which agent owns the accounts')
+    expect(markup).not.toContain('Pi accounts')
+    expect(markup).not.toContain('id="accounts-claude"')
+    expect(markup).not.toContain('id="accounts-codex"')
+  })
+
+  it('always offers the account owner setting', () => {
+    setAgentAuthorityForTest(MANAGED_AGENT_AUTHORITY_STATE)
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('aria-label="Account owner"')
+  })
 })

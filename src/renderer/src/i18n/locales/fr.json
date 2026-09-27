@@ -51,6 +51,23 @@
       "megabytes": "{{received}} / {{total}} MB",
       "downloadHint": "est disponible. Téléchargez-la quand vous le souhaitez.",
       "networkUnavailable": "Réseau indisponible ou délai dépassé. Réessayez."
+    },
+    "agentAuthority": {
+      "label": "Propriétaire des comptes",
+      "description": "Quel agent possède les comptes sur cet ordinateur : Pi, ou les connexions Claude Code et Codex gérées par ARCA. Automatique choisit Pi uniquement là où Pi répond avec la prise en charge des comptes.",
+      "optionAuto": "Automatique",
+      "optionPi": "Pi",
+      "optionManaged": "Claude et Codex",
+      "statusChecking": "Vérification de la réponse de Pi ici…",
+      "statusAutoPi": "Pi est installé avec la prise en charge des comptes : Pi possède les comptes ici.",
+      "statusAutoManaged": "Aucun Pi avec prise en charge des comptes : Claude Code et Codex possèdent les comptes ici.",
+      "statusForcedPi": "Forcé sur Pi sur cet ordinateur.",
+      "statusForcedManaged": "Forcé sur Claude Code et Codex sur cet ordinateur.",
+      "loadingAccounts": "Vérification de l’agent qui possède les comptes sur cet ordinateur…",
+      "searchDescription": "Choisissez si Pi ou les connexions gérées Claude Code et Codex possèdent les comptes sur cet ordinateur.",
+      "keywordPi": "pi",
+      "keywordOwner": "propriétaire",
+      "keywordAuthority": "autorité"
     }
   },
   "app": {
@@ -16597,7 +16614,8 @@
       "setupChecklist": {
         "installCli": {
           "name": "Installer la CLI",
-          "description": "Enregistre la commande shell ARCA pour que Pi puisse piloter l’application (worktrees, terminaux, navigateur intégré, contrôle de l’ordinateur)."
+          "description": "Enregistre la commande shell ARCA pour que Pi puisse piloter l’application (worktrees, terminaux, navigateur intégré, contrôle de l’ordinateur).",
+          "descriptionManaged": "Enregistrez la commande shell ARCA pour que Claude Code et Codex puissent piloter l'app (worktrees, terminaux, navigateur intégré, contrôle de l'ordinateur)."
         }
       }
     }

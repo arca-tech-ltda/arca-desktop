@@ -1,5 +1,6 @@
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
 import { PiAccountsSection } from './PiAccountsSection'
+import { AgentAuthoritySection } from './AgentAuthoritySection'
+import { useAgentAuthority } from '@/store/agent-authority'
 import { useEffect, useRef, useState } from 'react'
 import type {
   ClaudeRateLimitAccountsState,
@@ -75,6 +76,10 @@ export function AccountsPane({
   accountOwnerPlatform = null
 }: AccountsPaneProps): React.JSX.Element {
   const searchQuery = useAppStore((s) => s.settingsSearchQuery)
+  const authority = useAgentAuthority()
+  // Why: showing the wrong owner's accounts for a moment is worse than showing none; the pane waits
+  // for the Pi capability probe instead of flashing the managed sections.
+  const managedAuthority = authority.resolved && authority.mode === 'managed'
   const codexRateLimits = useAppStore((s) => s.rateLimits.codex)
   const codexRateLimitTarget = useAppStore((s) => s.rateLimits.codexTarget)
   const miniMaxRateLimits = useAppStore((s) => s.rateLimits.minimax)
@@ -363,10 +368,10 @@ export function AccountsPane({
     matchesSettingsSearch(searchQuery, getAccountsLocationSearchEntries())
       ? renderAccountsLocationSection(model)
       : null,
-    !ARCA_PI_IS_AUTHORITY && matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries())
+    managedAuthority && matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries())
       ? renderClaudeAccountsSection(model)
       : null,
-    !ARCA_PI_IS_AUTHORITY && matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries())
+    managedAuthority && matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries())
       ? renderCodexAccountsSection(model)
       : null,
     matchesSettingsSearch(searchQuery, getAccountsGeminiSearchEntries())
@@ -385,8 +390,21 @@ export function AccountsPane({
 
   return (
     <div className="space-y-8">
+      <AgentAuthoritySection
+        authority={authority}
+        settings={settings}
+        updateSettings={updateSettings}
+      />
       {/* Pi accounts lead: Megamind, Gemini and OpenCode are separate provider sections below them. */}
-      {ARCA_PI_IS_AUTHORITY ? <PiAccountsSection /> : null}
+      {authority.mode === 'pi' ? <PiAccountsSection /> : null}
+      {authority.resolved ? null : (
+        <p className="text-xs text-muted-foreground">
+          {translate(
+            'arca.agentAuthority.loadingAccounts',
+            'Checking which agent owns the accounts on this computer…'
+          )}
+        </p>
+      )}
       <MegamindSettingsSection />
       {renderAccountsRemovalDialogs(model, removeCodexTarget, removeClaudeTarget)}
       {visibleSections.map((section, index) => (

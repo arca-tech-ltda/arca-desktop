@@ -26,6 +26,7 @@ import type { CtrlTabOrderMode } from './tab-types'
 import type { TerminalColorOverrides } from './terminal-color-overrides'
 import type { TerminalQuickCommand } from './terminal-quick-command-types'
 import type { TuiAgent } from './tui-agent'
+import type { AgentAuthorityPreference } from './agent-authority'
 import type {
   AgentDashboardMode,
   BranchPrefixStrategy,
@@ -341,6 +342,8 @@ export type GlobalSettings = {
    *  - 'blank': blank terminal (no agent launched)
    *  - TuiAgent: a specific agent id */
   defaultTuiAgent: TuiAgent | 'blank' | null
+  /** Who owns agent credentials on this computer; 'auto' follows the Pi capability probe. */
+  agentAuthority?: AgentAuthorityPreference
   /** Agents hidden from picker/auto-launch; detection stays a raw PATH snapshot. */
   disabledTuiAgents: TuiAgent[]
   /** Master switch for the experimental plugin system. Off by default: no

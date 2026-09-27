@@ -11,11 +11,11 @@ import {
 import type { Worktree } from '../../../../shared/worktree/types'
 import type * as ArcaProduct from '../../../../shared/arca-product'
 
-const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
+const arcaProduct = vi.hoisted(() => ({ ARCA_ORCA_AGENT_SKILLS_HIDDEN: false }))
 vi.mock('../../../../shared/arca-product', async (importOriginal) => ({
   ...(await importOriginal<typeof ArcaProduct>()),
-  get ARCA_PI_IS_AUTHORITY() {
-    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  get ARCA_ORCA_AGENT_SKILLS_HIDDEN() {
+    return arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN
   }
 }))
 
@@ -51,7 +51,7 @@ function makeWorktree(
 
 describe('getFeatureWallSetupProgress', () => {
   beforeEach(() => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = false
   })
 
   it('tracks Add 2 projects from durable git repo count', () => {
@@ -320,7 +320,7 @@ describe('getFeatureWallSetupProgress', () => {
 
   describe('with Pi as the authority', () => {
     beforeEach(() => {
-      arcaProduct.ARCA_PI_IS_AUTHORITY = true
+      arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = true
     })
 
     it('completes the CLI step from registration alone', () => {

@@ -31,11 +31,11 @@ import { getOnboardingFeatureSetupAgentRuntime } from './onboarding-feature-setu
 import type * as ArcaProduct from '../../../../shared/arca-product'
 
 // Module-load value stays production-true so the exported default selection is the real one.
-const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: true }))
+const arcaProduct = vi.hoisted(() => ({ ARCA_ORCA_AGENT_SKILLS_HIDDEN: true }))
 vi.mock('../../../../shared/arca-product', async (importOriginal) => ({
   ...(await importOriginal<typeof ArcaProduct>()),
-  get ARCA_PI_IS_AUTHORITY() {
-    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  get ARCA_ORCA_AGENT_SKILLS_HIDDEN() {
+    return arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN
   }
 }))
 
@@ -113,7 +113,7 @@ function createDeps(
 
 describe('onboarding feature setup runner', () => {
   beforeEach(() => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = false
   })
 
   afterEach(() => {
@@ -442,7 +442,7 @@ describe('onboarding feature setup runner', () => {
 
   describe('with Pi as the authority', () => {
     beforeEach(() => {
-      arcaProduct.ARCA_PI_IS_AUTHORITY = true
+      arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = true
     })
 
     it('registers the CLI without preparing any skill install', async () => {

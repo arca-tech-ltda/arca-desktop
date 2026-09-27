@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { ARCA_PI_IS_AUTHORITY } from '../../shared/arca-product'
 import type { PiAccountProvider } from '../../shared/pi-accounts'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import { PiAccountUsageService } from './service'
@@ -24,8 +23,17 @@ function assertTrusted(sender: Electron.WebContents): void {
   }
 }
 
+const PI_ACCOUNT_USAGE_IPC_CHANNELS = [
+  'piAccountUsage:list',
+  'piAccountUsage:setWatching',
+  'piAccountUsage:history'
+] as const
+
+let stopPiAccountUsage: (() => void) | null = null
+
+/** Only called while the machine is in `pi` authority mode; idempotent so a re-entry is harmless. */
 export function registerPiAccountUsage(): void {
-  if (!ARCA_PI_IS_AUTHORITY) {
+  if (stopPiAccountUsage) {
     return
   }
   const service = new PiAccountUsageService()
@@ -66,8 +74,20 @@ export function registerPiAccountUsage(): void {
       }
     }
   })
-  app.once('before-quit', () => {
+  stopPiAccountUsage = () => {
     stop()
     service.dispose()
-  })
+  }
+  app.once('before-quit', () => unregisterPiAccountUsage())
+}
+
+export function unregisterPiAccountUsage(): void {
+  if (!stopPiAccountUsage) {
+    return
+  }
+  stopPiAccountUsage()
+  stopPiAccountUsage = null
+  for (const channel of PI_ACCOUNT_USAGE_IPC_CHANNELS) {
+    ipcMain.removeHandler(channel)
+  }
 }

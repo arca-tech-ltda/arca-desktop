@@ -8,11 +8,11 @@ import type * as ArcaProduct from '../../../../shared/arca-product'
 import type * as AgentCapabilitySetupStatus from './agent-capability-setup-status'
 import type * as AgentSkillCliPrerequisite from '@/lib/agent-skill-cli-prerequisite'
 
-const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: true }))
+const arcaProduct = vi.hoisted(() => ({ ARCA_ORCA_AGENT_SKILLS_HIDDEN: true }))
 vi.mock('../../../../shared/arca-product', async (importOriginal) => ({
   ...(await importOriginal<typeof ArcaProduct>()),
-  get ARCA_PI_IS_AUTHORITY() {
-    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  get ARCA_ORCA_AGENT_SKILLS_HIDDEN() {
+    return arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN
   }
 }))
 vi.mock('@/hooks/useActiveProjectSkillRuntime', () => ({
@@ -105,9 +105,9 @@ async function render(): Promise<HTMLElement> {
   return container
 }
 
-describe('AgentCapabilitiesSetupAction with Pi as the authority', () => {
+describe('AgentCapabilitiesSetupAction with Orca agent skills hidden', () => {
   beforeEach(() => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = true
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = true
     cliApi.getInstallStatus.mockResolvedValue(NOT_REGISTERED_STATUS)
     vi.stubGlobal('window', window)
     Object.defineProperty(window, 'api', {
@@ -172,8 +172,8 @@ describe('AgentCapabilitiesSetupAction with Pi as the authority', () => {
     expect(container.textContent).toContain('/usr/local/bin/arca')
   })
 
-  it('keeps the upstream skill cards when Pi is not the authority', async () => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+  it('keeps the upstream skill cards when Orca agent skills are not hidden', async () => {
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = false
 
     const container = await render()
 

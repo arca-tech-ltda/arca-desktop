@@ -98,6 +98,10 @@ All changes must consider folder workspaces as well as git worktrees. Don't assu
 
 The execution host owns agent status in one store, the hook server's, and every reader (sidebar, `worktree ps`, mobile, dashboard) subscribes to it. Before adding a producer, a cache, or a reader-side precedence rule, read [`docs/reference/agent-status-store.md`](./docs/reference/agent-status-store.md): new producers write into that store, and readers keep only presentation policy.
 
+## Agent Authority (ARCA)
+
+Who owns agent credentials is a per-machine mode (`pi` for Gabriel, `managed` for the partners' Claude Code/Codex), resolved in main and mirrored to the renderer — not a constant. Before gating anything on Pi, adding a Pi-only registration, or touching the accounts screen, read [`docs/reference/arca-agent-authority.md`](./docs/reference/arca-agent-authority.md).
+
 ## Megamind Presence (ARCA)
 
 The app owns the Megamind session of every agent terminal it launches — one id per pane, injected as `ARCA_MEGAMIND_SESSION_ID` and registered from that pane's hooks. Before touching the session id, the heartbeat, or the hook response that carries inbox context, read [`docs/reference/megamind-agent-presence.md`](./docs/reference/megamind-agent-presence.md).

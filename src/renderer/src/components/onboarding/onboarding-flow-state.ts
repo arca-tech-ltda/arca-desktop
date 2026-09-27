@@ -7,7 +7,8 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { OnboardingState } from '../../../../shared/onboarding-state-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import { STEPS } from './use-onboarding-flow-types'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ONBOARDING_SKIPS_INTEGRATIONS } from '../../../../shared/arca-product'
+import type { AgentAuthorityMode } from '../../../../shared/agent-authority'
 import { resolveAgentPermissionModeSummary } from '../../../../shared/tui-agent-permissions'
 
 type TaskSourcesSnapshotProps = EventProps<'onboarding_task_sources_snapshot'>
@@ -16,11 +17,15 @@ type TaskSourcesLinearStatus = TaskSourcesSnapshotProps['linear_status']
 export type TaskSourcesExitAction = TaskSourcesSnapshotProps['exit_action']
 
 export function shouldSkipIntegrationsStep(status: AppState['preflightStatus']): boolean {
-  return ARCA_PI_IS_AUTHORITY || status?.gh.installed === true
+  return ARCA_ONBOARDING_SKIPS_INTEGRATIONS || status?.gh.installed === true
 }
 
-export function shouldSkipAgentStep(detectedAgentIds: readonly TuiAgent[]): boolean {
-  return ARCA_PI_IS_AUTHORITY && detectedAgentIds.includes('pi')
+/** Only Pi machines skip the choice; on a partner's machine the agent is picked in onboarding. */
+export function shouldSkipAgentStep(
+  detectedAgentIds: readonly TuiAgent[],
+  authority: AgentAuthorityMode
+): boolean {
+  return authority === 'pi' && detectedAgentIds.includes('pi')
 }
 
 export function shouldEnableYoloPermissions(

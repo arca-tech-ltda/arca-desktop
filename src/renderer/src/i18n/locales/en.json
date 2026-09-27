@@ -90,6 +90,23 @@
       "megabytes": "{{received}} / {{total}} MB",
       "downloadHint": "is available. Download it when you are ready.",
       "networkUnavailable": "Network unavailable or request timed out. Try again."
+    },
+    "agentAuthority": {
+      "label": "Account owner",
+      "description": "Which agent owns the accounts on this computer: Pi, or the Claude Code and Codex logins ARCA manages. Automatic picks Pi only where Pi answers with account support.",
+      "optionAuto": "Automatic",
+      "optionPi": "Pi",
+      "optionManaged": "Claude & Codex",
+      "statusChecking": "Checking whether Pi answers here…",
+      "statusAutoPi": "Pi is installed with account support, so Pi owns the accounts here.",
+      "statusAutoManaged": "No Pi with account support found, so Claude Code and Codex own the accounts here.",
+      "statusForcedPi": "Forced to Pi on this computer.",
+      "statusForcedManaged": "Forced to Claude Code and Codex on this computer.",
+      "loadingAccounts": "Checking which agent owns the accounts on this computer…",
+      "searchDescription": "Choose whether Pi or the managed Claude Code and Codex logins own the accounts on this computer.",
+      "keywordPi": "pi",
+      "keywordOwner": "owner",
+      "keywordAuthority": "authority"
     }
   },
   "sidebar": {
@@ -14586,8 +14603,6 @@
                       "71bd9a8c95": "Know the moment an agent finishes, needs attention, or gets blocked.",
                       "46db810da8": "Choose your default agent",
                       "b8e5bae17f": "Start new work faster with your preferred agent already selected.",
-                      "fee5557b02": "Enable ARCA CLI",
-                      "7bcb4097fa": "Register the ARCA shell command and install agent skills for browser, computer, and orchestration workflows.",
                       "ad342dd4c6": "Connect integrations",
                       "06fe30fdb0": "Start an agent from a task in one click and keep PR status in view.",
                       "eddc532e58": "Automate workspace setup",
@@ -18117,7 +18132,8 @@
       "setupChecklist": {
         "installCli": {
           "name": "Install CLI",
-          "description": "Register the ARCA shell command so Pi can drive the app (worktrees, terminals, built-in browser, computer use)."
+          "description": "Register the ARCA shell command so Pi can drive the app (worktrees, terminals, built-in browser, computer use).",
+          "descriptionManaged": "Register the ARCA shell command so Claude Code and Codex can drive the app (worktrees, terminals, built-in browser, computer use)."
         }
       }
     }

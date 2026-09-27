@@ -22,6 +22,24 @@ export const getAccountsLocationSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
+export const getAccountsAgentAuthoritySearchEntries = createLocalizedCatalog(() => [
+  {
+    title: translate('arca.agentAuthority.label', 'Account owner'),
+    description: translate(
+      'arca.agentAuthority.searchDescription',
+      'Choose whether Pi or the managed Claude Code and Codex logins own the accounts on this computer.'
+    ),
+    keywords: [
+      ...translateSearchKeyword('arca.agentAuthority.keywordPi', 'pi'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.e14049e1a8', 'claude'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.70d1b8def5', 'codex'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.06662af91e', 'account'),
+      ...translateSearchKeyword('arca.agentAuthority.keywordOwner', 'owner'),
+      ...translateSearchKeyword('arca.agentAuthority.keywordAuthority', 'authority')
+    ]
+  }
+])
+
 export const getAccountsClaudeSearchEntries = createLocalizedCatalog(() => [
   {
     title: translate('auto.components.settings.accounts.search.75682e1b62', 'Claude Accounts'),
@@ -218,6 +236,7 @@ export const getAccountsGrokSearchEntries = createLocalizedCatalog(() => [
 ])
 
 export const getAccountsPaneSearchEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
+  ...getAccountsAgentAuthoritySearchEntries(),
   ...getAccountsLocationSearchEntries(),
   ...getAccountsClaudeSearchEntries(),
   ...getAccountsCodexSearchEntries(),

@@ -25,7 +25,7 @@ import {
   notifyOrchestrationSetupStateChanged
 } from '@/lib/orchestration-setup-state'
 import type { EventProps } from '../../../../shared/telemetry-events'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 
 export type OnboardingFeatureSetupId =
   | 'browserUse'
@@ -36,9 +36,9 @@ export type OnboardingFeatureSetupId =
 export type OnboardingFeatureSetupSelection = Record<OnboardingFeatureSetupId, boolean>
 
 export const DEFAULT_ONBOARDING_FEATURE_SETUP_SELECTION: OnboardingFeatureSetupSelection = {
-  browserUse: !ARCA_PI_IS_AUTHORITY,
-  computerUse: !ARCA_PI_IS_AUTHORITY,
-  orchestration: !ARCA_PI_IS_AUTHORITY,
+  browserUse: !ARCA_ORCA_AGENT_SKILLS_HIDDEN,
+  computerUse: !ARCA_ORCA_AGENT_SKILLS_HIDDEN,
+  orchestration: !ARCA_ORCA_AGENT_SKILLS_HIDDEN,
   linearTickets: false
 }
 
@@ -122,8 +122,8 @@ export function buildOnboardingFeatureSetupClipboardText(
 export function buildOnboardingFeatureSetupSkillCommand(
   selection: OnboardingFeatureSetupSelection
 ): string | null {
-  // Why: Pi drives the app through the CLI itself; the fork never installs Orca skills.
-  const skillNames = ARCA_PI_IS_AUTHORITY
+  // Why: agents drive the app through the ARCA CLI; the fork never installs Orca skills.
+  const skillNames = ARCA_ORCA_AGENT_SKILLS_HIDDEN
     ? []
     : selectedOnboardingFeatureSetupIds(selection).map((id) => FEATURE_SKILL_NAMES[id])
   if (skillNames.length === 0) {
@@ -233,7 +233,7 @@ export async function runOnboardingFeatureSetup(
   }
   deps.notifyOrchestrationStateChanged()
 
-  if (selectedIds.length === 0 && !ARCA_PI_IS_AUTHORITY) {
+  if (selectedIds.length === 0 && !ARCA_ORCA_AGENT_SKILLS_HIDDEN) {
     return {
       selectedIds,
       cliTouched,

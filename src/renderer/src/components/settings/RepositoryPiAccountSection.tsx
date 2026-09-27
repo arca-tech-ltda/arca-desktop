@@ -10,6 +10,7 @@ import {
 } from '../../../../shared/pi-account-projects'
 import { usePiAccounts } from './use-pi-accounts'
 import { usePiAccountProjects } from './use-pi-account-projects'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 import {
   piAccountDefaultLabel,
   piAccountProviderLabel,
@@ -26,9 +27,14 @@ export function RepositoryPiAccountSection({
   repo: Repo
   forceVisible?: boolean
 }): React.JSX.Element | null {
+  const agentAuthority = useAgentAuthorityMode()
   const projects = usePiAccountProjects()
   const accounts = usePiAccounts()
   const selection = projects.selectionFor(repo.path)
+  if (agentAuthority !== 'pi') {
+    // A partner's machine has no Pi bucket to pin a project to.
+    return null
+  }
   if (!isPiAccountSelectableProject({ connectionId: repo.connectionId, path: repo.path })) {
     // SSH and WSL projects run Pi on the other host, where the choice belongs to its own /accounts.
     return null

@@ -4,7 +4,7 @@ import type {
 } from '../../../../shared/feature-wall-setup-steps'
 import { translate } from '@/i18n/i18n'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import type { AgentAuthorityMode } from '../../../../shared/agent-authority'
 
 type LocalizedFeatureWallSetupChecklistCopy = Pick<FeatureWallSetupStep, 'name' | 'description'>
 
@@ -50,24 +50,13 @@ const getLocalizedFeatureWallSetupChecklistCopyById = createLocalizedCatalog(
         'Start new work faster with your preferred agent already selected.'
       )
     },
-    'agent-capabilities': ARCA_PI_IS_AUTHORITY
-      ? {
-          name: translate('components.featureWall.setupChecklist.installCli.name', 'Install CLI'),
-          description: translate(
-            'components.featureWall.setupChecklist.installCli.description',
-            'Register the ARCA shell command so Pi can drive the app (worktrees, terminals, built-in browser, computer use).'
-          )
-        }
-      : {
-          name: translate(
-            'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.fee5557b02',
-            'Enable ARCA CLI'
-          ),
-          description: translate(
-            'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.7bcb4097fa',
-            'Register the ARCA shell command and install agent skills for browser, computer, and orchestration workflows.'
-          )
-        },
+    'agent-capabilities': {
+      name: translate('components.featureWall.setupChecklist.installCli.name', 'Install CLI'),
+      description: translate(
+        'components.featureWall.setupChecklist.installCli.description',
+        'Register the ARCA shell command so Pi can drive the app (worktrees, terminals, built-in browser, computer use).'
+      )
+    },
     'task-sources': {
       name: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.ad342dd4c6',
@@ -102,7 +91,19 @@ const getLocalizedFeatureWallSetupChecklistCopyById = createLocalizedCatalog(
 )
 
 export function getLocalizedFeatureWallSetupChecklistCopy(
-  step: FeatureWallSetupStep
+  step: FeatureWallSetupStep,
+  authority: AgentAuthorityMode = 'pi'
 ): LocalizedFeatureWallSetupChecklistCopy {
-  return getLocalizedFeatureWallSetupChecklistCopyById()[step.id]
+  const copy = getLocalizedFeatureWallSetupChecklistCopyById()[step.id]
+  // Only the CLI step names an agent, and on a partner's machine that agent is not Pi.
+  if (step.id !== 'agent-capabilities' || authority === 'pi') {
+    return copy
+  }
+  return {
+    ...copy,
+    description: translate(
+      'components.featureWall.setupChecklist.installCli.descriptionManaged',
+      'Register the ARCA shell command so Claude Code and Codex can drive the app (worktrees, terminals, built-in browser, computer use).'
+    )
+  }
 }
