@@ -11,6 +11,8 @@ export type AgentHookObservation = {
   paneKey: string
   hookEventName: string
   cwd: string | null
+  /** `reason` of the payload; on Claude's SessionEnd it tells `/clear` apart from a real exit. */
+  reason: string | null
 }
 
 export type AgentHookPromptContext = {
@@ -82,7 +84,8 @@ export function readAgentHookObservation(
     source,
     paneKey,
     hookEventName,
-    cwd: readString(payload, ['cwd', 'workspace_dir', 'workspaceDir', 'project_dir'])
+    cwd: readString(payload, ['cwd', 'workspace_dir', 'workspaceDir', 'project_dir']),
+    reason: readString(payload, ['reason'])
   }
 }
 

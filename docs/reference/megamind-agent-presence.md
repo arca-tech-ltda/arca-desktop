@@ -31,7 +31,8 @@ hands them to `agent-presence-service.ts`, which maps them onto `MegamindAgentSe
 | `SessionStart`, `UserPromptSubmit` (claude, codex) | `register_agent` (upsert) with project, harness, label, branch |
 | every 60 s while the pane is not idle | the same `register_agent`, which renews `last_seen` (`active` is ≤120 s) |
 | `Stop` | nothing — a finished turn is not a dead session |
-| `SessionEnd`, PTY teardown (`paneKeyTeardownListeners`) | `handoff`, best effort |
+| `SessionEnd` with an exit `reason`, PTY teardown (`paneKeyTeardownListeners`) | `handoff`, best effort |
+| `SessionEnd` with `reason: clear` (Claude's `/clear`) | nothing — the session is still there |
 | idle for `ARCA_MEGAMIND_IDLE_MINUTES` (default 30) | stops renewing; the gateway expires it |
 
 Pi panes are never registered by the app: the Pi extension registers its own session.

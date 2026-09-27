@@ -18,7 +18,14 @@ function provider() {
 }
 
 function observation(patch: Partial<AgentHookObservation>): AgentHookObservation {
-  return { source: 'claude', paneKey: PANE, hookEventName: 'SessionStart', cwd: '/repo', ...patch }
+  return {
+    source: 'claude',
+    paneKey: PANE,
+    hookEventName: 'SessionStart',
+    cwd: '/repo',
+    reason: null,
+    ...patch
+  }
 }
 
 it('takes the idle window from the environment, bounded', () => {
@@ -59,6 +66,17 @@ it('hands off on SessionEnd but never on Stop', () => {
 
   hooks.observe(observation({ hookEventName: 'SessionEnd' }))
   expect(service.noteSessionEnd).toHaveBeenCalledWith(PANE)
+})
+
+it('never hands off for a /clear, which ends no terminal', () => {
+  const { service, hooks } = provider()
+  hooks.observe(observation({ hookEventName: 'SessionEnd', reason: 'clear' }))
+  expect(service.noteSessionEnd).not.toHaveBeenCalled()
+
+  for (const reason of ['logout', 'prompt_input_exit', 'other']) {
+    hooks.observe(observation({ hookEventName: 'SessionEnd', reason }))
+  }
+  expect(service.noteSessionEnd).toHaveBeenCalledTimes(3)
 })
 
 it('asks the pane session for the prompt context', async () => {

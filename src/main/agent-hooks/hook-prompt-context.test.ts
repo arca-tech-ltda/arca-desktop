@@ -20,13 +20,25 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it('reads pane, event and cwd off a Claude or Codex envelope only', () => {
+it('reads pane, event, cwd and end reason off a Claude or Codex envelope only', () => {
   expect(
     readAgentHookObservation('claude', envelope({ hook_event_name: 'SessionStart', cwd: '/repo' }))
-  ).toEqual({ source: 'claude', paneKey: PANE, hookEventName: 'SessionStart', cwd: '/repo' })
+  ).toEqual({
+    source: 'claude',
+    paneKey: PANE,
+    hookEventName: 'SessionStart',
+    cwd: '/repo',
+    reason: null
+  })
   expect(
-    readAgentHookObservation('codex', { ...envelope({ hook_event_name: 'Stop' }), payload: { hook_event_name: 'Stop' } })
-  ).toEqual({ source: 'codex', paneKey: PANE, hookEventName: 'Stop', cwd: null })
+    readAgentHookObservation('claude', envelope({ hook_event_name: 'SessionEnd', reason: 'clear' }))
+  ).toMatchObject({ hookEventName: 'SessionEnd', reason: 'clear' })
+  expect(
+    readAgentHookObservation('codex', {
+      ...envelope({ hook_event_name: 'Stop' }),
+      payload: { hook_event_name: 'Stop' }
+    })
+  ).toEqual({ source: 'codex', paneKey: PANE, hookEventName: 'Stop', cwd: null, reason: null })
   expect(readAgentHookObservation('gemini', envelope({ hook_event_name: 'Stop' }))).toBeNull()
   expect(readAgentHookObservation('claude', { paneKey: PANE })).toBeNull()
 })
@@ -46,12 +58,10 @@ it('shapes the answer for each CLI hook contract', () => {
 })
 
 it('only asks for context on a prompt submission, and gives up on a slow gateway', async () => {
-  const promptContext = vi.fn(
-    async (): Promise<AgentHookPromptContext | null> => ({
-      text: 'pendências',
-      delivered: () => {}
-    })
-  )
+  const promptContext = vi.fn(async (): Promise<AgentHookPromptContext | null> => ({
+    text: 'pendências',
+    delivered: () => {}
+  }))
   const observe = vi.fn()
   setAgentHookPromptContextProvider({ observe, promptContext })
 

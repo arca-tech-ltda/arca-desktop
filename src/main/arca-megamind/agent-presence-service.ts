@@ -16,6 +16,8 @@ const HARNESS_BY_SOURCE: Record<string, MegamindAgentHarness> = {
 /** Presence starts at these; Pi is excluded on purpose — the Pi extension registers itself. */
 const START_EVENTS = new Set(['SessionStart', 'UserPromptSubmit'])
 const END_EVENTS = new Set(['SessionEnd'])
+/** Claude fires SessionEnd on `/clear` too; handing off there tells everyone the pane closed. */
+const NON_EXIT_END_REASONS = new Set(['clear', 'compact'])
 
 let sessions: MegamindAgentSessions | null = null
 let stopTeardown: (() => void) | null = null
@@ -67,7 +69,11 @@ export function createMegamindHookProvider(
         return
       }
       if (END_EVENTS.has(observation.hookEventName)) {
-        void service.noteSessionEnd(observation.paneKey)
+        // Reasons of the Claude payload: clear | logout | prompt_input_exit | other. Only `clear`
+        // leaves the session alive, and a CLI that sends no reason is taken at its word.
+        if (!NON_EXIT_END_REASONS.has(observation.reason ?? '')) {
+          void service.noteSessionEnd(observation.paneKey)
+        }
         return
       }
       if (!START_EVENTS.has(observation.hookEventName) || !observation.cwd) {
