@@ -1,5 +1,5 @@
 import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
-import { PiAccountsSection } from '../settings/PiAccountsSection'
+import { PiAccountsMenuSection } from './PiAccountsMenuSection'
 import { ChevronDown, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import React from 'react'
 import { Button } from '@/components/ui/button'
@@ -185,7 +185,10 @@ export function CodexSwitcherMenu({
         </>
       ) : null}
       {ARCA_PI_IS_AUTHORITY ? (
-        <PiAccountsSection provider="openai-codex" />
+        <PiAccountsMenuSection
+          provider="openai-codex"
+          label={translate('auto.components.status.bar.StatusBar.7657e3db9c', 'Codex Account')}
+        />
       ) : (
         <>
           <DropdownMenuLabel>

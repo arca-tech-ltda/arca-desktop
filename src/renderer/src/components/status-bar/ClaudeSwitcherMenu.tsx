@@ -1,5 +1,5 @@
 import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
-import { PiAccountsSection } from '../settings/PiAccountsSection'
+import { PiAccountsMenuSection } from './PiAccountsMenuSection'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -229,7 +229,10 @@ export function ClaudeSwitcherMenu({
       onOpenChange={handleOpenChange}
     >
       {ARCA_PI_IS_AUTHORITY ? (
-        <PiAccountsSection provider="anthropic" />
+        <PiAccountsMenuSection
+          provider="anthropic"
+          label={translate('auto.components.status.bar.StatusBar.d450654fa2', 'Claude Account')}
+        />
       ) : (
         <>
           <DropdownMenuLabel>
