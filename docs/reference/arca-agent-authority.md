@@ -14,9 +14,22 @@ computador, resolvido no main e espelhado no renderer.
 
 `src/shared/agent-authority.ts` é o contrato. A setting `arca.agentAuthority`
 (`'auto'` padrão | `'pi'` | `'managed'`, em Configurações › Contas) vence sempre; em `auto` o modo
-é `pi` somente se `pi --arca-capabilities` responder `{"accountEnv": 1}`
-(`src/main/pi-accounts/pi-account-capabilities-probe.ts`, cache em
-`pi-account-selection-support.ts`).
+é `pi` somente se **as duas** condições valerem:
+
+1. `pi --arca-capabilities` responde `{"accountEnv": 1}`
+   (`src/main/pi-accounts/pi-account-capabilities-probe.ts`, cache em
+   `pi-account-selection-support.ts`); e
+2. a máquina **não** tem conta gerenciada Claude/Codex de host — nem criada nem apenas selecionada
+   (`hasManagedHostAgentAccounts`). Contas WSL não contam: a credencial delas mora na distro.
+
+Por quê a segunda: entrar em `pi` dispara o stand-down, que **desseleciona** a conta host do
+sócio. Um Pi patchado instalado na máquina não é prova de que o Pi é o dono dali; uma conta
+gerenciada em uso é prova do contrário.
+
+`shouldStandDownManagedHostAccounts` é quem autoriza o stand-down
+(`standDownManagedHostAccountsForPiAuthority`): preferência explícita `pi`, ou `auto` numa máquina
+sem conta gerenciada a perder. O modo é recalculado também quando as contas gerenciadas ou a
+seleção ativa mudam.
 
 ## Estado inicial: `managed`, não resolvido
 

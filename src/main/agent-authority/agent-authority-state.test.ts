@@ -17,12 +17,15 @@ vi.mock('../pi-accounts/pi-account-capabilities-probe', () => ({
 
 type SettingsListener = (updates: Partial<GlobalSettings>) => void
 
-function settingsSource(initial: GlobalSettings['agentAuthority']) {
+function settingsSource(
+  initial: GlobalSettings['agentAuthority'],
+  managed: Partial<GlobalSettings> = {}
+) {
   let value = initial
   const listeners = new Set<SettingsListener>()
   return {
     source: {
-      getSettings: () => ({ agentAuthority: value }),
+      getSettings: () => ({ ...managed, agentAuthority: value }),
       onSettingsChanged: (listener: SettingsListener) => {
         listeners.add(listener)
         return () => listeners.delete(listener)
@@ -64,6 +67,21 @@ it('stays managed and unresolved until the Pi capability probe answers', async (
   await refreshAgentAuthority()
 
   expect(getAgentAuthorityState()).toEqual({ mode: 'pi', preference: 'auto', resolved: true })
+  stop()
+})
+
+it('keeps a machine with managed Claude/Codex accounts on managed, patched Pi or not', async () => {
+  const settings = settingsSource('auto', { activeClaudeManagedAccountId: 'claude-1' })
+  const stop = startAgentAuthority(settings.source)
+  await refreshAgentAuthority()
+  probe.supported = true
+  await refreshAgentAuthority()
+
+  expect(getAgentAuthorityMode()).toBe('managed')
+
+  // The explicit choice still wins: that is the machine where Pi really is the owner.
+  settings.set('pi')
+  expect(getAgentAuthorityMode()).toBe('pi')
   stop()
 })
 

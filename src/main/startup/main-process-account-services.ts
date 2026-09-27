@@ -24,7 +24,11 @@ import { setSystemCodexHomeHookSweepSuppressed } from '../codex/hook-service'
 import { isRealHomeCodexHookLaneUsable } from '../codex/codex-real-home-hook-install'
 import { resolveHostCodexSessionSourceHome } from '../codex/codex-session-source-home'
 import { browserManager } from '../browser/browser-manager'
-import { getAgentAuthorityMode } from '../agent-authority/agent-authority-state'
+import { getAgentAuthorityState } from '../agent-authority/agent-authority-state'
+import {
+  hasManagedHostAgentAccounts,
+  shouldStandDownManagedHostAccounts
+} from '../../shared/agent-authority'
 import { getPiAccountsService } from '../pi-accounts/registration'
 import { standDownManagedHostAccounts } from '../pi-accounts/managed-account-standdown'
 import { mainProcessState as state } from './main-process-state'
@@ -191,22 +195,25 @@ export function initializeMainProcessAccountServices(): void {
 
 // Why: with Pi as the credential authority, a host account still selected by an older build keeps
 // rewriting ~/.claude/.credentials.json (or the Keychain) on every poll and erases Pi's mirror.
-// In `managed` authority the partners own those accounts, so the stand-down must never run.
+// In `managed` authority the partners own those accounts, so the stand-down must never run — and
+// in `auto` an installed Pi alone is not enough, only a machine with no managed account to lose.
 export function standDownManagedHostAccountsForPiAuthority(): void {
   const store = state.store
   const piAccounts = getPiAccountsService()
   const claudeAccounts = state.claudeAccounts
   const codexAccounts = state.codexAccounts
-  if (
-    getAgentAuthorityMode() !== 'pi' ||
-    !store ||
-    !piAccounts ||
-    !claudeAccounts ||
-    !codexAccounts
-  ) {
+  if (!store || !piAccounts || !claudeAccounts || !codexAccounts) {
     return
   }
   const settings = store.getSettings()
+  if (
+    !shouldStandDownManagedHostAccounts(
+      getAgentAuthorityState(),
+      hasManagedHostAgentAccounts(settings)
+    )
+  ) {
+    return
+  }
   void standDownManagedHostAccounts({
     providers: [
       {

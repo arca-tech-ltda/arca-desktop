@@ -1,9 +1,11 @@
 import {
+  hasManagedHostAgentAccounts,
   INITIAL_AGENT_AUTHORITY_STATE,
   normalizeAgentAuthorityPreference,
   resolveAgentAuthority,
   type AgentAuthorityMode,
-  type AgentAuthorityState
+  type AgentAuthorityState,
+  type ManagedHostAgentAccountSettings
 } from '../../shared/agent-authority'
 import {
   getPiAccountSelectionSupportAnswer,
@@ -13,13 +15,26 @@ import {
 } from '../pi-accounts/pi-account-selection-support'
 import { probePiAccountEnvSupport } from '../pi-accounts/pi-account-capabilities-probe'
 
-/** Only the two fields the authority needs; keeps the service testable without a whole Store. */
+type AgentAuthoritySettings = ManagedHostAgentAccountSettings & { agentAuthority?: unknown }
+
+/** Only the fields the authority needs; keeps the service testable without a whole Store. */
 export type AgentAuthoritySettingsSource = {
-  getSettings: () => { agentAuthority?: unknown }
+  getSettings: () => AgentAuthoritySettings
   onSettingsChanged: (
-    listener: (updates: { agentAuthority?: unknown }) => void
+    listener: (updates: Partial<AgentAuthoritySettings>) => void
   ) => (() => void) | void
 }
+
+/** A change in any of these can flip `auto`, because managed accounts hold the Pi mode back. */
+const AUTHORITY_SETTING_KEYS = [
+  'agentAuthority',
+  'claudeManagedAccounts',
+  'codexManagedAccounts',
+  'activeClaudeManagedAccountId',
+  'activeCodexManagedAccountId',
+  'activeClaudeManagedAccountIdsByRuntime',
+  'activeCodexManagedAccountIdsByRuntime'
+] as const
 
 let current: AgentAuthorityState = INITIAL_AGENT_AUTHORITY_STATE
 let settingsSource: AgentAuthoritySettingsSource | null = null
@@ -55,8 +70,15 @@ function publish(next: AgentAuthorityState): void {
 }
 
 function recompute(): void {
-  const preference = normalizeAgentAuthorityPreference(settingsSource?.getSettings().agentAuthority)
-  publish(resolveAgentAuthority(preference, getPiAccountSelectionSupportAnswer()))
+  const settings = settingsSource?.getSettings() ?? {}
+  const preference = normalizeAgentAuthorityPreference(settings.agentAuthority)
+  publish(
+    resolveAgentAuthority(
+      preference,
+      getPiAccountSelectionSupportAnswer(),
+      hasManagedHostAgentAccounts(settings)
+    )
+  )
 }
 
 /**
@@ -70,7 +92,7 @@ export function startAgentAuthority(source: AgentAuthoritySettingsSource): () =>
   setPiAccountSelectionSupportProbe(probePiAccountEnvSupport)
   const stopSupport = onPiAccountSelectionSupportChanged(() => recompute())
   const stopSettings = source.onSettingsChanged((updates) => {
-    if ('agentAuthority' in updates) {
+    if (AUTHORITY_SETTING_KEYS.some((key) => key in updates)) {
       recompute()
     }
   })
