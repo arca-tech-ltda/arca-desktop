@@ -12,7 +12,19 @@ import {
   DialogHeader,
   DialogTitle
 } from '../ui/dialog'
+import { useAppStore } from '../../store'
+import { reportOpenManagedAccountTabs } from './use-managed-account-projects'
 import type { AccountsPaneSectionModel, RemoveAccountTarget } from './accounts-pane-types'
+
+/** Removal is refused while a project pins the account or a terminal runs on it. */
+async function removeAfterReportingOpenTabs<T>(remove: () => Promise<T>): Promise<T> {
+  await reportOpenManagedAccountTabs(
+    Object.values(useAppStore.getState().tabsByWorktree).flatMap((tabs) =>
+      (tabs ?? []).map((tab) => tab.id)
+    )
+  )
+  return remove()
+}
 
 export function renderAccountsRemovalDialogs(
   model: AccountsPaneSectionModel,
@@ -61,7 +73,10 @@ export function renderAccountsRemovalDialogs(
                 setRemoveCodexTarget(null)
                 void runCodexAccountAction(
                   `remove:${target.id}`,
-                  () => removeCodexProviderAccount(settings, target.id),
+                  () =>
+                    removeAfterReportingOpenTabs(() =>
+                      removeCodexProviderAccount(settings, target.id)
+                    ),
                   target.runtime
                 )
               }}
@@ -104,7 +119,10 @@ export function renderAccountsRemovalDialogs(
                 setRemoveClaudeTarget(null)
                 void runClaudeAccountAction(
                   `remove:${target.id}`,
-                  () => removeClaudeProviderAccount(settings, target.id),
+                  () =>
+                    removeAfterReportingOpenTabs(() =>
+                      removeClaudeProviderAccount(settings, target.id)
+                    ),
                   target.runtime
                 )
               }}

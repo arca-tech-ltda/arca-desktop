@@ -52,11 +52,11 @@ export function usePiAccountSelectableWorkspace(worktreeId: string): boolean {
 }
 
 /** Shared project → Pi account mapping for the sidebar menu, project settings and tab badges. */
-export function usePiAccountProjects(): PiAccountProjectsController {
+export function usePiAccountProjects(enabled = true): PiAccountProjectsController {
   const [state, setState] = useState<PiAccountProjectsState | null>(null)
 
   useEffect(() => {
-    if (!window.api?.piAccountProjects) {
+    if (!enabled || !window.api?.piAccountProjects) {
       return
     }
     let disposed = false
@@ -75,7 +75,7 @@ export function usePiAccountProjects(): PiAccountProjectsController {
       disposed = true
       stop()
     }
-  }, [])
+  }, [enabled])
 
   const current = state ?? EMPTY
   const setProjectAccount = useCallback(

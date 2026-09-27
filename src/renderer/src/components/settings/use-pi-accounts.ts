@@ -39,7 +39,7 @@ export type PiAccountsController = {
 }
 
 /** Shared Pi account state and IPC for both the settings section and the status-bar menu. */
-export function usePiAccounts(provider?: PiAccountProvider): PiAccountsController {
+export function usePiAccounts(provider?: PiAccountProvider, enabled = true): PiAccountsController {
   const settings = useAppStore((s) => s.settings)
   const fetchSettings = useAppStore((s) => s.fetchSettings)
   const remote = hasRemoteProviderAccountOwner(settings)
@@ -52,7 +52,7 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (remote || !window.api?.piAccounts) {
+    if (!enabled || remote || !window.api?.piAccounts) {
       return
     }
     let disposed = false
@@ -80,7 +80,7 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
       stop()
       stopLoginUrl()
     }
-  }, [remote])
+  }, [remote, enabled])
 
   const accounts = (state?.accounts ?? []).filter(
     (account) => !provider || account.provider === provider

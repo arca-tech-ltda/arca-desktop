@@ -36,6 +36,7 @@
       "settingsTitle": "ARCA Megamind",
       "notConnected": "Not connected",
       "sharedCredential": "Credentials are shared with Pi. Manage or revoke devices in Mainframe; this app does not delete shared credentials.",
+      "sharedCredentialManaged": "Credentials are shared with the agents on this computer. Manage or revoke devices in Mainframe; this app does not delete shared credentials.",
       "manageDevices": "Manage devices in Mainframe",
       "chatDirectMessage": "Direct message from {{author}}",
       "chatMention": "{{author}} mentioned you",
@@ -18477,5 +18478,12 @@
     "usageRange24h": "24h",
     "usageRange7d": "7d",
     "renameBlockedTerminal": "This account is running in an open terminal. Close it first, then rename the account."
+  },
+  "managedAccounts": {
+    "newWithAccount": "New {{value0}} with account…",
+    "projectSectionTitle": "Agent Account",
+    "projectSectionDescription": "Always open Claude Code or Codex in this project with a specific account.",
+    "projectSectionLongDescription": "Claude Code and Codex terminals opened in this project use the chosen account. Terminals already open keep the account they started with.",
+    "projectSectionKeyword": "agent account per project"
   }
 }

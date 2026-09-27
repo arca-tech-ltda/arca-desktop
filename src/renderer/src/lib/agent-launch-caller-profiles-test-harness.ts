@@ -258,7 +258,7 @@ export const AGENT_LAUNCH_CALLER_PROFILES: readonly AgentLaunchCallerProfile[] =
   },
   {
     id: 'tab-bar-new-pi-with-account',
-    caller: 'src/renderer/src/components/tab-bar/NewPiWithAccountMenu.tsx',
+    caller: 'src/renderer/src/components/tab-bar/NewAgentWithAccountMenu.tsx',
     sourceMarkers: [
       "agent: 'pi'",
       'agentEnvOverrides: { [piAccountEnvKey(provider)]: name }',

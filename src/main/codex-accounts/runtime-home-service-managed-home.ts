@@ -121,6 +121,26 @@ export abstract class CodexRuntimeHomeManagedHome extends CodexRuntimeHomeSync {
     return perAccountHome
   }
 
+  /**
+   * A launch pinned to a project's managed account (fase D): same home preparation as a selected
+   * account — real-home resources linked in and config mirrored, so the home is a complete
+   * CODEX_HOME — but none of the shared-auth bookkeeping, because the pin moves one terminal and
+   * never the global selection. Null means the home is unusable; the caller refuses the launch.
+   */
+  protected preparePinnedManagedHomeForLaunch(account: CodexManagedAccount): string | null {
+    const resolved = this.resolveSelfContainedManagedHome(account)
+    if (resolved.kind !== 'owned') {
+      return null
+    }
+    syncSystemCodexResourcesIntoManagedHome(resolved.homePath)
+    syncSystemConfigIntoManagedCodexHome({
+      runtimeHomePath: resolved.homePath,
+      systemHomePath: getSystemCodexHomePath()
+    })
+    this.startSelfContainedSessionBridgeForLaunch(resolved.homePath)
+    return resolved.homePath
+  }
+
   // Why: Codex's own `/resume` picker only lists rollouts under the launch
   // CODEX_HOME, so a self-contained account home starts out with no history at
   // all. Hardlink every other Orca-visible home's rollouts in — after launch,

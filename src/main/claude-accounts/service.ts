@@ -31,6 +31,8 @@ export type ClaudeAccountImportOptions = ClaudeAccountAddTarget & {
   previousLegacyCredentialsSha256?: string | null
 }
 
+import { assertManagedAccountRemovable } from '../managed-account-projects/managed-account-removal-guard'
+
 export class ClaudeAccountService {
   private mutationQueue: Promise<unknown> = Promise.resolve()
   private cancelPendingClaudeLogin: (() => boolean) | null = null
@@ -93,6 +95,11 @@ export class ClaudeAccountService {
   }
 
   async removeAccount(accountId: string): Promise<ClaudeRateLimitAccountsState> {
+    assertManagedAccountRemovable(
+      'claude',
+      accountId,
+      this.listAccounts().accounts.find((account) => account.id === accountId)?.email
+    )
     this.supersedePendingLogin()
     return this.serializeMutation(() => this.selection.remove(accountId))
   }

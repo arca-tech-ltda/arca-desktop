@@ -8,6 +8,10 @@ import {
   type CodexAccountSelectionTarget
 } from './runtime-selection'
 import { hasCustomCodexHomeOverrideForLaunch } from '../codex/codex-real-home-path'
+import {
+  pinnedCodexAccountUnavailableMessage,
+  readPinnedCodexManagedAccountFromEnv
+} from '../managed-account-projects/pinned-codex-launch-account'
 import { markCodexSessionBackfillMarkerPending } from '../codex/codex-session-backfill-marker'
 import { getCodexSessionBackfillDate } from '../codex/codex-session-backfill-scan-dates'
 import { resolveCodexSessionBackfillPaths } from '../codex/codex-session-backfill'
@@ -44,6 +48,20 @@ export abstract class CodexRuntimeHomeLaunch extends CodexRuntimeHomeRouting {
       this.startLegacyWslAuthDrain(wslTarget)
       this.finishWslLaunchPreparation(wslTarget, homePath)
       return homePath
+    }
+    // Per-project managed account (fase D): the pin decides this launch only; the global selection
+    // and every already-open terminal stay on their own account. A pinned account that cannot be
+    // used fails the launch — falling through would start Codex on a different account in silence.
+    const pinnedAccount = readPinnedCodexManagedAccountFromEnv(
+      launchEnv,
+      this.store.getSettings().codexManagedAccounts
+    )
+    if (pinnedAccount) {
+      const pinnedHome = this.preparePinnedManagedHomeForLaunch(pinnedAccount)
+      if (!pinnedHome) {
+        throw new Error(pinnedCodexAccountUnavailableMessage(pinnedAccount.email))
+      }
+      return pinnedHome
     }
     const selfContainedAccount = this.getSelfContainedManagedHostAccount()
     if (selfContainedAccount) {

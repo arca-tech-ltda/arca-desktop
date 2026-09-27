@@ -7,8 +7,8 @@ import type { Repo } from '../../../../shared/repo-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import { getRepoMainWorktreeId } from '../../../../shared/worktree/id'
 import { useAppStore } from '../../store'
-import { NewPiWithAccountMenu } from '../tab-bar/NewPiWithAccountMenu'
-import { PiAccountProjectSubmenu } from './pi-account-project-menu'
+import { NewAgentWithAccountMenu } from '../tab-bar/NewAgentWithAccountMenu'
+import { ProjectAccountSubmenu } from './project-account-menu'
 import { setAgentAuthorityForTest } from '@/store/agent-authority'
 
 const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
@@ -80,12 +80,12 @@ it('offers "New Pi with account…" on a local workspace only', async () => {
   mountPiAuthority()
   mountApi()
   const local = mountRepo(repo({}))
-  renderInMenu(<NewPiWithAccountMenu worktreeId={local} />)
+  renderInMenu(<NewAgentWithAccountMenu worktreeId={local} />)
   await screen.findByText('New Pi with account…')
   cleanup()
 
   const ssh = mountRepo(repo({ id: 'repo-ssh', connectionId: 'ssh-1' }))
-  renderInMenu(<NewPiWithAccountMenu worktreeId={ssh} />)
+  renderInMenu(<NewAgentWithAccountMenu worktreeId={ssh} />)
   expect(screen.queryByText('New Pi with account…')).toBeNull()
   cleanup()
 
@@ -111,22 +111,22 @@ it('offers "New Pi with account…" on a local workspace only', async () => {
     isMainWorktree: true
   }
   useAppStore.setState({ worktreesByRepo: { 'repo-wsl': [wslWorktree] } })
-  renderInMenu(<NewPiWithAccountMenu worktreeId={wsl} />)
+  renderInMenu(<NewAgentWithAccountMenu worktreeId={wsl} />)
   expect(screen.queryByText('New Pi with account…')).toBeNull()
 })
 
 it('hides the project Account submenu for SSH and WSL projects', async () => {
   mountPiAuthority()
   mountApi()
-  renderInMenu(<PiAccountProjectSubmenu projectPath="/repos/one" />)
+  renderInMenu(<ProjectAccountSubmenu projectPath="/repos/one" />)
   await waitFor(() => expect(screen.queryByTestId('pi-account-project-submenu')).not.toBeNull())
   cleanup()
 
-  renderInMenu(<PiAccountProjectSubmenu projectPath="/repos/one" connectionId="ssh-1" />)
+  renderInMenu(<ProjectAccountSubmenu projectPath="/repos/one" connectionId="ssh-1" />)
   expect(screen.queryByTestId('pi-account-project-submenu')).toBeNull()
   cleanup()
 
-  renderInMenu(<PiAccountProjectSubmenu projectPath={'\\\\wsl$\\Ubuntu\\home\\bi\\repo'} />)
+  renderInMenu(<ProjectAccountSubmenu projectPath={'\\\\wsl$\\Ubuntu\\home\\bi\\repo'} />)
   expect(screen.queryByTestId('pi-account-project-submenu')).toBeNull()
 })
 
@@ -134,10 +134,10 @@ it('hides both Pi account surfaces on a machine in managed authority', () => {
   setAgentAuthorityForTest({ mode: 'managed', preference: 'auto', resolved: true })
   mountApi()
   const local = mountRepo(repo({}))
-  renderInMenu(<NewPiWithAccountMenu worktreeId={local} />)
+  renderInMenu(<NewAgentWithAccountMenu worktreeId={local} />)
   expect(screen.queryByText('New Pi with account…')).toBeNull()
   cleanup()
 
-  renderInMenu(<PiAccountProjectSubmenu projectPath="/repos/one" />)
+  renderInMenu(<ProjectAccountSubmenu projectPath="/repos/one" />)
   expect(screen.queryByTestId('pi-account-project-submenu')).toBeNull()
 })

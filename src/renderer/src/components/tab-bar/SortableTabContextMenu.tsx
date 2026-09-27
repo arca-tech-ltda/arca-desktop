@@ -22,7 +22,7 @@ import { useAppStore } from '../../store'
 import { formatShortcutLabel, useOptionalShortcutLabel } from '@/hooks/useShortcutLabel'
 import { translate } from '@/i18n/i18n'
 import { TerminalTabSplitMenuSection } from './TerminalTabSplitMenuSection'
-import { NewPiWithAccountMenu } from './NewPiWithAccountMenu'
+import { NewAgentWithAccountMenu } from './NewAgentWithAccountMenu'
 import { TAB_CONTEXT_MENU_CONTENT_CLASS } from './tab-context-menu-sizing'
 
 const TAB_COLORS = [
@@ -195,7 +195,7 @@ export function SortableTabContextMenu({
           </>
         ) : null}
         <DropdownMenuSeparator />
-        <NewPiWithAccountMenu worktreeId={tab.worktreeId} groupId={groupId} />
+        <NewAgentWithAccountMenu worktreeId={tab.worktreeId} groupId={groupId} />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onTogglePin}>
           {isPinned ? (

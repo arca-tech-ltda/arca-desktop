@@ -35,6 +35,7 @@
       "settingsTitle": "ARCA Megamind",
       "notConnected": "未连接",
       "sharedCredential": "凭据与 Pi 共享。请在 Mainframe 中管理或撤销设备；此应用不会删除共享凭据。",
+      "sharedCredentialManaged": "凭据与本机的智能体共享。请在 Mainframe 管理或吊销设备；本应用不会删除共享凭据。",
       "manageDevices": "在 Mainframe 中管理设备",
       "requestFailed": "请求失败"
     },
@@ -15409,5 +15410,12 @@
     "usageHistoryEmpty": "ARCA 读取该账户几次后将开始记录历史。",
     "usageRange24h": "24 小时",
     "usageRange7d": "7 天"
+  },
+  "managedAccounts": {
+    "newWithAccount": "使用账号新建 {{value0}}…",
+    "projectSectionTitle": "智能体账号",
+    "projectSectionDescription": "在该项目中始终以指定账号打开 Claude Code 或 Codex。",
+    "projectSectionLongDescription": "在该项目中打开的 Claude Code 和 Codex 终端使用所选账号。已打开的终端仍保持启动时的账号。",
+    "projectSectionKeyword": "按项目设置智能体账号"
   }
 }
