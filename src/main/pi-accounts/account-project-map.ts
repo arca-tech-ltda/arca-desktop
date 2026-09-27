@@ -197,3 +197,14 @@ export class PiAccountProjectsService {
     return next
   }
 }
+
+let instance: PiAccountProjectsService | null = null
+
+/** Single reader for the PTY spawn paths; set once when the IPC surface registers. */
+export function getPiAccountProjectsService(): PiAccountProjectsService | null {
+  return instance
+}
+
+export function setPiAccountProjectsService(service: PiAccountProjectsService | null): void {
+  instance = service
+}

@@ -4,7 +4,7 @@ import type { PiAccountProvider } from '../../shared/pi-accounts'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import { isValidPiAccountName } from './bucket-account-edits'
 import { PiAccountsService } from './service'
-import { PiAccountProjectsService } from './account-project-map'
+import { PiAccountProjectsService, setPiAccountProjectsService } from './account-project-map'
 import { refreshPiAccountSelectionSupport } from './pi-account-selection-support'
 
 function assertProvider(provider: unknown): PiAccountProvider {
@@ -30,15 +30,9 @@ function broadcast(channel: string, payload: unknown): void {
 }
 
 let piAccounts: PiAccountsService | null = null
-let piAccountProjects: PiAccountProjectsService | null = null
 
 export function getPiAccountsService(): PiAccountsService | null {
   return piAccounts
-}
-
-/** Single reader for the PTY spawn paths and the project menus. */
-export function getPiAccountProjectsService(): PiAccountProjectsService | null {
-  return piAccountProjects
 }
 
 function registerPiAccountProjects(service: PiAccountProjectsService): void {
@@ -88,7 +82,7 @@ export function registerPiAccounts(): void {
     return
   }
   const projects = new PiAccountProjectsService()
-  piAccountProjects = projects
+  setPiAccountProjectsService(projects)
   void projects.load()
   void refreshPiAccountSelectionSupport().then(() => projects.publish())
   registerPiAccountProjects(projects)
