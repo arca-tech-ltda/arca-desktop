@@ -26,6 +26,7 @@ import { RepositoryHostSetupsSection } from './RepositoryHostSetupsSection'
 import { RepoSettingsDraftInput } from './RepositorySettingsDraftInput'
 import { RepositoryForkSyncSection } from './RepositoryForkSyncSection'
 import { RepositoryGitHubAccountSection } from './RepositoryGitHubAccountSection'
+import { RepositoryPiAccountSection } from './RepositoryPiAccountSection'
 import { translate } from '@/i18n/i18n'
 import { RepositoryWindowsRuntimeSection } from './RepositoryWindowsRuntimeSection'
 import { matchesRepositoryIdentitySearch } from './repository-identity-search'
@@ -374,6 +375,8 @@ export function RepositoryPane({
               updateRepo={updateSelectedRepo}
               forceVisible={forceFullPaneForRepoMatch}
             />
+
+            <RepositoryPiAccountSection repo={repo} forceVisible={forceFullPaneForRepoMatch} />
 
             <RepositoryWorktreeDefaultsSection
               repo={repo}
