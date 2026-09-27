@@ -187,7 +187,9 @@ it('shows Pi accounts instead of Orca account writers when Pi is authoritative',
   try {
     const markup = renderPane(getDefaultSettings('/tmp'))
     expect(markup).toContain('Pi accounts')
-    expect(markup).toContain('/accounts save')
+    // The /accounts save instructions moved behind the collapsed "Details" disclosure.
+    expect(markup).toContain('Details')
+    expect(markup).not.toContain('/accounts save')
     expect(markup).not.toContain('id="accounts-claude"')
     expect(markup).not.toContain('id="accounts-codex"')
   } finally {
