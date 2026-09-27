@@ -25,6 +25,8 @@ export type MainframeUserRunner = (
  * Why a JSON endpoint and not the panel: `/api/health` is same-origin (so the session is visible)
  * but carries no application code, so the hidden window never executes the remote SPA. If that page
  * cannot be loaded we fall back to the panel URL, which is what the visible panel used to load.
+ *
+ * See docs/reference/megamind-human-session.md.
  */
 class MainframeUserGuest {
   private window: BrowserWindow | null = null

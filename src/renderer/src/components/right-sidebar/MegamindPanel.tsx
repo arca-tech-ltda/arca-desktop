@@ -8,6 +8,7 @@ import { translate } from '@/i18n/i18n'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import {
   megamindApprovalsSnapshot,
+  refreshMegamindApprovals,
   subscribeMegamindApprovals
 } from '@/attention/megamind-approvals-store'
 import {
@@ -55,6 +56,12 @@ export default function MegamindPanel({
   const { state, selectChannel, post } = useMegamindChat(chatVisible)
   const { members, degraded } = useMegamindMembers(isVisible)
   const [panelUrl, setPanelUrl] = useState<string | null>(null)
+  // The tab badge must be right as soon as the panel opens, not only after the app-wide poll ticks.
+  useEffect(() => {
+    if (isVisible) {
+      refreshMegamindApprovals()
+    }
+  }, [isVisible])
   useEffect(() => {
     void window.api.arcaMainframe
       ?.getPanel()
