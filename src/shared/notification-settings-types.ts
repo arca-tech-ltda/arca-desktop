@@ -1,4 +1,5 @@
 import type { AgentStatusState, AgentType } from './agent-status-types'
+import type { MegamindPanelRoute } from './arca-megamind'
 
 export type NotificationSettings = {
   enabled: boolean
@@ -24,7 +25,7 @@ export type NotificationSettings = {
 export type NotificationEventSource = 'agent-task-complete' | 'terminal-bell' | 'test'
 
 export type NotificationDispatchRequest = {
-  megamind?: { title: string; body: string }
+  megamind?: { title: string; body: string; route?: MegamindPanelRoute }
   source: NotificationEventSource
   notificationId?: string
   /** Why: useful for fast native failures, but macOS can still drop notifications after 'show'. */

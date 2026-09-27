@@ -4,6 +4,7 @@ import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
 import type { KeybindingActionId } from '../../shared/keybindings'
 import { ARCA_MAINFRAME_SHOW_PANEL_CHANNEL } from '../../shared/arca-mainframe'
 import type { PreloadApi } from '../api-types'
+import type { MegamindPanelRoute } from '../../shared/arca-megamind'
 
 export const uiStateAndMenuCommandsApi = {
   get: () => ipcRenderer.invoke('ui:get'),
@@ -62,8 +63,9 @@ export const uiStateAndMenuCommandsApi = {
     ipcRenderer.on('ui:toggleRightSidebar', listener)
     return () => ipcRenderer.removeListener('ui:toggleRightSidebar', listener)
   },
-  onShowMegamindPanel: (callback: () => void): (() => void) => {
-    const listener = (_event: Electron.IpcRendererEvent) => callback()
+  onShowMegamindPanel: (callback: (route?: MegamindPanelRoute) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, route?: MegamindPanelRoute) =>
+      callback(route)
     ipcRenderer.on(ARCA_MAINFRAME_SHOW_PANEL_CHANNEL, listener)
     return () => ipcRenderer.removeListener(ARCA_MAINFRAME_SHOW_PANEL_CHANNEL, listener)
   },

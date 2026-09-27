@@ -3,8 +3,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { hostname } from 'node:os'
 import { object, readCredential, type DeviceCredential } from './credentials'
-import { callTool, records, startMegamindEvents } from './gateway'
+import { callTool, isMegamindInvalidRequest, records, startMegamindEvents } from './gateway'
+import { fetchMegamindMembers } from './chat-members'
 import type { MegamindRecord } from '../../shared/arca-megamind'
+import type { MegamindMembers } from '../../shared/arca-megamind-chat'
 
 export class MegamindDeviceClient {
   private credential?: DeviceCredential
@@ -16,6 +18,8 @@ export class MegamindDeviceClient {
   private delay = 60_000
   private loaded?: Promise<void>
   private registering = new Map<string, Promise<string>>()
+  /** Cached with the credential: a v4 gateway rejects `harness: 'desktop'` for every session. */
+  private desktopHarnessRejected = false
   constructor(
     private readonly path: string,
     private readonly development: boolean,
@@ -54,6 +58,9 @@ export class MegamindDeviceClient {
   priorities(): Promise<MegamindRecord> {
     return this.tool('priorities_list', {})
   }
+  members(): Promise<MegamindMembers> {
+    return fetchMegamindMembers((name, args) => this.tool(name, args))
+  }
   async requests(): Promise<MegamindRecord[]> {
     await this.loadSessions()
     const result: MegamindRecord[] = []
@@ -65,6 +72,10 @@ export class MegamindDeviceClient {
   private async tool(name: string, args: MegamindRecord): Promise<MegamindRecord> {
     this.credential ??= await readCredential(this.path, this.development)
     return callTool(fetch, this.credential, name, args)
+  }
+  private forgetCredential(): void {
+    this.credential = undefined
+    this.desktopHarnessRejected = false
   }
   private session(project: string): Promise<string> {
     const existing = this.registering.get(project)
@@ -87,13 +98,27 @@ export class MegamindDeviceClient {
       })
     }
     // The gateway requires an owned session even for device/actor inbox readers.
-    await this.tool('register_agent', {
+    const registration = {
       session_id: id,
       project_id: project,
-      harness: 'pi',
       label: `${hostname()} ARCA Desktop`.slice(0, 80),
       note: 'Desktop inbox; no agent execution'
-    })
+    }
+    if (this.desktopHarnessRejected) {
+      await this.tool('register_agent', { ...registration, harness: 'pi' })
+      return id
+    }
+    try {
+      await this.tool('register_agent', { ...registration, harness: 'desktop' })
+    } catch (error) {
+      // Only "unknown argument" earns the fallback; a transport failure must stay a failure.
+      if (!isMegamindInvalidRequest(error)) {
+        throw error
+      }
+      // A v4 server only knows the agent harnesses; the note is what marks the app there.
+      this.desktopHarnessRejected = true
+      await this.tool('register_agent', { ...registration, harness: 'pi' })
+    }
     return id
   }
   async createRequest(to: string, title: string, body: string, projectId: string): Promise<void> {
@@ -134,7 +159,9 @@ export class MegamindDeviceClient {
           if (typeof item.id !== 'string' || !/^[a-z0-9]{15}$/.test(item.id)) {
             continue
           }
-          if (item.kind === 'message') {
+          // `message` and `chat` are chat traffic: MegamindChatService owns those notifications,
+          // and the inbox copy carries no alert kind to render one from.
+          if (item.kind === 'message' || item.kind === 'chat') {
             continue
           }
           if (this.notify(item)) {
@@ -164,7 +191,7 @@ export class MegamindDeviceClient {
       if (this.running) {
         this.connectionChanged(false)
       }
-      this.credential = undefined
+      this.forgetCredential()
       this.delay = Math.min(this.delay * 2, 300_000)
     } finally {
       this.busy = false

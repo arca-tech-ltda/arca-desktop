@@ -41,11 +41,11 @@ export function RightSidebarPanelContent({
           <PortsPanel isVisible={rightSidebarOpen && effectiveTab === 'ports'} />
         )}
         {effectiveTab === 'vault' && <AiVaultPanel />}
-        {/* Keep human-session polling alive after leaving the panel, without opening it on startup. */}
+        {/* Keep chat and presence polling alive after leaving the panel, without opening it on startup. */}
         {(megamindOpened || effectiveTab === 'megamind') && (
           <div hidden={effectiveTab !== 'megamind'} className="min-h-0 flex-1 overflow-hidden">
             <div className="flex h-full min-h-0 flex-col">
-              <MegamindPanel />
+              <MegamindPanel isVisible={effectiveTab === 'megamind'} />
             </div>
           </div>
         )}

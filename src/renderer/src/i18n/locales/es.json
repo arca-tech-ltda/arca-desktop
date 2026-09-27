@@ -13,14 +13,9 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "guestAriaLabel": "ARCA Megamind",
-      "reload": "Recargar Megamind",
       "openInBrowser": "Abrir en el navegador",
-      "errorTitle": "No se puede acceder a Megamind",
-      "errorDetail": "ARCA Mainframe no respondió. Comprueba tu conexión e inténtalo de nuevo.",
       "unsupportedTitle": "Megamind necesita la aplicación de escritorio",
-      "unsupportedDetail": "Este panel integra ARCA Mainframe, que solo funciona en la aplicación de escritorio.",
-      "retry": "Intentar de nuevo",
+      "unsupportedDetail": "Megamind inicia sesión en ARCA Mainframe desde la aplicación de escritorio, algo que el cliente web emparejado no puede hacer.",
       "connectedAs": "Conectado como",
       "connect": "Conectar a Megamind",
       "confirmCode": "Confirma este código en Mainframe:",

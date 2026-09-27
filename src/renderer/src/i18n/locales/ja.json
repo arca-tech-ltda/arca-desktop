@@ -13,14 +13,9 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "guestAriaLabel": "ARCA Megamind",
-      "reload": "Megamind を再読み込み",
       "openInBrowser": "ブラウザーで開く",
-      "errorTitle": "Megamind に接続できません",
-      "errorDetail": "ARCA Mainframe が応答しませんでした。接続を確認して、もう一度お試しください。",
       "unsupportedTitle": "Megamind にはデスクトップアプリが必要です",
-      "unsupportedDetail": "このパネルには、デスクトップアプリでのみ動作する ARCA Mainframe が埋め込まれています。",
-      "retry": "もう一度試す",
+      "unsupportedDetail": "Megamind はデスクトップアプリから ARCA Mainframe にサインインします。ペアリングされた Web クライアントではできません。",
       "connectedAs": "接続中:",
       "connect": "Megamind に接続",
       "confirmCode": "Mainframe でこのコードを確認してください:",

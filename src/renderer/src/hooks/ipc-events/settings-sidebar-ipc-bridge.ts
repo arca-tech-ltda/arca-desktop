@@ -6,6 +6,7 @@ import { translate } from '@/i18n/i18n'
 import { toast } from 'sonner'
 import { useAppStore } from '../../store'
 import { registerMegamindEvents } from '@/attention/megamind-events'
+import { routeMegamindPanel } from '@/attention/megamind-panel-route'
 
 function getShortcutPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Mac')) {
@@ -162,13 +163,16 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
   )
 
   // Why optional: a paired web client and an older preload have no Megamind channel.
-  const unsubscribeShowMegamind = window.api.ui.onShowMegamindPanel?.(() => {
+  const unsubscribeShowMegamind = window.api.ui.onShowMegamindPanel?.((route) => {
     const store = useAppStore.getState()
     if (!canShowRightSidebarForView(store.activeView)) {
       store.setActiveView('terminal')
     }
     store.setRightSidebarTab('megamind')
     store.setRightSidebarOpen(true)
+    if (route) {
+      routeMegamindPanel(route)
+    }
   })
   if (unsubscribeShowMegamind) {
     unsubs.push(unsubscribeShowMegamind)

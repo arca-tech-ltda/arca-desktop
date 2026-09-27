@@ -1,5 +1,67 @@
 import { expect, it } from 'vitest'
-import { MegamindNotificationDedup } from './arca-megamind-notifications'
+import { classifyMegamindChatAlert, MegamindNotificationDedup } from './arca-megamind-notifications'
+import type { MegamindChatMessage } from './arca-megamind-chat'
+
+const message = (fields: Partial<MegamindChatMessage>): MegamindChatMessage => ({
+  id: 'abcdefghijklmno',
+  channel: 'arca',
+  authorKind: 'human',
+  authorName: 'enzo',
+  authorLabel: '',
+  body: 'oi',
+  mentions: [],
+  createdAt: '2026-01-01T00:00:00Z',
+  mine: false,
+  ...fields
+})
+
+it('notifies on DMs and mentions of the viewer, never on the viewer’s own messages', () => {
+  expect(classifyMegamindChatAlert(message({ channel: 'dm:aaa:bbb' }), 'biel')).toBe('dm')
+  expect(classifyMegamindChatAlert(message({ body: 'cc @biel' }), 'biel')).toBe('mention')
+  expect(classifyMegamindChatAlert(message({}), 'biel')).toBeNull()
+  expect(
+    classifyMegamindChatAlert(message({ channel: 'dm:aaa:bbb', mine: true }), 'biel')
+  ).toBeNull()
+  expect(classifyMegamindChatAlert(message({ authorName: 'biel' }), 'biel')).toBeNull()
+})
+
+it('leaves an agent mention to the agent instead of notifying the person', () => {
+  expect(classifyMegamindChatAlert(message({ body: 'roda o deploy @biel-pi' }), 'biel')).toBeNull()
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: 'roda o deploy @biel-pi', mentions: ['biel-pi'] }),
+      'biel'
+    )
+  ).toBeNull()
+  // The server listing the person is not enough when the body only addressed the agent.
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: 'roda o deploy @biel-pi', mentions: ['biel'] }),
+      'biel'
+    )
+  ).toBeNull()
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: '@biel-pi e @biel olhem', mentions: ['biel'] }),
+      'biel'
+    )
+  ).toBe('mention')
+})
+
+it('trusts the server mention list for what the body does not spell out', () => {
+  expect(
+    classifyMegamindChatAlert(message({ body: 'olha isso', mentions: ['biel'] }), 'biel')
+  ).toBe('mention')
+  expect(
+    classifyMegamindChatAlert(message({ body: 'olha isso', mentions: ['enzo'] }), 'biel')
+  ).toBeNull()
+})
+
+it('deduplicates chat alerts by message id', () => {
+  const dedup = new MegamindNotificationDedup()
+  expect(dedup.accept({ kind: 'chat', id: 'abcdefghijklmno' })).toBe(true)
+  expect(dedup.accept({ kind: 'chat', id: 'abcdefghijklmno' })).toBe(false)
+})
 
 it('deduplicates SSE and inbox by kind and id without hiding later decisions', () => {
   const dedup = new MegamindNotificationDedup()
