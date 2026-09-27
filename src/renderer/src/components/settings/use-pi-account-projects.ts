@@ -6,6 +6,11 @@ import {
   type PiAccountProjectsState
 } from '../../../../shared/pi-account-projects'
 import type { PiAccountProvider } from '../../../../shared/pi-accounts'
+import { useAppStore } from '../../store'
+import {
+  worktreeUsesRemoteConnection,
+  worktreeUsesWslPath
+} from '../../store/terminals/terminal-workspace-routing'
 
 export type PiAccountProjectsController = {
   /** False until the installed Pi declares support; every surface shows the choice disabled. */
@@ -36,6 +41,14 @@ const EMPTY: PiAccountProjectsState = {
   supported: false,
   map: emptyPiAccountProjectMap(),
   sessions: []
+}
+
+/** False for SSH and WSL workspaces: their Pi, bucket and lock live on the execution host. */
+export function usePiAccountSelectableWorkspace(worktreeId: string): boolean {
+  return useAppStore(
+    (state) =>
+      !worktreeUsesRemoteConnection(state, worktreeId) && !worktreeUsesWslPath(state, worktreeId)
+  )
 }
 
 /** Shared project → Pi account mapping for the sidebar menu, project settings and tab badges. */

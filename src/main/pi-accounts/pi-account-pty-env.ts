@@ -1,5 +1,8 @@
-import { isWslUncPath } from '../../shared/wsl-paths'
-import { piAccountEnvKey, PI_ACCOUNT_PROVIDERS } from '../../shared/pi-account-projects'
+import {
+  isPiAccountSelectableProject,
+  piAccountEnvKey,
+  PI_ACCOUNT_PROVIDERS
+} from '../../shared/pi-account-projects'
 import { getPiAccountProjectsService, type PiAccountProjectsService } from './account-project-map'
 
 export type PiAccountPtyEnvInput = {
@@ -19,10 +22,9 @@ export type PiAccountPtyEnvInput = {
 
 function isLocalHostLaunch(input: PiAccountPtyEnvInput): boolean {
   return (
-    !input.connectionId &&
     input.isWsl !== true &&
-    !isWslUncPath(input.cwd ?? '') &&
-    !isWslUncPath(input.projectPath ?? '')
+    isPiAccountSelectableProject({ connectionId: input.connectionId, path: input.cwd }) &&
+    isPiAccountSelectableProject({ connectionId: input.connectionId, path: input.projectPath })
   )
 }
 
@@ -61,4 +63,22 @@ export function buildPiAccountPtyEnv(input: PiAccountPtyEnvInput): Record<string
     }
   }
   return injected
+}
+
+/**
+ * Same decision, applied to the env a spawn is about to use. Defence in depth: on SSH and WSL any
+ * `PI_ACCOUNT_*` already in the env (a stale launch config, a UI that should have hidden the menu)
+ * is stripped, so an account name of this computer never names an account on the other host.
+ */
+export function applyPiAccountPtyEnv(
+  env: Record<string, string>,
+  input: PiAccountPtyEnvInput
+): void {
+  if (!isLocalHostLaunch(input)) {
+    for (const provider of PI_ACCOUNT_PROVIDERS) {
+      delete env[piAccountEnvKey(provider)]
+    }
+    return
+  }
+  Object.assign(env, buildPiAccountPtyEnv({ existingEnv: env, ...input }))
 }

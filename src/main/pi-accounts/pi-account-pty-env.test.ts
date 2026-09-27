@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PiAccountProjectsService } from './account-project-map'
-import { buildPiAccountPtyEnv } from './pi-account-pty-env'
+import { applyPiAccountPtyEnv, buildPiAccountPtyEnv } from './pi-account-pty-env'
 import { resetPiAccountSelectionSupportForTest } from './pi-account-selection-support'
 
 const dirs: string[] = []
@@ -39,6 +39,28 @@ it('never injects on SSH or WSL', () => {
   expect(
     buildPiAccountPtyEnv({ projectPath: '\\\\wsl$\\Ubuntu\\home\\bi\\repo', service })
   ).toEqual({})
+})
+
+it('strips a PI_ACCOUNT_* already in the env of an SSH or WSL spawn', () => {
+  for (const remote of [{ connectionId: 'ssh-1' }, { isWsl: true }]) {
+    const env: Record<string, string> = {
+      PI_ACCOUNT_ANTHROPIC: 'work',
+      PI_ACCOUNT_OPENAI_CODEX: 'codex-work',
+      PATH: '/usr/bin'
+    }
+    applyPiAccountPtyEnv(env, { projectPath: '/tmp/repo', ...remote, service })
+    expect(env).toEqual({ PATH: '/usr/bin' })
+  }
+})
+
+it('injects the mapped accounts into the env of a local spawn', () => {
+  const env: Record<string, string> = { PATH: '/usr/bin' }
+  applyPiAccountPtyEnv(env, { projectPath: '/tmp/repo', service })
+  expect(env).toEqual({
+    PATH: '/usr/bin',
+    PI_ACCOUNT_ANTHROPIC: 'work',
+    PI_ACCOUNT_OPENAI_CODEX: 'codex-work'
+  })
 })
 
 it('injects nothing while the installed Pi has no support', () => {

@@ -71,6 +71,7 @@ describe('TabBar PowerShell launch wiring', () => {
         {
           id: 'wt-1',
           repoId: 'fixture',
+          path: '/repos/fixture',
           hostId: 'local',
           runtimeOwnerEnvironmentId: 'web-env-1'
         }
@@ -139,6 +140,7 @@ describe('TabBar PowerShell launch wiring', () => {
         {
           id: 'wt-1',
           repoId: 'fixture',
+          path: '/repos/fixture',
           hostId: 'local',
           runtimeOwnerEnvironmentId: 'desktop-env-1'
         }
@@ -213,6 +215,7 @@ describe('TabBar PowerShell launch wiring', () => {
         {
           id: 'wt-1',
           repoId: 'fixture',
+          path: '/repos/fixture',
           hostId: 'local',
           runtimeOwnerEnvironmentId: 'serve-env-1'
         }

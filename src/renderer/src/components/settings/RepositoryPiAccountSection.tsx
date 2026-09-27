@@ -4,7 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { SearchableSetting } from './SearchableSetting'
 import { translate } from '@/i18n/i18n'
 import { searchKeywords } from './settings-search-keywords'
-import { PI_ACCOUNT_PROVIDERS } from '../../../../shared/pi-account-projects'
+import {
+  isPiAccountSelectableProject,
+  PI_ACCOUNT_PROVIDERS
+} from '../../../../shared/pi-account-projects'
 import { usePiAccounts } from './use-pi-accounts'
 import { usePiAccountProjects } from './use-pi-account-projects'
 import {
@@ -26,8 +29,8 @@ export function RepositoryPiAccountSection({
   const projects = usePiAccountProjects()
   const accounts = usePiAccounts()
   const selection = projects.selectionFor(repo.path)
-  if (repo.connectionId) {
-    // SSH projects run Pi on the remote host, where the choice belongs to that host's /accounts.
+  if (!isPiAccountSelectableProject({ connectionId: repo.connectionId, path: repo.path })) {
+    // SSH and WSL projects run Pi on the other host, where the choice belongs to its own /accounts.
     return null
   }
   const title = translate('piAccounts.projectSectionTitle', 'Pi Account')

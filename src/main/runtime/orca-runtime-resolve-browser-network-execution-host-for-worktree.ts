@@ -25,7 +25,7 @@ import { getExplicitWorktreeIdSelector } from './runtime-worktree-selection'
 import { WORKTREE_ID_SEPARATOR } from '../../shared/worktree/id'
 import { WorktreeIdRequiresFullPathError } from './runtime-worktree-lineage-resolution'
 import { triggerTerminalSpawnPushTargetMaterialization } from './runtime-terminal-spawn-push-target-materialization'
-import { buildPiAccountPtyEnv } from '../pi-accounts/pi-account-pty-env'
+import { applyPiAccountPtyEnv } from '../pi-accounts/pi-account-pty-env'
 
 export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extends OrcaRuntimeWithTransitionGraphReloadToTerminalState {
   protected resolveBrowserNetworkExecutionHostForWorktree(worktree?: {
@@ -171,18 +171,18 @@ export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extend
       ...cleanBaseEnv,
       ...agentTeamsEnv,
       ...this.buildAgentHookPtyEnv?.(),
-      ...buildPiAccountPtyEnv({
-        projectPath: scope.folderWorkspace?.folderPath ?? scope.repo?.path ?? scope.path,
-        cwd: scope.path,
-        connectionId: scope.connectionId,
-        tabId,
-        worktreeId: scope.id,
-        existingEnv: cleanBaseEnv
-      }),
       ORCA_PANE_KEY: paneKey,
       ORCA_TAB_ID: tabId,
       ORCA_WORKTREE_ID: scope.id
     }
+    applyPiAccountPtyEnv(env, {
+      projectPath: scope.folderWorkspace?.folderPath ?? scope.repo?.path ?? scope.path,
+      cwd: scope.path,
+      connectionId: scope.connectionId,
+      tabId,
+      worktreeId: scope.id,
+      existingEnv: cleanBaseEnv
+    })
     if (!scope.folderWorkspace) {
       return env
     }

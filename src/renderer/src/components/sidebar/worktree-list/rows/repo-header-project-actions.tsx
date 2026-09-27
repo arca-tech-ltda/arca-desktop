@@ -130,7 +130,7 @@ export function RepoHeaderProjectActionsMenu({
           <Shapes className="size-3.5" />
           {translate('auto.components.sidebar.WorktreeList.e82d3589a1', 'Change Project Icon')}
         </DropdownMenuItem>
-        <PiAccountProjectSubmenu projectPath={repo.path} />
+        <PiAccountProjectSubmenu projectPath={repo.path} connectionId={repo.connectionId} />
         {isGitRepoKind(repo) ? (
           <DropdownMenuItem onSelect={() => actions.onOpenWorktreeVisibility(repo)}>
             <Eye className="size-3.5" />

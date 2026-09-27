@@ -1,3 +1,4 @@
+import { isWslUncPath } from './wsl-paths'
 import type { PiAccountProvider } from './pi-accounts'
 
 export const PI_ACCOUNT_PROJECTS_FILE = 'account-projects.json'
@@ -12,6 +13,17 @@ export const PI_ACCOUNT_PROVIDERS: readonly PiAccountProvider[] = ['anthropic', 
 export const PI_ACCOUNT_ENV_KEYS: readonly string[] = PI_ACCOUNT_PROVIDERS.map(piAccountEnvKey)
 
 export type PiAccountProjectSelection = Partial<Record<PiAccountProvider, string>>
+
+/**
+ * v1 only covers a Pi started on this computer: on SSH and WSL the bucket, the lock and the Pi
+ * binary all belong to the execution host, whose own `/accounts` owns the choice.
+ */
+export function isPiAccountSelectableProject(project: {
+  connectionId?: string | null
+  path?: string | null
+}): boolean {
+  return !project.connectionId?.trim() && !isWslUncPath(project.path ?? '')
+}
 
 export type PiAccountProjectMap = {
   version: typeof PI_ACCOUNT_PROJECTS_VERSION

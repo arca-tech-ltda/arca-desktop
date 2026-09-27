@@ -9,7 +9,10 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu'
 import type { PiAccountProvider } from '../../../../shared/pi-accounts'
-import { PI_ACCOUNT_PROVIDERS } from '../../../../shared/pi-account-projects'
+import {
+  isPiAccountSelectableProject,
+  PI_ACCOUNT_PROVIDERS
+} from '../../../../shared/pi-account-projects'
 import { usePiAccounts } from './use-pi-accounts'
 import { usePiAccountProjects } from './use-pi-account-projects'
 
@@ -32,14 +35,20 @@ export function piAccountUnsupportedHint(): string {
  * Same choice as Project Settings — both write `account-projects.json` through the shared hook.
  */
 export function PiAccountProjectSubmenu({
-  projectPath
+  projectPath,
+  connectionId
 }: {
   projectPath: string
-}): React.JSX.Element {
+  connectionId?: string | null
+}): React.JSX.Element | null {
   const projects = usePiAccountProjects()
   const accounts = usePiAccounts()
   const selection = projects.selectionFor(projectPath)
   const label = translate('piAccounts.projectMenu', 'Account')
+  if (!isPiAccountSelectableProject({ connectionId, path: projectPath })) {
+    // SSH and WSL projects run Pi on the other host, where its own /accounts owns the choice.
+    return null
+  }
   if (!projects.supported) {
     return (
       <DropdownMenuSub>

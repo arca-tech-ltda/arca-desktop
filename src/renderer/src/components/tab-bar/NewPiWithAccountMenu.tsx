@@ -9,7 +9,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { piAccountEnvKey, PI_ACCOUNT_PROVIDERS } from '../../../../shared/pi-account-projects'
 import { usePiAccounts } from '@/components/settings/use-pi-accounts'
-import { usePiAccountProjects } from '@/components/settings/use-pi-account-projects'
+import {
+  usePiAccountProjects,
+  usePiAccountSelectableWorkspace
+} from '@/components/settings/use-pi-account-projects'
 import {
   piAccountProviderLabel,
   piAccountUnsupportedHint
@@ -34,6 +37,11 @@ export function NewPiWithAccountMenu({
 }): React.JSX.Element | null {
   const projects = usePiAccountProjects()
   const accounts = usePiAccounts()
+  const selectable = usePiAccountSelectableWorkspace(worktreeId)
+  if (!selectable) {
+    // SSH and WSL terminals run the other host's Pi; a name from this bucket means nothing there.
+    return null
+  }
   if (!projects.supported) {
     return (
       <DropdownMenuSub>

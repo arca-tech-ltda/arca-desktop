@@ -18,7 +18,7 @@ import { routesFreshSpawnsToLocalProvider } from '../host-env/fresh-spawn-routin
 import { stripRemotePaneEnvWhenHooksDisabled } from '../provider/liveness'
 import { parseValidPaneKey } from '../pane/key-state'
 import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
-import { buildPiAccountPtyEnv } from '../../../pi-accounts/pi-account-pty-env'
+import { applyPiAccountPtyEnv } from '../../../pi-accounts/pi-account-pty-env'
 import { shouldRefreshNativeClaudeAgentTeamsEnv } from '../pane/launch-authority'
 import type { PtyIpcSpawnState } from './spawn-state'
 import { assemblePtyIpcSpawnCodexEnv } from './spawn-env-codex'
@@ -145,19 +145,16 @@ export async function assemblePtyIpcSpawnEnv(ctx: PtyIpcSpawnState): Promise<voi
   ctx.validatedLeafId = ctx.verifiedLeafId ?? ctx.metadataLeafId
   if (ctx.baseEnv) {
     const repoId = args.worktreeId ? getRepoIdFromWorktreeId(args.worktreeId) : undefined
-    Object.assign(
-      ctx.baseEnv,
-      buildPiAccountPtyEnv({
-        projectPath: repoId ? (ctx.deps.store?.getRepo?.(repoId)?.path ?? null) : null,
-        cwd: ctx.cwd ?? args.cwd,
-        connectionId: args.connectionId,
-        isWsl:
-          args.projectRuntime?.status === 'resolved' && args.projectRuntime.runtime.kind === 'wsl',
-        tabId: typeof args.tabId === 'string' ? args.tabId : null,
-        worktreeId: args.worktreeId ?? null,
-        existingEnv: ctx.baseEnv
-      })
-    )
+    applyPiAccountPtyEnv(ctx.baseEnv, {
+      projectPath: repoId ? (ctx.deps.store?.getRepo?.(repoId)?.path ?? null) : null,
+      cwd: ctx.cwd ?? args.cwd,
+      connectionId: args.connectionId,
+      isWsl:
+        args.projectRuntime?.status === 'resolved' && args.projectRuntime.runtime.kind === 'wsl',
+      tabId: typeof args.tabId === 'string' ? args.tabId : null,
+      worktreeId: args.worktreeId ?? null,
+      existingEnv: ctx.baseEnv
+    })
   }
   ctx.spawnTiming.mark('pane_env')
   await assemblePtyIpcSpawnCodexEnv(ctx)
