@@ -22,7 +22,13 @@ export function isSlotCopyOf(
   return typeof slot?.refresh === 'string' && slot.refresh === stored?.refresh
 }
 
-// Match /accounts: capture refreshed slots into their accounts, but never across identities.
+/**
+ * Capture refreshed slots into their accounts, never across identities and never across logins:
+ * the slot only counts as this account's copy while it still carries the entry's refresh token
+ * (contract v1 §9). A `/login` done globally, without `/accounts save`, rotates the slot to a
+ * credential that nothing links to the active account — adopting it would silently overwrite that
+ * account. When in doubt the entry stays as it is and the drift shows up in the list.
+ */
 export function captureSlots(
   bucket: Bucket,
   auth: Auth,
@@ -41,6 +47,9 @@ export function captureSlots(
       if (options.strict) {
         throw saveFirst(activeProvider)
       }
+      continue
+    }
+    if (!isSlotCopyOf(slot, stored)) {
       continue
     }
     bucket.accounts[activeProvider][activeName] = slot
