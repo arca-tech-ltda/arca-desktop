@@ -51,7 +51,8 @@ event still answers 204), and the managed hook script prints it:
   Codex hook wire schema accepts (`UserPromptSubmitHookSpecificOutputWire`).
 
 The app waits at most `HOOK_PROMPT_CONTEXT_TIMEOUT_MS` (1.2 s) for the gateway, inside the script's
-own `--max-time` (raised to 4 s for this one event). Delivered items are `acknowledge`d.
+own `--max-time` (raised to 4 s for this one event). `acknowledge` runs **after** the response body
+is written, never before: a prompt that timed out keeps its items pending for the next one.
 
 ## Rate and silence
 
