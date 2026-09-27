@@ -40,67 +40,132 @@ export function syncClaudeManagedHomeResources(options: ClaudeManagedHomeResourc
   const systemConfigDir = options.systemConfigDir ?? join(homedir(), '.claude')
   const systemClaudeJsonPath = options.systemClaudeJsonPath ?? join(homedir(), '.claude.json')
   mkdirSync(configDir, { recursive: true })
-  syncManagedHooks(configDir, options.hooksEnabled !== false)
-  mirrorUserMcpServers(systemClaudeJsonPath, join(configDir, '.claude.json'))
+  syncManagedSettings(configDir, systemConfigDir, options.hooksEnabled !== false)
+  mirrorUserClaudeJson(systemClaudeJsonPath, join(configDir, '.claude.json'))
   linkAgentHomeResource(join(systemConfigDir, 'skills'), join(configDir, 'skills'))
   linkAgentHomeResource(join(systemConfigDir, 'commands'), join(configDir, 'commands'))
   linkAgentHomeResource(join(systemConfigDir, 'CLAUDE.md'), join(configDir, 'CLAUDE.md'))
 }
 
-function syncManagedHooks(configDir: string, hooksEnabled: boolean): void {
-  if (!hooksEnabled) {
-    return
-  }
+/**
+ * Account-level preferences of `~/.claude/settings.json` worth inheriting. `hooks` and `statusLine`
+ * are deliberately absent: those are the app's, applied below.
+ */
+const INHERITED_SETTINGS_KEYS = ['permissions', 'model', 'env'] as const
+
+function syncManagedSettings(
+  configDir: string,
+  systemConfigDir: string,
+  hooksEnabled: boolean
+): void {
   const configPath = join(configDir, 'settings.json')
   const config = readHooksJson(configPath)
   if (!config) {
     // Unreadable or malformed settings: leave it alone rather than overwrite the user's file.
     return
   }
-  const scriptPath = getManagedScriptPath()
-  let next = applyManagedHooks(
-    config,
-    getManagedLifecycleHook(scriptPath),
-    getManagedScriptFileName()
-  )
-  if (getStatusLineSlotState(next, getStatusLineScriptFileName()) === 'empty') {
-    next = applyManagedStatusLine(
+  let next = config
+  const source = readJsonObject(join(systemConfigDir, 'settings.json'))
+  for (const key of INHERITED_SETTINGS_KEYS) {
+    // Never an overwrite: what the account already decided outranks the real home.
+    if (source?.[key] !== undefined && next[key] === undefined) {
+      next = { ...next, [key]: source[key] }
+    }
+  }
+  if (hooksEnabled) {
+    next = applyManagedHooks(
       next,
-      getManagedCommand(getStatusLineScriptPath()),
-      getStatusLineScriptFileName()
+      getManagedLifecycleHook(getManagedScriptPath()),
+      getManagedScriptFileName()
     )
+    if (getStatusLineSlotState(next, getStatusLineScriptFileName()) === 'empty') {
+      next = applyManagedStatusLine(
+        next,
+        getManagedCommand(getStatusLineScriptPath()),
+        getStatusLineScriptFileName()
+      )
+    }
   }
   if (JSON.stringify(next) !== JSON.stringify(config)) {
     writeHooksJson(configPath, next)
   }
 }
 
+/** Per-project flags that only spare a re-ask; nothing here identifies or authenticates anyone. */
+const MIRRORED_PROJECT_KEYS = ['hasTrustDialogAccepted', 'allowedTools'] as const
+
 /**
- * Copies only the `mcpServers` block of `~/.claude.json`, and only entries the managed home does
- * not define yet: the rest of that file is the user's project history and OAuth account.
+ * Copies from `~/.claude.json` only what a fresh config dir would otherwise ask for again: the
+ * `mcpServers` block, the onboarding flag and, per project, the trust answer and its allowed
+ * tools. Everything else — above all `oauthAccount` and any token — stays in the real home, and an
+ * entry the managed home already defines is never overwritten.
  */
-function mirrorUserMcpServers(systemClaudeJsonPath: string, managedClaudeJsonPath: string): void {
+function mirrorUserClaudeJson(systemClaudeJsonPath: string, managedClaudeJsonPath: string): void {
   const source = readJsonObject(systemClaudeJsonPath)
-  const sourceServers = source?.mcpServers
-  if (!isRecord(sourceServers) || Object.keys(sourceServers).length === 0) {
+  if (!source) {
     return
   }
   const target = readJsonObject(managedClaudeJsonPath) ?? {}
-  const targetServers = isRecord(target.mcpServers) ? { ...target.mcpServers } : {}
-  let changed = false
-  for (const [name, definition] of Object.entries(sourceServers)) {
-    if (!(name in targetServers)) {
-      targetServers[name] = definition
-      changed = true
-    }
+  const next = { ...target }
+  let changed = mergeMissingEntries(source.mcpServers, next, 'mcpServers')
+  if (source.hasCompletedOnboarding === true && next.hasCompletedOnboarding === undefined) {
+    next.hasCompletedOnboarding = true
+    changed = true
   }
+  changed = mirrorProjectTrust(source.projects, next) || changed
   if (!changed) {
     return
   }
-  writeFileAtomically(
-    managedClaudeJsonPath,
-    `${JSON.stringify({ ...target, mcpServers: targetServers }, null, 2)}\n`
-  )
+  writeFileAtomically(managedClaudeJsonPath, `${JSON.stringify(next, null, 2)}\n`)
+}
+
+function mergeMissingEntries(
+  sourceBlock: unknown,
+  target: Record<string, unknown>,
+  key: string
+): boolean {
+  if (!isRecord(sourceBlock)) {
+    return false
+  }
+  const merged = isRecord(target[key]) ? { ...target[key] } : {}
+  let changed = false
+  for (const [name, definition] of Object.entries(sourceBlock)) {
+    if (!(name in merged)) {
+      merged[name] = definition
+      changed = true
+    }
+  }
+  if (changed) {
+    target[key] = merged
+  }
+  return changed
+}
+
+function mirrorProjectTrust(sourceProjects: unknown, target: Record<string, unknown>): boolean {
+  if (!isRecord(sourceProjects)) {
+    return false
+  }
+  const projects = isRecord(target.projects) ? { ...target.projects } : {}
+  let changed = false
+  for (const [path, entry] of Object.entries(sourceProjects)) {
+    if (!isRecord(entry)) {
+      continue
+    }
+    const existing = isRecord(projects[path]) ? { ...projects[path] } : {}
+    for (const key of MIRRORED_PROJECT_KEYS) {
+      if (entry[key] !== undefined && existing[key] === undefined) {
+        existing[key] = entry[key]
+        changed = true
+      }
+    }
+    if (Object.keys(existing).length) {
+      projects[path] = existing
+    }
+  }
+  if (changed) {
+    target.projects = projects
+  }
+  return changed
 }
 
 function readJsonObject(path: string): Record<string, unknown> | null {

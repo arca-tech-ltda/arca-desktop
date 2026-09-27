@@ -70,8 +70,13 @@ hooks de status do app, sem o MCP `arca-megamind` que o instalador do `arca` reg
   - `settings.json` da home gerenciada ganha os hooks gerenciados do app e a statusline (a mesma
     `applyManagedHooks`/`applyManagedStatusLine` do `claudeHookService`), e só é reescrito quando
     muda;
-  - `.claude.json` recebe **apenas** o bloco `mcpServers` do `~/.claude.json`, e só as entradas que
-    ainda não existem lá — histórico de projetos e conta OAuth do usuário não são copiados;
+    Antes disso, `settings.json` herda de `~/.claude/settings.json` **apenas** `permissions`,
+    `model` e `env`, e só as chaves que a conta ainda não definiu (`hooks` e `statusLine` nunca vêm
+    de lá — são do app);
+  - `.claude.json` recebe **apenas** o bloco `mcpServers`, o `hasCompletedOnboarding` e, por
+    projeto, `hasTrustDialogAccepted` e `allowedTools` do `~/.claude.json`, e só as entradas que
+    ainda não existem lá — histórico de projetos, `oauthAccount` e qualquer token **nunca** são
+    copiados;
   - `skills`, `commands` e `CLAUDE.md` viram link (junction no Windows) para os do `~/.claude`, com
     cópia como fallback, e um item já existente nunca é sobrescrito.
 

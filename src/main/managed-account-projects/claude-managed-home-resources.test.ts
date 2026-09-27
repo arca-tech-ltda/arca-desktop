@@ -49,6 +49,82 @@ it('registers the app hooks, the user MCP servers and the skills in a managed ho
   )
 })
 
+it('inherits permissions, model and env from the real settings, keeping the app hooks', () => {
+  const paths = homes()
+  writeFileSync(
+    join(paths.systemConfigDir, 'settings.json'),
+    JSON.stringify({
+      permissions: { allow: ['Bash(git status)'] },
+      model: 'opus',
+      env: { ARCA_X: '1' },
+      hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'do-usuario' }] }] },
+      apiKeyHelper: 'nunca-copiar'
+    })
+  )
+
+  syncClaudeManagedHomeResources(paths)
+
+  const settings: Record<string, unknown> = JSON.parse(
+    readFileSync(join(paths.configDir, 'settings.json'), 'utf-8')
+  )
+  expect(settings.permissions).toEqual({ allow: ['Bash(git status)'] })
+  expect(settings.model).toBe('opus')
+  expect(settings.env).toEqual({ ARCA_X: '1' })
+  expect(settings.apiKeyHelper).toBeUndefined()
+  // The app's hooks win the hook slot; the real home's hook command is not carried over.
+  expect(JSON.stringify(settings.hooks)).not.toContain('do-usuario')
+  expect(Object.keys((settings.hooks ?? {}) as Record<string, unknown>)).toContain('SessionStart')
+})
+
+it('never overwrites a preference the managed account already set', () => {
+  const paths = homes()
+  writeFileSync(
+    join(paths.systemConfigDir, 'settings.json'),
+    JSON.stringify({ model: 'opus', permissions: { allow: ['Bash(rm)'] } })
+  )
+  syncClaudeManagedHomeResources(paths)
+  const settingsPath = join(paths.configDir, 'settings.json')
+  const kept: Record<string, unknown> = JSON.parse(readFileSync(settingsPath, 'utf-8'))
+  writeFileSync(settingsPath, JSON.stringify({ ...kept, model: 'sonnet' }))
+
+  syncClaudeManagedHomeResources(paths)
+
+  expect(JSON.parse(readFileSync(settingsPath, 'utf-8')).model).toBe('sonnet')
+})
+
+it('mirrors onboarding and per-project trust flags, never the account or its tokens', () => {
+  const paths = homes()
+  writeFileSync(
+    paths.systemClaudeJsonPath,
+    JSON.stringify({
+      mcpServers: { 'arca-megamind': { command: 'arca-megamind-mcp' } },
+      hasCompletedOnboarding: true,
+      oauthAccount: { emailAddress: 'someone@arca.com', accessToken: 'secreto' },
+      userID: 'u-1',
+      projects: {
+        '/repo': {
+          hasTrustDialogAccepted: true,
+          allowedTools: ['Bash(git status)'],
+          history: [{ display: 'segredo do outro projeto' }]
+        }
+      }
+    })
+  )
+
+  syncClaudeManagedHomeResources(paths)
+
+  const raw = readFileSync(join(paths.configDir, '.claude.json'), 'utf-8')
+  const claudeJson: Record<string, unknown> = JSON.parse(raw)
+  expect(claudeJson.hasCompletedOnboarding).toBe(true)
+  expect(claudeJson.projects).toEqual({
+    '/repo': { hasTrustDialogAccepted: true, allowedTools: ['Bash(git status)'] }
+  })
+  expect(claudeJson.oauthAccount).toBeUndefined()
+  expect(claudeJson.userID).toBeUndefined()
+  expect(raw).not.toContain('secreto')
+  expect(raw).not.toContain('segredo do outro projeto')
+})
+
 it('is idempotent and never overwrites what the managed home already has', () => {
   const paths = homes()
   syncClaudeManagedHomeResources(paths)
