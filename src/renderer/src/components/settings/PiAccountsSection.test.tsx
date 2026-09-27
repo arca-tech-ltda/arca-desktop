@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, act } from '@testing-library/react'
 import { getDefaultSettings } from '../../../../shared/constants'
-import type { PiAccountsState } from '../../../../shared/pi-accounts'
+import type { PiAccountRenameResult, PiAccountsState } from '../../../../shared/pi-accounts'
 import { useAppStore } from '../../store'
 import {
   selectClaudeProviderAccount,
@@ -44,8 +44,8 @@ const remove = vi.fn(async () => ({
   status: 'removed' as const,
   state: initial
 }))
-const rename = vi.fn(async () => ({
-  status: 'renamed' as const,
+const rename = vi.fn(async (): Promise<PiAccountRenameResult> => ({
+  status: 'renamed',
   state: initial
 }))
 const cancelAdd = vi.fn(async () => true)
@@ -181,6 +181,43 @@ it('renames an account through the dialog', async () => {
   fireEvent.change(input, { target: { value: 'home' } })
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
   await waitFor(() => expect(rename).toHaveBeenCalledWith('anthropic', 'personal', 'home'))
+})
+
+it('reports a rename blocked by an open terminal, after refreshing the open tab list', async () => {
+  const projectsState = {
+    supported: true,
+    map: { version: 1 as const, projects: {} },
+    sessions: []
+  }
+  const syncOpenTabs = vi.fn(async () => projectsState)
+  Object.defineProperty(window, 'api', {
+    configurable: true,
+    value: {
+      ...window.api,
+      piAccountProjects: {
+        syncOpenTabs,
+        get: async () => projectsState,
+        set: async () => ({ status: 'saved' as const, state: projectsState }),
+        onChange: () => () => {}
+      }
+    }
+  })
+  rename.mockResolvedValueOnce({
+    status: 'open-in-terminal',
+    blockedBy: { terminals: 1 },
+    state: initial
+  })
+  render(<PiAccountsSection />)
+  await openAccountMenu('personal')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }))
+  fireEvent.change(await screen.findByLabelText('Account name'), { target: { value: 'home' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(
+    await screen.findByText(
+      'This account is running in an open terminal. Close it first, then rename the account.'
+    )
+  ).toBeTruthy()
+  expect(syncOpenTabs).toHaveBeenCalled()
 })
 
 it('never reads or switches desktop accounts when the account owner is remote', () => {

@@ -6,6 +6,7 @@ import { bucketSchema, readJson, writeJson } from './files'
 import { readCodexIdToken } from './codex-id-token-cache'
 import type { PiCapturedAccount } from './credential-conversion'
 import { PiAccountEditor } from './pi-account-editor'
+import { PiAccountProjectsService } from './account-project-map'
 import { PiAccountsService } from './service'
 
 const homes: string[] = []
@@ -208,4 +209,29 @@ it('renames an account, following the active pointer, and rejects taken or inval
   expect(await f.service.rename('anthropic', 'missing', 'other')).toMatchObject({
     status: 'missing'
   })
+})
+
+it('refuses to rename an account an open terminal is running on', async () => {
+  const agentDir = await mkdtemp(join(tmpdir(), 'pi-accounts-edit-'))
+  homes.push(agentDir)
+  const projects = new PiAccountProjectsService({ agentDir })
+  const service = new PiAccountsService({ agentDir, mirrorEnabled: false, projects })
+  await writeJson(join(agentDir, 'accounts.json'), {
+    version: 1,
+    active: { anthropic: 'work' },
+    accounts: { anthropic: { work: { type: 'oauth', access: 'w', refresh: 'wr' } } }
+  })
+  projects.recordSession({ tabId: 'tab-1', provider: 'anthropic', name: 'work' })
+  expect(await service.rename('anthropic', 'work', 'job')).toMatchObject({
+    status: 'open-in-terminal',
+    blockedBy: { terminals: 1 }
+  })
+  expect(
+    Object.keys(
+      bucketSchema.parse(await readJson(join(agentDir, 'accounts.json'), {})).accounts.anthropic
+    )
+  ).toEqual(['work'])
+  // The renderer prunes closed tabs before the check; then the rename goes through.
+  projects.syncOpenTabs([])
+  expect(await service.rename('anthropic', 'work', 'job')).toMatchObject({ status: 'renamed' })
 })

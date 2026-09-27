@@ -151,6 +151,12 @@ export class PiAccountsService {
     from: string,
     to: string
   ): Promise<PiAccountRenameResult> {
+    // Why before the edit: a running Pi resolves PI_ACCOUNT_* by name on every refresh, so renaming
+    // under it turns that session's next refresh into "account not found" (contract v1 §7).
+    const terminals = this.options.projects?.getSessionsUsingAccount(provider, from).length ?? 0
+    if (terminals > 0) {
+      return { status: 'open-in-terminal', blockedBy: { terminals }, state: await this.list() }
+    }
     const status = await this.enqueue(() => this.editor.rename(provider, from, to))
     if (status === 'renamed' && from !== to) {
       await this.options.projects?.renameAccount(provider, from, to)

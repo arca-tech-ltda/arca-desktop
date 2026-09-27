@@ -20,7 +20,9 @@ export type PiAccountRemoveResult = {
   state: PiAccountsState
 }
 export type PiAccountRenameResult = {
-  status: 'renamed' | 'missing' | 'name-taken' | 'invalid-name'
+  status: 'renamed' | 'missing' | 'name-taken' | 'invalid-name' | 'open-in-terminal'
+  /** Terminals behind an `open-in-terminal` refusal. */
+  blockedBy?: { terminals?: number }
   state: PiAccountsState
 }
 export type PiAccountsApi = {

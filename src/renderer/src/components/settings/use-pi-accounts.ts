@@ -17,7 +17,7 @@ export type PiAccountsNotice = {
     | 'removeBlockedTerminal'
   name?: string
 }
-export type PiAccountNameError = 'nameTaken' | 'nameInvalid'
+export type PiAccountNameError = 'nameTaken' | 'nameInvalid' | 'inUse'
 
 export type PiAccountsController = {
   /** Remote runtimes own their own accounts; this desktop must not read or switch them. */
@@ -149,18 +149,22 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
     }
   }
 
+  // Why: main blocks edits to an account a terminal is running on, and only the renderer knows
+  // which terminals still exist. Refresh that list right before the check.
+  const reportOpenTabs = async (): Promise<void> => {
+    await window.api.piAccountProjects
+      ?.syncOpenTabs(
+        Object.values(useAppStore.getState().tabsByWorktree).flatMap((tabs) =>
+          (tabs ?? []).map((tab) => tab.id)
+        )
+      )
+      .catch(() => {})
+  }
+
   const removeAccount = async (target: PiAccount): Promise<void> => {
     setNotice(null)
     try {
-      // Why here: main blocks removal of an account a terminal is running on, and only the renderer
-      // knows which terminals still exist. Refresh that list right before the check.
-      await window.api.piAccountProjects
-        ?.syncOpenTabs(
-          Object.values(useAppStore.getState().tabsByWorktree).flatMap((tabs) =>
-            (tabs ?? []).map((tab) => tab.id)
-          )
-        )
-        .catch(() => {})
+      await reportOpenTabs()
       const result = await window.api.piAccounts.remove(target.provider, target.name)
       setState(result.state)
       if (result.status === 'active-in-use') {
@@ -180,10 +184,14 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
     name: string
   ): Promise<PiAccountNameError | null> => {
     try {
+      await reportOpenTabs()
       const result = await window.api.piAccounts.rename(target.provider, target.name, name.trim())
       setState(result.state)
       if (result.status === 'renamed') {
         return null
+      }
+      if (result.status === 'open-in-terminal') {
+        return 'inUse'
       }
       return result.status === 'name-taken' ? 'nameTaken' : 'nameInvalid'
     } catch {

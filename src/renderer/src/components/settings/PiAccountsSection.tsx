@@ -44,9 +44,16 @@ export function piAccountNoticeText(notice: PiAccountsNotice): string {
 }
 
 function nameErrorText(error: PiAccountNameError): string {
-  return error === 'nameTaken'
-    ? translate('piAccounts.nameTaken', 'That name is already used.')
-    : translate('piAccounts.nameInvalid', 'Use letters, numbers and . _ @ + - without spaces.')
+  if (error === 'nameTaken') {
+    return translate('piAccounts.nameTaken', 'That name is already used.')
+  }
+  if (error === 'inUse') {
+    return translate(
+      'piAccounts.renameBlockedTerminal',
+      'This account is running in an open terminal. Close it first, then rename the account.'
+    )
+  }
+  return translate('piAccounts.nameInvalid', 'Use letters, numbers and . _ @ + - without spaces.')
 }
 
 export function PiAccountsSection(): React.JSX.Element {
