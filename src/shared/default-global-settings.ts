@@ -190,6 +190,7 @@ export function buildDefaultSettings(args: {
     terminalHiddenDeliveryGate: true,
     terminalModelQueryAuthority: true,
     defaultTuiAgent: null,
+    agentAuthority: 'auto',
     disabledTuiAgents: [...DEFAULT_DISABLED_TUI_AGENTS],
     pluginSystemEnabled: false,
     disabledPlugins: [],

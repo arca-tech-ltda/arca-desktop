@@ -298,4 +298,4 @@ describe('status bar Codex sign-in action', () => {
 })
 
 // These cases exercise the retained Orca-managed account UI.
-vi.mock('../../../../shared/arca-product', () => ({ ARCA_PI_IS_AUTHORITY: false }))
+vi.mock('@/store/agent-authority', () => ({ useAgentAuthorityMode: () => 'managed' }))

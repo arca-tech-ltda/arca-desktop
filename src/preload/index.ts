@@ -1,5 +1,6 @@
 import { piAccountsApi } from './api/pi-accounts-bridge'
 import { piAccountProjectsApi } from './api/pi-account-projects-bridge'
+import { agentAuthorityApi } from './api/agent-authority-bridge'
 import { piAccountUsageApi } from './api/pi-account-usage-bridge'
 import { arcaProjectsSyncApi } from './api/arca-projects-sync-bridge'
 import { contextBridge, ipcRenderer } from 'electron'
@@ -171,6 +172,7 @@ const api = {
   arcaMainframe: arcaMainframeApi,
   piAccounts: piAccountsApi,
   piAccountProjects: piAccountProjectsApi,
+  agentAuthority: agentAuthorityApi,
   piAccountUsage: piAccountUsageApi,
   arcaProjectsSync: arcaProjectsSyncApi,
   arcaMegamind: arcaMegamindApi,

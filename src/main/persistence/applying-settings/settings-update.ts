@@ -16,6 +16,7 @@ import { normalizeTerminalShortcutPolicy } from '../../../shared/keybindings'
 import { normalizeSourceControlGroupOrder } from '../../../shared/source-control-group-order'
 import { normalizeAppIconId } from '../../../shared/app-icon'
 import { normalizeUiLanguage } from '../../../shared/ui-language'
+import { normalizeAgentAuthorityPreference } from '../../../shared/agent-authority'
 import { normalizeWorktreeVisibilityDefaults } from '../../../shared/external-worktree-visibility'
 import { normalizePRBotAuthorOverrides } from '../../../shared/pr-bot-author-overrides'
 import type { PersistedState } from '../../../shared/persisted-state-types'
@@ -175,6 +176,9 @@ export function updateSettings(
   }
   if ('uiLanguage' in updates) {
     sanitizedUpdates.uiLanguage = normalizeUiLanguage(updates.uiLanguage)
+  }
+  if ('agentAuthority' in updates) {
+    sanitizedUpdates.agentAuthority = normalizeAgentAuthorityPreference(updates.agentAuthority)
   }
   if ('prBotAuthorOverrides' in updates) {
     // Why: every writer (desktop IPC, web RPC, migrations) hits this boundary, so the persisted list stays bounded and well-formed.

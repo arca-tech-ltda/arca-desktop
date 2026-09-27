@@ -1,5 +1,5 @@
 import { MOBILE_APP_ENABLED } from '@/lib/arca-product-features'
-import { ARCA_PI_IS_AUTHORITY } from '../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../shared/arca-product'
 import { LinearIcon } from '@/components/icons/LinearIcon'
 import { getAccountsPaneSearchEntries } from '@/components/settings/accounts-search'
 import { getAgentsPaneSearchEntries } from '@/components/settings/agents-search'
@@ -63,7 +63,7 @@ export function buildCapabilitySettingsSections({
       group: 'capabilities',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.7c79d3b7bf', 'Optional')
     },
-    ...(!ARCA_PI_IS_AUTHORITY
+    ...(!ARCA_ORCA_AGENT_SKILLS_HIDDEN
       ? [
           {
             id: 'orchestration',

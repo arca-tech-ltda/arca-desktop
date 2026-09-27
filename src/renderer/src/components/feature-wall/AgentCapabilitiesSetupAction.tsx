@@ -23,7 +23,7 @@ import {
 } from './agent-capability-setup-status'
 import { FullDiskAccessSetupPrompt } from './FullDiskAccessSetupPrompt'
 import { ArcaCliSetupAction } from './ArcaCliSetupAction'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 import { translate } from '@/i18n/i18n'
 
 type AgentCapabilitiesSetupActionProps = {
@@ -34,8 +34,8 @@ type AgentCapabilitiesSetupActionProps = {
 export function AgentCapabilitiesSetupAction(
   props: AgentCapabilitiesSetupActionProps
 ): React.JSX.Element {
-  // Why: with Pi as the authority the step registers the CLI only — no Orca skill cards.
-  return ARCA_PI_IS_AUTHORITY ? (
+  // Why: the fork never offers Orca's skill cards, so the step is CLI registration alone.
+  return ARCA_ORCA_AGENT_SKILLS_HIDDEN ? (
     <ArcaCliSetupAction />
   ) : (
     <AgentSkillCapabilitiesSetupAction {...props} />

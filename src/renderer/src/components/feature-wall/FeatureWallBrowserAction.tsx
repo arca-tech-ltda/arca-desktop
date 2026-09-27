@@ -17,7 +17,7 @@ import {
   useSetupTargetWorktree
 } from './FeatureWallSetupWorkflowActions'
 import { getClientCreationActionPolicy } from '@/lib/client-creation-action-policy'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 
 export function BrowserAction(props: { done: boolean }): React.JSX.Element {
   const targetWorktree = useSetupTargetWorktree()
@@ -77,7 +77,7 @@ export function BrowserAction(props: { done: boolean }): React.JSX.Element {
         </Button>
       )}
       {/* Pi drives the built-in browser through the CLI, so the fork never offers the Orca skill. */}
-      {ARCA_PI_IS_AUTHORITY ? null : <BrowserSkillInstallButton />}
+      {ARCA_ORCA_AGENT_SKILLS_HIDDEN ? null : <BrowserSkillInstallButton />}
     </div>
   )
 }

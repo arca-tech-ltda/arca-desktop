@@ -28,6 +28,7 @@ import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
 import { translate } from '@/i18n/i18n'
 
 import { getLocalizedFeatureWallSetupChecklistCopy } from './feature-wall-setup-checklist-localized-copy'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 
 type FeatureWallSetupChecklistLayout = 'modal' | 'embedded'
 
@@ -51,7 +52,8 @@ function SetupStepRow(props: {
 }): React.JSX.Element {
   const { step, done, active, ordinal, onSelect, layout } = props
   const isEmbedded = layout === 'embedded'
-  const localizedStepCopy = getLocalizedFeatureWallSetupChecklistCopy(step)
+  const agentAuthority = useAgentAuthorityMode()
+  const localizedStepCopy = getLocalizedFeatureWallSetupChecklistCopy(step, agentAuthority)
   return (
     <button
       type="button"
@@ -257,6 +259,7 @@ export function FeatureWallSetupChecklist(
 ): React.JSX.Element {
   const { activeStep, progress, onSelectStep, layout = 'modal' } = props
   const isEmbedded = layout === 'embedded'
+  const agentAuthority = useAgentAuthorityMode()
   const activeDone = activeStep ? progress.stepDone[activeStep.id] : false
   // Only steps with a visual constrain the caption to a narrow column so the
   // illustration can sit beside it; captionless steps let the copy run full width.
@@ -328,7 +331,7 @@ export function FeatureWallSetupChecklist(
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-2xl font-semibold leading-tight text-foreground">
-                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep).name}
+                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep, agentAuthority).name}
                 </div>
               </div>
               <span
@@ -364,7 +367,7 @@ export function FeatureWallSetupChecklist(
                     hasStepVisual && !isEmbedded ? 'pr-4 sm:pr-6' : null
                   )}
                 >
-                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep).description}
+                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep, agentAuthority).description}
                 </p>
                 {/* Action lives under the caption, not after the grid, so it sits just
                     below the copy instead of being pushed down by the taller visual. */}

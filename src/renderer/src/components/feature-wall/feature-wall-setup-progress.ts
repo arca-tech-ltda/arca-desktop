@@ -6,7 +6,7 @@ import {
 } from '../../../../shared/feature-wall-setup-steps'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { Worktree } from '../../../../shared/worktree/types'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 
 export type FeatureWallSetupProgressInput = {
   ready?: boolean
@@ -18,7 +18,7 @@ export type FeatureWallSetupProgressInput = {
   computerUsePermissionsReady: boolean
   computerUseUnavailable?: boolean
   orchestrationSkillInstalled: boolean
-  /** Only consulted when Pi is the authority: the step is CLI registration alone. */
+  /** The agent-capabilities step is CLI registration alone in this fork. */
   cliRegistered?: boolean
   gitRepoCount: number
   worktreesByRepo: Record<string, Worktree[]>
@@ -48,7 +48,7 @@ function countAvailableNonMainWorktrees(worktreesByRepo: Record<string, Worktree
 export function getFeatureWallSetupProgress(
   input: FeatureWallSetupProgressInput
 ): FeatureWallSetupProgress {
-  const agentCapabilitiesDone = ARCA_PI_IS_AUTHORITY
+  const agentCapabilitiesDone = ARCA_ORCA_AGENT_SKILLS_HIDDEN
     ? input.cliRegistered === true
     : input.browserUseSkillInstalled &&
       input.computerUseSkillInstalled &&

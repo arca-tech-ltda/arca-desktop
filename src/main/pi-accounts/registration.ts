@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { ARCA_PI_IS_AUTHORITY } from '../../shared/arca-product'
 import type { PiAccountProvider } from '../../shared/pi-accounts'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import { isValidPiAccountName } from './bucket-account-edits'
@@ -7,10 +6,8 @@ import { PiAccountsService } from './service'
 import { PiAccountProjectsService, setPiAccountProjectsService } from './account-project-map'
 import {
   onPiAccountSelectionSupportChanged,
-  refreshPiAccountSelectionSupport,
-  setPiAccountSelectionSupportProbe
+  refreshPiAccountSelectionSupport
 } from './pi-account-selection-support'
-import { probePiAccountEnvSupport } from './pi-account-capabilities-probe'
 
 function assertProvider(provider: unknown): PiAccountProvider {
   if (provider !== 'anthropic' && provider !== 'openai-codex') {
@@ -34,7 +31,21 @@ function broadcast(channel: string, payload: unknown): void {
   }
 }
 
+const PI_ACCOUNT_IPC_CHANNELS = [
+  'piAccountProjects:get',
+  'piAccountProjects:set',
+  'piAccountProjects:syncOpenTabs',
+  'piAccounts:list',
+  'piAccounts:use',
+  'piAccounts:remirror',
+  'piAccounts:add',
+  'piAccounts:cancelAdd',
+  'piAccounts:remove',
+  'piAccounts:rename'
+] as const
+
 let piAccounts: PiAccountsService | null = null
+let stopPiAccounts: (() => void) | null = null
 
 export function getPiAccountsService(): PiAccountsService | null {
   return piAccounts
@@ -84,13 +95,13 @@ function registerPiAccountProjects(service: PiAccountProjectsService): void {
   })
 }
 
+/** Only called while the machine is in `pi` authority mode; idempotent so a re-entry is harmless. */
 export function registerPiAccounts(): void {
-  if (!ARCA_PI_IS_AUTHORITY) {
+  if (piAccounts) {
     return
   }
   const projects = new PiAccountProjectsService()
   setPiAccountProjectsService(projects)
-  setPiAccountSelectionSupportProbe(probePiAccountEnvSupport)
   void projects.load()
   const stopSupport = onPiAccountSelectionSupportChanged(() => projects.publish())
   void refreshPiAccountSelectionSupport()
@@ -146,10 +157,25 @@ export function registerPiAccounts(): void {
   const stopLoginUrl = service.onLoginUrlChanged((url) => broadcast('piAccounts:loginUrl', url))
   const stopProjects = projects.onChange((state) => broadcast('piAccountProjects:changed', state))
   const stop = service.watch((state) => broadcast('piAccounts:changed', state))
-  app.once('before-quit', () => {
+  stopPiAccounts = () => {
     stopLoginUrl()
     stopProjects()
     stopSupport()
     stop()
-  })
+  }
+  app.once('before-quit', () => unregisterPiAccounts())
+}
+
+/** Leaving `pi` authority: the Pi surfaces stop existing, including the PTY env injection. */
+export function unregisterPiAccounts(): void {
+  if (!stopPiAccounts) {
+    return
+  }
+  stopPiAccounts()
+  stopPiAccounts = null
+  piAccounts = null
+  setPiAccountProjectsService(null)
+  for (const channel of PI_ACCOUNT_IPC_CHANNELS) {
+    ipcMain.removeHandler(channel)
+  }
 }

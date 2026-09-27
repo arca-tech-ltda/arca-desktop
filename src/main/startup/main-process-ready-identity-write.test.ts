@@ -349,4 +349,8 @@ describe('ready-phase browser identity authority', () => {
   })
 })
 
-vi.mock('../pi-accounts/registration', () => ({ registerPiAccounts: vi.fn() }))
+vi.mock('../pi-accounts/registration', () => ({
+  registerPiAccounts: vi.fn(),
+  unregisterPiAccounts: vi.fn()
+}))
+vi.mock('../agent-authority/registration', () => ({ registerAgentAuthority: vi.fn() }))

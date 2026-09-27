@@ -25,6 +25,7 @@ import {
 import { useOnboardingFlowActions } from './use-onboarding-flow-actions'
 import { useOnboardingFlowTelemetry } from './use-onboarding-flow-telemetry'
 import { useOnboardingAgentDetection } from './use-onboarding-agent-detection'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 export { STEPS } from './use-onboarding-flow-types'
 export type { StepId, StepNumber } from './use-onboarding-flow-types'
 
@@ -49,7 +50,8 @@ export function useOnboardingFlow(
   // Why: renderToStaticMarkup uses Zustand's initial snapshot; the sync read keeps tests and the first client render aligned.
   const effectivePreflightStatus = preflightStatus ?? useAppStore.getState().preflightStatus
 
-  const skipAgent = shouldSkipAgentStep(detectedAgentIds ?? [])
+  const agentAuthority = useAgentAuthorityMode()
+  const skipAgent = shouldSkipAgentStep(detectedAgentIds ?? [], agentAuthority)
   const skipIntegrations = shouldSkipIntegrationsStep(effectivePreflightStatus)
   const skipWindowsTerminal = shouldSkipWindowsTerminalStep(isWindowsUserAgent())
   const skipOptions = useMemo(
@@ -245,6 +247,7 @@ export function useOnboardingFlow(
     })
 
   useOnboardingAgentDetection({
+    agentAuthority,
     currentStepId: currentStep.id,
     refreshDetectedAgents,
     selectedAgentRef,

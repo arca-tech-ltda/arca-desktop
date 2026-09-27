@@ -51,6 +51,23 @@
       "megabytes": "{{received}} / {{total}} MB",
       "downloadHint": "está disponible. Descárgala cuando quieras.",
       "networkUnavailable": "Red no disponible o tiempo de espera agotado. Inténtalo de nuevo."
+    },
+    "agentAuthority": {
+      "label": "Propietario de las cuentas",
+      "description": "Qué agente es dueño de las cuentas en este ordenador: Pi, o los inicios de sesión de Claude Code y Codex que gestiona ARCA. Automático elige Pi solo donde Pi responde con soporte de cuentas.",
+      "optionAuto": "Automático",
+      "optionPi": "Pi",
+      "optionManaged": "Claude y Codex",
+      "statusChecking": "Comprobando si Pi responde aquí…",
+      "statusAutoPi": "Pi está instalado con soporte de cuentas, así que Pi es dueño de las cuentas aquí.",
+      "statusAutoManaged": "No se encontró Pi con soporte de cuentas, así que Claude Code y Codex son dueños de las cuentas aquí.",
+      "statusForcedPi": "Forzado a Pi en este ordenador.",
+      "statusForcedManaged": "Forzado a Claude Code y Codex en este ordenador.",
+      "loadingAccounts": "Comprobando qué agente es dueño de las cuentas en este ordenador…",
+      "searchDescription": "Elige si Pi o los inicios de sesión gestionados de Claude Code y Codex son dueños de las cuentas en este ordenador.",
+      "keywordPi": "pi",
+      "keywordOwner": "propietario",
+      "keywordAuthority": "autoridad"
     }
   },
   "app": {
@@ -15017,7 +15034,8 @@
       "setupChecklist": {
         "installCli": {
           "name": "Instalar CLI",
-          "description": "Registra el comando de shell de ARCA para que Pi pueda controlar la app (worktrees, terminales, navegador integrado, control del ordenador)."
+          "description": "Registra el comando de shell de ARCA para que Pi pueda controlar la app (worktrees, terminales, navegador integrado, control del ordenador).",
+          "descriptionManaged": "Registra el comando de shell de ARCA para que Claude Code y Codex puedan controlar la app (worktrees, terminales, navegador integrado, control del ordenador)."
         }
       }
     }

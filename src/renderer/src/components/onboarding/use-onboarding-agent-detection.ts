@@ -4,8 +4,13 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import { applyAgentPermissionMode } from '../../../../shared/tui-agent-permissions'
 import { resolveStepIndex, type OnboardingStepSkipOptions } from './onboarding-flow-state'
+import {
+  preferredAgentForAuthority,
+  type AgentAuthorityMode
+} from '../../../../shared/agent-authority'
 
 type AgentDetectionArgs = {
+  agentAuthority: AgentAuthorityMode
   currentStepId: string
   refreshDetectedAgents: () => Promise<TuiAgent[]>
   selectedAgentRef: { current: TuiAgent | null }
@@ -59,8 +64,9 @@ export function useOnboardingAgentDetection(args: AgentDetectionArgs): void {
       if (args.selectedAgentRef.current !== null) {
         return
       }
-      const preferred = ids.includes('pi')
-        ? 'pi'
+      const favourite = preferredAgentForAuthority(args.agentAuthority)
+      const preferred = ids.includes(favourite)
+        ? favourite
         : (getAgentCatalog().find((agent) => ids.includes(agent.id))?.id ?? null)
       args.setSelectedAgent(preferred)
     })

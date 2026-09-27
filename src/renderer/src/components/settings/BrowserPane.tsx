@@ -5,7 +5,7 @@ import { matchesSettingsSearch } from './settings-search'
 import { getBrowserPaneSearchEntries } from './browser-search'
 import { getBrowserLinkRoutingDescription } from './browser-link-routing-copy'
 import { getBrowserUsePaneSearchEntries } from './browser-use-search'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 import { getBrowserPaneCombinedSearchEntries } from './browser-pane-search'
 import { BrowserHomePageSetting } from './BrowserHomePageSetting'
 import { BrowserDefaultZoomSetting } from './BrowserDefaultZoomSetting'
@@ -123,7 +123,7 @@ export function BrowserPane({
   ])
   const showUserAgent = matchesSettingsSearch(searchQuery, [getBrowserPaneSearchEntries()[10]])
   const showBrowserUse =
-    !ARCA_PI_IS_AUTHORITY && matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
+    !ARCA_ORCA_AGENT_SKILLS_HIDDEN && matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
   const isMac = isMacUserAgent()
   const linkRoutingDescription = getBrowserLinkRoutingDescription(
     { isMac },

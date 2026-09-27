@@ -1,4 +1,4 @@
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 import { PiAccountsMenuSection } from './PiAccountsMenuSection'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -53,6 +53,7 @@ export function ClaudeSwitcherMenu({
   asSubmenu?: boolean
   triggerContent?: React.ReactNode
 }): React.JSX.Element {
+  const agentAuthority = useAgentAuthorityMode()
   const [open, setOpen] = useState(false)
   const [accountsExpanded, setAccountsExpanded] = useState(false)
   const [accounts, setAccounts] = useState<ClaudeRateLimitAccountsState>({
@@ -213,7 +214,7 @@ export function ClaudeSwitcherMenu({
         'Open Claude details and account switcher'
       )}
       topContent={
-        ARCA_PI_IS_AUTHORITY ? undefined : (
+        agentAuthority === 'pi' ? undefined : (
           <AccountRuntimeToggle
             groups={switchGroups}
             value={selectedGroup?.key ?? selectedRuntimeKey}
@@ -228,7 +229,7 @@ export function ClaudeSwitcherMenu({
       open={open}
       onOpenChange={handleOpenChange}
     >
-      {ARCA_PI_IS_AUTHORITY ? (
+      {agentAuthority === 'pi' ? (
         <PiAccountsMenuSection
           provider="anthropic"
           label={translate('auto.components.status.bar.StatusBar.d450654fa2', 'Claude Account')}

@@ -1,4 +1,4 @@
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 import { PiAccountsMenuSection } from './PiAccountsMenuSection'
 import { ChevronDown, ChevronRight, Loader2, RotateCcw } from 'lucide-react'
 import React from 'react'
@@ -43,6 +43,7 @@ export function CodexSwitcherMenu({
   asSubmenu?: boolean
   triggerContent?: React.ReactNode
 }): React.JSX.Element {
+  const agentAuthority = useAgentAuthorityMode()
   const {
     accountsExpanded,
     activeTarget,
@@ -90,7 +91,7 @@ export function CodexSwitcherMenu({
         'Open Codex details and account switcher'
       )}
       topContent={
-        ARCA_PI_IS_AUTHORITY ? undefined : (
+        agentAuthority === 'pi' ? undefined : (
           <AccountRuntimeToggle
             groups={switchGroups}
             value={selectedGroup?.key ?? selectedRuntimeKey}
@@ -184,7 +185,7 @@ export function CodexSwitcherMenu({
           <DropdownMenuSeparator />
         </>
       ) : null}
-      {ARCA_PI_IS_AUTHORITY ? (
+      {agentAuthority === 'pi' ? (
         <PiAccountsMenuSection
           provider="openai-codex"
           label={translate('auto.components.status.bar.StatusBar.7657e3db9c', 'Codex Account')}

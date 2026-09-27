@@ -7,7 +7,7 @@ import { VoicePane } from './VoicePane'
 import { SettingsSection } from './SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
-import { ARCA_PI_IS_AUTHORITY } from '../../../../shared/arca-product'
+import { ARCA_ORCA_AGENT_SKILLS_HIDDEN } from '../../../../shared/arca-product'
 
 export function renderAgentsSettingsSection(context: SettingsRenderContext): React.JSX.Element {
   const { model, navigation, terminal, view } = context
@@ -66,7 +66,7 @@ export function renderAccountsSettingsSection(context: SettingsRenderContext): R
 export function renderOrchestrationSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
-  if (ARCA_PI_IS_AUTHORITY) {
+  if (ARCA_ORCA_AGENT_SKILLS_HIDDEN) {
     return null
   }
   const { model, navigation, view } = context

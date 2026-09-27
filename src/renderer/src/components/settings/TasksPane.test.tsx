@@ -26,7 +26,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('../../../../shared/arca-product', () => ({
   ARCA_TASKS_STATUS_MD_ONLY: false,
-  ARCA_PI_IS_AUTHORITY: true
+  ARCA_ORCA_AGENT_SKILLS_HIDDEN: true,
+  ARCA_ONBOARDING_SKIPS_INTEGRATIONS: true
 }))
 
 vi.mock('./use-task-source-provider-readiness', () => ({

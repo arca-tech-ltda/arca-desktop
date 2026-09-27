@@ -51,6 +51,23 @@
       "megabytes": "{{received}} / {{total}} MB",
       "downloadHint": "已可用。准备好后即可下载。",
       "networkUnavailable": "网络不可用或请求超时。请重试。"
+    },
+    "agentAuthority": {
+      "label": "账户所有者",
+      "description": "在这台计算机上由哪个智能体拥有账户：Pi，或 ARCA 管理的 Claude Code 与 Codex 登录。自动仅在 Pi 以账户支持响应时选择 Pi。",
+      "optionAuto": "自动",
+      "optionPi": "Pi",
+      "optionManaged": "Claude 与 Codex",
+      "statusChecking": "正在检查 Pi 是否在此响应…",
+      "statusAutoPi": "已安装支持账户的 Pi，因此这里由 Pi 拥有账户。",
+      "statusAutoManaged": "未找到支持账户的 Pi，因此这里由 Claude Code 与 Codex 拥有账户。",
+      "statusForcedPi": "在这台计算机上已固定为 Pi。",
+      "statusForcedManaged": "在这台计算机上已固定为 Claude Code 与 Codex。",
+      "loadingAccounts": "正在检查这台计算机上由哪个智能体拥有账户…",
+      "searchDescription": "选择在这台计算机上由 Pi 还是由受管理的 Claude Code 与 Codex 登录拥有账户。",
+      "keywordPi": "pi",
+      "keywordOwner": "所有者",
+      "keywordAuthority": "权限"
     }
   },
   "app": {
@@ -15158,7 +15175,8 @@
       "setupChecklist": {
         "installCli": {
           "name": "安装 CLI",
-          "description": "注册 ARCA shell 命令，让 Pi 可以驱动应用（worktree、终端、内置浏览器、计算机操作）。"
+          "description": "注册 ARCA shell 命令，让 Pi 可以驱动应用（worktree、终端、内置浏览器、计算机操作）。",
+          "descriptionManaged": "注册 ARCA shell 命令，让 Claude Code 与 Codex 可以驱动应用（worktree、终端、内置浏览器、计算机操作）。"
         }
       }
     }

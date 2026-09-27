@@ -5,11 +5,11 @@ import { buildSettingsNavigationMetadata } from './useSettingsNavigationMetadata
 import type { Repo } from '../../../shared/repo-types'
 import type * as ArcaProduct from '../../../shared/arca-product'
 
-const arcaProduct = vi.hoisted(() => ({ ARCA_PI_IS_AUTHORITY: false }))
+const arcaProduct = vi.hoisted(() => ({ ARCA_ORCA_AGENT_SKILLS_HIDDEN: false }))
 vi.mock('../../../shared/arca-product', async (importOriginal) => ({
   ...(await importOriginal<typeof ArcaProduct>()),
-  get ARCA_PI_IS_AUTHORITY() {
-    return arcaProduct.ARCA_PI_IS_AUTHORITY
+  get ARCA_ORCA_AGENT_SKILLS_HIDDEN() {
+    return arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN
   }
 }))
 
@@ -42,11 +42,11 @@ function ids(
 
 describe('settings navigation metadata', () => {
   beforeEach(() => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = false
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = false
   })
 
-  it('drops the Orchestration pane when Pi is the authority', () => {
-    arcaProduct.ARCA_PI_IS_AUTHORITY = true
+  it('drops the Orchestration pane when Orca agent skills are hidden', () => {
+    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = true
     expect(ids()).not.toContain('orchestration')
     expect(ids({ isWebClient: true })).not.toContain('orchestration')
     expect(ids({ isLinearConnected: true })).toContain('linear')
