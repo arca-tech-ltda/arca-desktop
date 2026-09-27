@@ -33,7 +33,7 @@ export type PiAccountUsageHistory = {
 export type PiAccountUsageApi = {
   list: () => Promise<PiAccountUsageState>
   /** Marks this renderer as watching; usage is only polled while at least one watcher is open. */
-  watch: (watching: boolean) => Promise<PiAccountUsageState>
+  setWatching: (watching: boolean) => Promise<PiAccountUsageState>
   history: (provider: PiAccountProvider, name: string) => Promise<PiAccountUsageHistory>
   onChange: (callback: (state: PiAccountUsageState) => void) => () => void
 }

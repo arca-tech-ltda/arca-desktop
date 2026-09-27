@@ -51,7 +51,7 @@ const rename = vi.fn(async () => ({
 const cancelAdd = vi.fn(async () => true)
 const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
 const usageList = vi.fn(async () => ({ accounts: [] }))
-const usageWatch = vi.fn(async () => ({ accounts: [] }))
+const usageSetWatching = vi.fn(async () => ({ accounts: [] }))
 const usageHistory = vi.fn(async (provider: string, name: string) => ({
   provider,
   name,
@@ -89,7 +89,7 @@ beforeEach(() => {
       },
       piAccountUsage: {
         list: usageList,
-        watch: usageWatch,
+        setWatching: usageSetWatching,
         history: usageHistory,
         onChange: () => () => {}
       }
@@ -194,5 +194,5 @@ it('never reads or switches desktop accounts when the account owner is remote', 
   expect(screen.getByText('Switch to the local desktop to manage these accounts.')).toBeTruthy()
   expect(list).not.toHaveBeenCalled()
   expect(select).not.toHaveBeenCalled()
-  expect(usageWatch).not.toHaveBeenCalled()
+  expect(usageSetWatching).not.toHaveBeenCalled()
 })

@@ -44,11 +44,11 @@ export function usePiAccountUsage(enabled: boolean): PiAccountUsageController {
       }
     }
     const stop = api.onChange(apply)
-    void api.watch(true).then(apply, () => {})
+    void api.setWatching(true).then(apply, () => {})
     return () => {
       disposed = true
       stop()
-      void api.watch(false).catch(() => {})
+      void api.setWatching(false).catch(() => {})
     }
   }, [enabled])
 

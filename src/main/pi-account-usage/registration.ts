@@ -41,7 +41,7 @@ export function registerPiAccountUsage(): void {
     assertTrusted(event.sender)
     return service.list()
   })
-  ipcMain.handle('piAccountUsage:watch', (event, next: unknown) => {
+  ipcMain.handle('piAccountUsage:setWatching', (event, next: unknown) => {
     assertTrusted(event.sender)
     const id = event.sender.id
     if (next === true) {

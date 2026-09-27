@@ -3,7 +3,7 @@ import type { PiAccountUsageApi, PiAccountUsageState } from '../../shared/pi-acc
 
 export const piAccountUsageApi: PiAccountUsageApi = {
   list: () => ipcRenderer.invoke('piAccountUsage:list'),
-  watch: (watching) => ipcRenderer.invoke('piAccountUsage:watch', watching),
+  setWatching: (watching) => ipcRenderer.invoke('piAccountUsage:setWatching', watching),
   history: (provider, name) => ipcRenderer.invoke('piAccountUsage:history', provider, name),
   onChange: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, state: PiAccountUsageState): void =>
