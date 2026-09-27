@@ -68,8 +68,29 @@ o arquivo de login por conta. Sem cópia nova do refresh token, sem bump de vers
    o selo na aba.
 7. **Rename/remove**: bloquear conta em uso por sessão aberta conhecida pelo app;
    ao renomear, atualizar `account-projects.json`.
-8. **Detecção de suporte**: o app só oferece a feature quando o Pi instalado declara
-   suporte (ex.: `pi --version` do overlay ou marcador do patch); senão esconde.
+8. **Detecção de suporte**: o app só oferece a feature quando `pi --arca-capabilities`
+   imprime JSON com `"accountEnv": 1` (exit 0). Pi sem o patch sai com `Unknown option`
+   (exit ≠ 0) → esconder.
+9. **Complementos do lado Pi (implementados, overlay `pi-account-env`, 2026-09-26)**:
+   - `/login` de um provedor selecionado por `PI_ACCOUNT_*` é recusado (conta nova entra
+     por `/accounts`/app); `/logout` idem.
+   - O slot de `auth.json` só é tratado como cópia da conta ativa enquanto tiver o mesmo
+     refresh token da entrada do bucket; slot divergente (login sem save) nunca é adotado
+     nem sobrescrito.
+   - Sessão **sem** env que renova a conta ativa também grava a rotação na entrada do
+     bucket (ordem accounts.json → auth.json), para uma sessão com env na mesma conta não
+     reusar token morto.
+   - Travas: diretório `<arquivo>.lock` com mtime renovado; stale 30 s. **Espera sempre
+     assíncrona** em código que roda dentro do pi (extensão): esperar com o event loop
+     parado impede o pi de terminar um refresh e acaba quebrando a trava dele.
+   - Implementação e prova: `clientes/arca-pi` branch `feat/pi-account-env`
+     (`overlay/pi-account-env.patch`, `test/e2e/pi-account-env.e2e.mjs`); extensão em
+     `arca` branch `feat/accounts-proper-lock`.
+   - Pendente no app (item 4): `src/main/pi-accounts/auth-lock.ts` ainda usa arquivo `wx`;
+     com um arquivo `auth.json.lock` órfão, o proper-lockfile do pi falha com `ENOTDIR` até
+     alguém remover. `service.ts`/`pi-account-editor.ts` gravam o bucket inteiro lido antes
+     do mirror (rede): precisam reler e mesclar por entrada dentro da trava de
+     accounts.json, senão desfazem um refresh de sessão com env.
 
 ## Estado de partida (1.5.10)
 
