@@ -26,6 +26,7 @@ import { WORKTREE_ID_SEPARATOR } from '../../shared/worktree/id'
 import { WorktreeIdRequiresFullPathError } from './runtime-worktree-lineage-resolution'
 import { triggerTerminalSpawnPushTargetMaterialization } from './runtime-terminal-spawn-push-target-materialization'
 import { applyPiAccountPtyEnv } from '../pi-accounts/pi-account-pty-env'
+import { applyManagedAccountPtyEnv } from '../managed-account-projects/managed-account-pty-env'
 import { applyMegamindSessionPtyEnv } from '../arca-megamind/megamind-session-pty-env'
 
 export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extends OrcaRuntimeWithTransitionGraphReloadToTerminalState {
@@ -177,6 +178,14 @@ export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extend
       ORCA_WORKTREE_ID: scope.id
     }
     applyPiAccountPtyEnv(env, {
+      projectPath: scope.folderWorkspace?.folderPath ?? scope.repo?.path ?? scope.path,
+      cwd: scope.path,
+      connectionId: scope.connectionId,
+      tabId,
+      worktreeId: scope.id,
+      existingEnv: cleanBaseEnv
+    })
+    applyManagedAccountPtyEnv(env, {
       projectPath: scope.folderWorkspace?.folderPath ?? scope.repo?.path ?? scope.path,
       cwd: scope.path,
       connectionId: scope.connectionId,

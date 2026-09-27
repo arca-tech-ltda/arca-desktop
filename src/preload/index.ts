@@ -1,5 +1,6 @@
 import { piAccountsApi } from './api/pi-accounts-bridge'
 import { piAccountProjectsApi } from './api/pi-account-projects-bridge'
+import { managedAccountProjectsApi } from './api/managed-account-projects-bridge'
 import { agentAuthorityApi } from './api/agent-authority-bridge'
 import { piAccountUsageApi } from './api/pi-account-usage-bridge'
 import { arcaProjectsSyncApi } from './api/arca-projects-sync-bridge'
@@ -172,6 +173,7 @@ const api = {
   arcaMainframe: arcaMainframeApi,
   piAccounts: piAccountsApi,
   piAccountProjects: piAccountProjectsApi,
+  managedAccountProjects: managedAccountProjectsApi,
   agentAuthority: agentAuthorityApi,
   piAccountUsage: piAccountUsageApi,
   arcaProjectsSync: arcaProjectsSyncApi,

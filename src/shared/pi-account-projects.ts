@@ -1,5 +1,11 @@
-import { isWslUncPath } from './wsl-paths'
 import type { PiAccountProvider } from './pi-accounts'
+import {
+  isLocalAccountSelectableProject,
+  normalizeProjectPathKey,
+  resolveProjectSelectionForLaunch
+} from './project-account-paths'
+
+export { normalizeProjectPathKey } from './project-account-paths'
 
 export const PI_ACCOUNT_PROJECTS_FILE = 'account-projects.json'
 export const PI_ACCOUNT_PROJECTS_VERSION = 1
@@ -22,7 +28,7 @@ export function isPiAccountSelectableProject(project: {
   connectionId?: string | null
   path?: string | null
 }): boolean {
-  return !project.connectionId?.trim() && !isWslUncPath(project.path ?? '')
+  return isLocalAccountSelectableProject(project)
 }
 
 export type PiAccountProjectMap = {
@@ -50,24 +56,6 @@ export type PiAccountProjectSetResult = {
   state: PiAccountProjectsState
 }
 
-/**
- * Map key for a project path. Windows paths are case- and separator-insensitive, so the same
- * project reached as `C:\Repo` and `c:/repo` must resolve to one entry.
- */
-export function normalizeProjectPathKey(path: string, platform = process.platform): string {
-  const trimmed = path.trim()
-  if (!trimmed) {
-    return ''
-  }
-  const separated = platform === 'win32' ? trimmed.replace(/\//gu, '\\') : trimmed
-  const separator = platform === 'win32' ? '\\' : '/'
-  const withoutTrailing =
-    separated.length > 1 && separated.endsWith(separator) && !separated.endsWith(`:${separator}`)
-      ? separated.replace(/[\\/]+$/u, '')
-      : separated
-  return platform === 'win32' ? withoutTrailing.toLowerCase() : withoutTrailing
-}
-
 export function emptyPiAccountProjectMap(): PiAccountProjectMap {
   return { version: PI_ACCOUNT_PROJECTS_VERSION, projects: {} }
 }
@@ -93,28 +81,7 @@ export function resolvePiAccountSelectionForLaunch(
   paths: { projectPath?: string | null; cwd?: string | null },
   platform = process.platform
 ): PiAccountProjectSelection {
-  const direct = getPiAccountProjectSelection(map, paths.projectPath, platform)
-  if (Object.keys(direct).length > 0) {
-    return direct
-  }
-  const cwdKey = normalizeProjectPathKey(paths.cwd ?? '', platform)
-  if (!cwdKey) {
-    return {}
-  }
-  const separator = platform === 'win32' ? '\\' : '/'
-  let best = ''
-  for (const key of Object.keys(map.projects)) {
-    if (
-      key !== cwdKey &&
-      !cwdKey.startsWith(key.endsWith(separator) ? key : `${key}${separator}`)
-    ) {
-      continue
-    }
-    if (key.length > best.length) {
-      best = key
-    }
-  }
-  return best ? map.projects[best] : {}
+  return resolveProjectSelectionForLaunch(map.projects, paths, platform) ?? {}
 }
 
 export type PiAccountProjectsApi = {
