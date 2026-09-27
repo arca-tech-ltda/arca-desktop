@@ -14,6 +14,7 @@ import {
   readManagedClaudeKeychainCredentials,
   writeManagedClaudeKeychainCredentials
 } from './keychain'
+import { unlinkAgentHomeResourceLinks } from '../managed-account-projects/agent-home-resource-link'
 
 export type ClaudeManagedAuthLocation = {
   managedAuthPath: string
@@ -141,7 +142,11 @@ export class ClaudeManagedAuthStorage {
   async remove(accountId: string, candidatePath: string): Promise<void> {
     try {
       const managedAuthPath = await this.assertOwned(candidatePath, accountId)
-      rmSync(resolve(managedAuthPath, '..'), { recursive: true, force: true })
+      const accountDir = resolve(managedAuthPath, '..')
+      // The home links skills/commands/CLAUDE.md into ~/.claude; sever them before the recursive
+      // delete, so removing an account can never reach the user's own files through a junction.
+      unlinkAgentHomeResourceLinks(accountDir)
+      rmSync(accountDir, { recursive: true, force: true })
     } catch (error) {
       console.warn('[claude-accounts] Refusing to remove untrusted managed auth:', error)
     }

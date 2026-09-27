@@ -13,10 +13,14 @@ import type { CodexAccountAddTarget, ManagedCodexHomeLocation } from './codex-ac
 import { writeFileAtomically } from './fs-utils'
 import { ManagedCodexHomeTemporarilyUnavailableError } from './host-codex-managed-home-ownership'
 import type { CodexManagedHomePath } from './codex-managed-home-path'
+import { unlinkAgentHomeResourceLinks } from '../managed-account-projects/agent-home-resource-link'
 
 const WSL_MANAGED_HOME_TIMEOUT_MS = 5_000
 
 function removeManagedHomeTreeSync(targetPath: string): void {
+  // Why: the managed home links skills/prompts/AGENTS.md into ~/.codex; the links must be severed
+  // before the recursive delete so it can never walk into the user's real home through one.
+  unlinkAgentHomeResourceLinks(targetPath)
   // Why: codex login descendants can briefly keep Windows handles on files in
   // the managed home (e.g. log/codex-login.log); bounded retries absorb the
   // transient lock instead of failing with ENOTEMPTY and orphaning the home.
