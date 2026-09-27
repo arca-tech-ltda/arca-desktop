@@ -23,10 +23,6 @@ const MANAGED_ACCOUNT_IPC_CHANNELS = [
 let service: ManagedAccountProjectsService | null = null
 let stop: (() => void) | null = null
 
-export function getManagedAccountProjects(): ManagedAccountProjectsService | null {
-  return service
-}
-
 function assertAgent(agent: unknown): ManagedAccountAgent {
   if (agent !== 'claude' && agent !== 'codex') {
     throw new Error('Invalid managed account agent')

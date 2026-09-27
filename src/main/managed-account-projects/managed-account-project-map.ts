@@ -3,7 +3,6 @@ import { dirname, join } from 'node:path'
 import { z } from 'zod'
 import {
   emptyManagedAccountProjectMap,
-  MANAGED_ACCOUNT_AGENTS,
   MANAGED_ACCOUNT_PROJECTS_FILE,
   MANAGED_ACCOUNT_PROJECTS_VERSION,
   resolveManagedAccountSelectionForLaunch,
@@ -263,5 +262,3 @@ export function setManagedAccountProjectsService(
 ): void {
   instance = service
 }
-
-export { MANAGED_ACCOUNT_AGENTS }

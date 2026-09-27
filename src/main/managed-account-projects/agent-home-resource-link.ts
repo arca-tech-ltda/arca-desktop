@@ -1,5 +1,4 @@
-import { cpSync, existsSync, lstatSync, readlinkSync, symlinkSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { cpSync, existsSync, lstatSync, symlinkSync } from 'node:fs'
 
 /**
  * Points a managed agent home at a resource of the user's real home (skills, prompts…).
@@ -29,15 +28,6 @@ export function linkAgentHomeResource(sourcePath: string, targetPath: string): v
     } catch (error) {
       console.warn('[managed-account-projects] could not mirror', sourcePath, error)
     }
-  }
-}
-
-/** True when the target is a link already resolving to the source; used by tests and callers. */
-export function resourceLinkPointsAt(targetPath: string, sourcePath: string): boolean {
-  try {
-    return resolve(readlinkSync(targetPath)) === resolve(sourcePath)
-  } catch {
-    return false
   }
 }
 

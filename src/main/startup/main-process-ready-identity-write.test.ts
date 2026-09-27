@@ -42,8 +42,12 @@ vi.mock('../durable-file-write', async (importOriginal) => {
 })
 
 vi.mock('electron', () => ({
+  // Why: ready-phase registration now also installs the managed-account IPC surface.
+  ipcMain: { handle: vi.fn(), removeHandler: vi.fn() },
+  BrowserWindow: { getAllWindows: vi.fn(() => []) },
   app: {
     on: vi.fn(),
+    once: vi.fn(),
     setName: vi.fn(),
     getPath: vi.fn(() => mocks.userDataPath),
     getVersion: vi.fn(() => '1.0.0'),
