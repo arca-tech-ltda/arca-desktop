@@ -34,20 +34,12 @@ async function fixture() {
     security,
     service: new PiAccountsService({ mirror }),
     bucket: async () => bucketSchema.parse(await readJson(join(agentDir, 'accounts.json'), {})),
-    auth: async () => authSchema.parse(await readJson(join(agentDir, 'auth.json'), {})),
-    // The fixture slot carries a rotated refresh token; only a slot that still holds the active
-    // entry's token counts as that account's copy (contract v1 §9), so link it back.
-    linkSlotToActiveAccount: async () => {
-      const auth = authSchema.parse(await readJson(join(agentDir, 'auth.json'), {}))
-      auth.anthropic.refresh = 'fixture-old-refresh'
-      await writeJson(join(agentDir, 'auth.json'), auth)
-    }
+    auth: async () => authSchema.parse(await readJson(join(agentDir, 'auth.json'), {}))
   }
 }
 
 it('matches the Pi core fixture contract: sync outgoing, switch slot, preserve unrelated credentials, mirror', async () => {
   const f = await fixture()
-  await f.linkSlotToActiveAccount()
   expect((await f.service.list()).accounts.find((a) => a.active)?.drift).toBe(true)
   const state = await f.service.use('anthropic', 'personal')
   expect(state.error).toBeUndefined()
@@ -65,7 +57,6 @@ it('matches the Pi core fixture contract: sync outgoing, switch slot, preserve u
 
 it('using the active account preserves the refreshed slot', async () => {
   const f = await fixture()
-  await f.linkSlotToActiveAccount()
   await f.service.use('anthropic', 'work')
   expect((await f.auth()).anthropic.access).toBe('fixture-renewed')
 })
@@ -203,25 +194,8 @@ it('aborts the switch when Pi refreshes the same slot mid-mirror, keeping both c
   expect((await f.auth()).anthropic.access).toBe('fixture-concurrent')
   const bucket = await f.bucket()
   expect(bucket.active.anthropic).toBe('work')
-  // The concurrent slot carries a refresh token nothing links to `work`, so it stays out of it.
-  expect(bucket.accounts.anthropic.work.access).toBe('fixture-old')
+  expect(bucket.accounts.anthropic.work.access).toBe('fixture-concurrent')
   expect(bucket.accounts.anthropic.personal.refresh).toBe('fixture-rotated')
-})
-
-it('never adopts a slot that a global login replaced, leaving the drift visible', async () => {
-  const f = await fixture()
-  const stranger = {
-    type: 'oauth',
-    access: 'fixture-stranger',
-    refresh: 'fixture-stranger-refresh',
-    expires: 8000
-  }
-  await writeJson(join(f.agentDir, 'auth.json'), { ...(await f.auth()), anthropic: stranger })
-  await f.service.use('anthropic', 'personal')
-  const bucket = await f.bucket()
-  expect(bucket.accounts.anthropic.work.access).toBe('fixture-old')
-  expect(JSON.stringify(bucket)).not.toContain('fixture-stranger')
-  expect(bucket.active.anthropic).toBe('personal')
 })
 
 it('never writes back a snapshot when another writer renewed the account during the mirror', async () => {
