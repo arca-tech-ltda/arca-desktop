@@ -28,6 +28,10 @@ export function setAgentHookPromptContextProvider(
   provider = next
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function readString(record: Record<string, unknown>, keys: string[]): string | null {
   for (const key of keys) {
     const value = record[key]
@@ -43,16 +47,12 @@ function readHookPayload(record: Record<string, unknown>): Record<string, unknow
   if (typeof raw === 'string') {
     try {
       const parsed: unknown = parseAgentHookJson(raw)
-      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
-        ? (parsed as Record<string, unknown>)
-        : null
+      return isRecord(parsed) ? parsed : null
     } catch {
       return null
     }
   }
-  return typeof raw === 'object' && raw !== null && !Array.isArray(raw)
-    ? (raw as Record<string, unknown>)
-    : null
+  return isRecord(raw) ? raw : null
 }
 
 /** Pane, event name and cwd off the transport envelope, without touching listener state. */
@@ -60,12 +60,11 @@ export function readAgentHookObservation(
   source: AgentHookSource,
   body: unknown
 ): AgentHookObservation | null {
-  if (!CONTEXT_SOURCES.has(source) || typeof body !== 'object' || body === null) {
+  if (!CONTEXT_SOURCES.has(source) || !isRecord(body)) {
     return null
   }
-  const record = body as Record<string, unknown>
-  const paneKey = readString(record, ['paneKey'])
-  const payload = readHookPayload(record)
+  const paneKey = readString(body, ['paneKey'])
+  const payload = readHookPayload(body)
   if (!paneKey || !payload) {
     return null
   }
