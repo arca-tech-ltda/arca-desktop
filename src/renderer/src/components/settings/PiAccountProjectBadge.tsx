@@ -22,10 +22,8 @@ export function PiAccountProjectBadge({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span tabIndex={0} data-testid="pi-account-project-badge">
-          <Badge variant="outline" className="max-w-32 truncate">
-            {names}
-          </Badge>
+        <span tabIndex={0} data-testid="pi-account-project-badge" className="max-w-32 truncate">
+          <Badge variant="outline">{names}</Badge>
         </span>
       </TooltipTrigger>
       <TooltipContent>
