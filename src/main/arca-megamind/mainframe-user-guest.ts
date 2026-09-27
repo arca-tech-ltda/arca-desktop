@@ -28,9 +28,25 @@ export type MainframeUserRunner = (
  *
  * See docs/reference/megamind-human-session.md.
  */
-class MainframeUserGuest {
+/** Offline Mainframe: the retry window doubles from 5s so a failed load cannot churn windows. */
+const MIN_RETRY_DELAY = 5_000
+const MAX_RETRY_DELAY = 300_000
+
+export class MainframeUserGuest {
   private window: BrowserWindow | null = null
   private opening: Promise<BrowserWindow | null> | null = null
+  private closed = false
+  private retryDelay = MIN_RETRY_DELAY
+  private retryAt = 0
+
+  private forget(window: BrowserWindow): void {
+    if (this.window === window) {
+      this.window = null
+    }
+    if (!window.isDestroyed()) {
+      window.destroy()
+    }
+  }
 
   private create(): Promise<BrowserWindow | null> {
     const endpoint = getArcaMainframeEndpoint()
@@ -53,18 +69,27 @@ class MainframeUserGuest {
         this.window = null
       }
     })
+    // A crashed or hung renderer keeps answering `isDestroyed() === false`, so drop it explicitly.
+    window.webContents.on('render-process-gone', () => this.forget(window))
+    window.on('unresponsive', () => this.forget(window))
     const load = window.webContents
       .loadURL(new URL('/api/health', endpoint.origin).href)
       .catch(() => window.webContents.loadURL(endpoint.panelUrl))
     return load.then(
       () => {
+        if (this.closed || window.isDestroyed()) {
+          this.forget(window)
+          return null
+        }
         this.window = window
+        this.retryDelay = MIN_RETRY_DELAY
+        this.retryAt = 0
         return window
       },
       () => {
-        if (!window.isDestroyed()) {
-          window.destroy()
-        }
+        this.forget(window)
+        this.retryAt = Date.now() + this.retryDelay
+        this.retryDelay = Math.min(this.retryDelay * 2, MAX_RETRY_DELAY)
         return null
       }
     )
@@ -73,6 +98,10 @@ class MainframeUserGuest {
   private ready(): Promise<BrowserWindow | null> {
     if (this.window && !this.window.isDestroyed()) {
       return Promise.resolve(this.window)
+    }
+    // The app is quitting: a late poll must not open another window.
+    if (this.closed || Date.now() < this.retryAt) {
+      return Promise.resolve(null)
     }
     this.opening ??= this.create().finally(() => {
       this.opening = null
@@ -106,8 +135,9 @@ class MainframeUserGuest {
   }
 
   close(): void {
-    if (this.window && !this.window.isDestroyed()) {
-      this.window.destroy()
+    this.closed = true
+    if (this.window) {
+      this.forget(this.window)
     }
     this.window = null
   }
