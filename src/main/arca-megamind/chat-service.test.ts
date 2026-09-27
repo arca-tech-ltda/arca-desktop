@@ -1,6 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import { MegamindChatService } from './chat-service'
-import type { MegamindChatClient } from './chat-client'
 import type { MegamindChatMessage, MegamindChatState } from '../../shared/arca-megamind-chat'
 
 const DM = 'dm:apa0b320to4sf22:bqr1c430up5tg33'
@@ -52,12 +51,10 @@ function setup(): Harness {
   const states: MegamindChatState[] = []
   const alerts: { handle: string; alert: string }[] = []
   const service = new MegamindChatService({
-    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the service only uses the five client methods stubbed above.
-    client: client as unknown as MegamindChatClient,
+    client,
     publish: (state) => states.push(state),
     alert: (item, alert) => alerts.push({ handle: item.authorName, alert }),
-    setTimer: () => 0 as unknown as ReturnType<typeof setTimeout>,
-    clearTimer: () => {}
+    setTimer: () => () => {}
   })
   return { service, client, states, alerts }
 }

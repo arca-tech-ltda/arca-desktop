@@ -12,15 +12,21 @@ import {
 } from '../../shared/arca-megamind-notifications'
 import type { ChatFailure, ChatResult, MegamindChatClient } from './chat-client'
 
+/** What the service needs from the client, so a test can stand in without the transport. */
+export type MegamindChatTransport = Pick<
+  MegamindChatClient,
+  'identity' | 'channels' | 'recent' | 'history' | 'post'
+>
+
 const VISIBLE_INTERVAL = 5_000
 const BACKGROUND_INTERVAL = 30_000
 
 export type MegamindChatServiceOptions = {
-  client: MegamindChatClient
+  client: MegamindChatTransport
   publish: (state: MegamindChatState) => void
   alert: (message: MegamindChatMessage, alert: MegamindChatAlert) => void
-  setTimer?: (callback: () => void, ms: number) => ReturnType<typeof setTimeout>
-  clearTimer?: (timer: ReturnType<typeof setTimeout>) => void
+  /** Schedules the next poll and returns its cancel; injected so tests drive the loop themselves. */
+  setTimer?: (callback: () => void, ms: number) => () => void
 }
 
 /**
@@ -36,13 +42,17 @@ export class MegamindChatService {
   private visible = false
   private running = false
   private busy = false
-  private timer?: ReturnType<typeof setTimeout>
+  private cancelTimer?: () => void
   private readonly setTimer: NonNullable<MegamindChatServiceOptions['setTimer']>
-  private readonly clearTimer: NonNullable<MegamindChatServiceOptions['clearTimer']>
 
   constructor(private readonly options: MegamindChatServiceOptions) {
-    this.setTimer = options.setTimer ?? ((callback, ms) => setTimeout(callback, ms))
-    this.clearTimer = options.clearTimer ?? ((timer) => clearTimeout(timer))
+    this.setTimer =
+      options.setTimer ??
+      ((callback, ms) => {
+        const timer = setTimeout(callback, ms)
+        timer.unref?.()
+        return () => clearTimeout(timer)
+      })
   }
 
   snapshot(): MegamindChatState {
@@ -78,9 +88,7 @@ export class MegamindChatService {
 
   stop(): void {
     this.running = false
-    if (this.timer) {
-      this.clearTimer(this.timer)
-    }
+    this.cancelTimer?.()
   }
 
   /** Called by the panel: only a visible chat tab earns the fast poll. */
@@ -131,17 +139,14 @@ export class MegamindChatService {
     if (!this.running) {
       return
     }
-    if (this.timer) {
-      this.clearTimer(this.timer)
-    }
+    this.cancelTimer?.()
     const delay =
       this.state.availability === 'unsupported'
         ? BACKGROUND_INTERVAL * 10
         : this.visible
           ? VISIBLE_INTERVAL
           : BACKGROUND_INTERVAL
-    this.timer = this.setTimer(() => void this.refresh(), delay)
-    this.timer.unref?.()
+    this.cancelTimer = this.setTimer(() => void this.refresh(), delay)
   }
 
   async refresh(): Promise<void> {

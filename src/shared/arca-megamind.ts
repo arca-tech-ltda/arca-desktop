@@ -13,6 +13,15 @@ export type MegamindStatus = {
   verificationUri?: string
 }
 export type MegamindApproval = { id: string; summary: string; relevant?: boolean }
+
+export type MegamindSubTab = 'chat' | 'presence' | 'approvals'
+
+/** Where a notification or deep link wants the Megamind panel to land. */
+export type MegamindPanelRoute = {
+  tab: MegamindSubTab
+  channel?: string
+  approvalId?: string
+}
 export type MegamindPrerequisites = {
   pi: boolean
   installer: boolean

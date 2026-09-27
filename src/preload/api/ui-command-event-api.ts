@@ -37,6 +37,7 @@ import type {
   SessionTabCloseRequest,
   SessionTabCloseResponse
 } from '../../shared/session-tab-close'
+import type { MegamindPanelRoute } from '../../shared/arca-megamind'
 
 export type CloseActiveTabPayload = { sourceId: string }
 
@@ -64,7 +65,7 @@ export type UiCommandEventApi = {
   onToggleLeftSidebar: (callback: () => void) => () => void
   onToggleRightSidebar: (callback: () => void) => () => void
   /** View > Megamind: reveal the ARCA Mainframe panel in the right sidebar. */
-  onShowMegamindPanel?: (callback: () => void) => () => void
+  onShowMegamindPanel?: (callback: (route?: MegamindPanelRoute) => void) => () => void
   onToggleWorktreePalette: (callback: () => void) => () => void
   onToggleFloatingTerminal: (callback: () => void) => () => void
   onTerminalShortcutCaptured: (

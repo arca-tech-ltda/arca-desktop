@@ -90,7 +90,7 @@ export function deliverNativeNotification(
         return
       }
       safelyRevealWindow(win)
-      win.webContents.send('ui:showMegamindPanel')
+      win.webContents.send('ui:showMegamindPanel', args.megamind?.route)
     }
     notification.on('click', clickHandler)
   } else if (worktreeId && (repoId !== null || chatTarget)) {

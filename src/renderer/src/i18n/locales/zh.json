@@ -13,14 +13,9 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "guestAriaLabel": "ARCA Megamind",
-      "reload": "重新加载 Megamind",
       "openInBrowser": "在浏览器中打开",
-      "errorTitle": "无法连接 Megamind",
-      "errorDetail": "ARCA Mainframe 未响应。请检查连接后重试。",
       "unsupportedTitle": "Megamind 需要桌面应用",
-      "unsupportedDetail": "此面板嵌入了仅能在桌面应用中运行的 ARCA Mainframe。",
-      "retry": "重试",
+      "unsupportedDetail": "Megamind 通过桌面应用登录 ARCA Mainframe，配对的网页客户端无法完成此操作。",
       "connectedAs": "已连接为",
       "connect": "连接 Megamind",
       "confirmCode": "请在 Mainframe 中确认此代码：",

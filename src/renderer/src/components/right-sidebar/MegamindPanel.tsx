@@ -1,200 +1,158 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { AlertCircle, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { ExternalLink } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
 import { isWebClientLocation } from '@/lib/web-client-location'
-import type { ArcaMainframePanelDescriptor } from '../../../../shared/arca-mainframe'
-import { attachMegamindWebview } from './megamind-webview-attach'
+import {
+  megamindApprovalsSnapshot,
+  subscribeMegamindApprovals
+} from '@/attention/megamind-approvals-store'
+import {
+  megamindPanelRoute,
+  setMegamindSubTab,
+  subscribeMegamindPanelRoute
+} from '@/attention/megamind-panel-route'
+import type { MegamindSubTab } from '../../../../shared/arca-megamind'
 import { MegamindConnection } from './MegamindConnection'
 import { MegamindPrerequisites } from './MegamindPrerequisites'
+import { MegamindApprovalsTab } from './megamind/MegamindApprovalsTab'
+import { MegamindChatTab } from './megamind/MegamindChatTab'
+import { MegamindPresenceTab } from './megamind/MegamindPresenceTab'
+import { useMegamindChat, useMegamindMembers } from './megamind/use-megamind-chat'
 
-type MegamindState = 'loading' | 'ready' | 'error' | 'unsupported'
+function isSubTab(value: string): value is MegamindSubTab {
+  return value === 'chat' || value === 'presence' || value === 'approvals'
+}
 
-function isPanelDescriptor(value: unknown): value is ArcaMainframePanelDescriptor {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  const candidate: Record<string, unknown> = { ...value }
+function SubTabTrigger({
+  value,
+  label,
+  count
+}: {
+  value: MegamindSubTab
+  label: string
+  count: number
+}): React.JSX.Element {
   return (
-    typeof candidate.origin === 'string' &&
-    typeof candidate.panelUrl === 'string' &&
-    typeof candidate.partition === 'string'
+    <TabsTrigger value={value}>
+      {label}
+      {count > 0 && <Badge variant="default">{count}</Badge>}
+    </TabsTrigger>
   )
 }
 
-export default function MegamindPanel(): React.JSX.Element {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const reloadRef = useRef<(() => void) | null>(null)
-  const navigateRef = useRef<((url: string) => void) | null>(null)
-  const [panel, setPanel] = useState<ArcaMainframePanelDescriptor | null>(null)
-  const [state, setState] = useState<MegamindState>('loading')
-  const [attempt, setAttempt] = useState(0)
-
+export default function MegamindPanel({
+  isVisible = true
+}: {
+  isVisible?: boolean
+}): React.JSX.Element {
+  const route = useSyncExternalStore(subscribeMegamindPanelRoute, megamindPanelRoute)
+  const approvals = useSyncExternalStore(subscribeMegamindApprovals, megamindApprovalsSnapshot)
+  const chatVisible = isVisible && route.tab === 'chat'
+  const { state, selectChannel, post } = useMegamindChat(chatVisible)
+  const { members, degraded } = useMegamindMembers(isVisible)
+  const [panelUrl, setPanelUrl] = useState<string | null>(null)
   useEffect(() => {
-    let disposed = false
-    const getPanel = window.api.arcaMainframe?.getPanel
-    // The paired web client has no webview tag, so there is nothing to embed there.
-    if (!getPanel || isWebClientLocation()) {
-      setState('unsupported')
-      return
-    }
-    setState('loading')
-    void getPanel()
-      .then((descriptor) => {
-        if (disposed) {
-          return
-        }
-        // A stale preload answers this channel with undefined rather than failing.
-        if (!isPanelDescriptor(descriptor)) {
-          setState('unsupported')
-          return
-        }
-        setPanel(descriptor)
-      })
-      .catch(() => {
-        if (!disposed) {
-          setState('error')
-        }
-      })
-    return () => {
-      disposed = true
-    }
-  }, [attempt])
+    void window.api.arcaMainframe
+      ?.getPanel()
+      .then((descriptor) => setPanelUrl(descriptor?.panelUrl ?? null))
+      .catch(() => setPanelUrl(null))
+  }, [])
 
-  useEffect(() => {
-    const container = containerRef.current
-    if (!panel || !container) {
-      return
-    }
-    let failed = false
-    const attached = attachMegamindWebview({
-      container,
-      panel,
-      ariaLabel: translate('arca.megamind.guestAriaLabel', 'ARCA Megamind'),
-      onLoadStarted: () => {
-        failed = false
-        setState('loading')
-      },
-      onLoadStopped: () => {
-        if (!failed) {
-          setState('ready')
-        }
-      },
-      onLoadFailed: (event) => {
-        // -3 is an aborted load (a navigation replaced it), not a reachability failure.
-        if (!event.isMainFrame || event.errorCode === -3) {
-          return
-        }
-        failed = true
-        setState('error')
-      }
-    })
-    reloadRef.current = attached.reload
-    navigateRef.current = attached.navigate
-    return () => {
-      navigateRef.current = null
-      reloadRef.current = null
-      attached.detach()
-    }
-  }, [attempt, panel])
-
-  const handleReload = useCallback(() => {
-    if (!panel || state === 'error') {
-      // Remount instead of reloading: a guest that never loaded has nothing to reload.
-      setPanel(null)
-      setAttempt((count) => count + 1)
-      return
-    }
-    reloadRef.current?.()
-  }, [panel, state])
-
-  const handleOpenExternally = useCallback(() => {
-    if (panel) {
-      void window.api.shell.openUrl(panel.panelUrl)
-    }
-  }, [panel])
-
-  const reloadLabel = translate('arca.megamind.reload', 'Reload Megamind')
   const openExternallyLabel = translate('arca.megamind.openInBrowser', 'Open in browser')
-
+  const unread = state.channels.reduce((total, channel) => total + channel.unread, 0)
+  if (isWebClientLocation()) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+        <p className="text-sm font-medium">
+          {translate('arca.megamind.unsupportedTitle', 'Megamind needs the desktop app')}
+        </p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          {translate(
+            'arca.megamind.unsupportedDetail',
+            'Megamind signs in to the ARCA Mainframe from the desktop app, which the paired web client cannot do.'
+          )}
+        </p>
+      </div>
+    )
+  }
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex h-8 min-h-8 items-center gap-2 border-b border-border px-2">
         <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
           {translate('arca.megamind.title', 'Megamind')}
         </span>
-        {state === 'loading' ? (
-          <Loader2 className="size-3 shrink-0 animate-spin text-muted-foreground" />
-        ) : null}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              aria-label={reloadLabel}
-              onClick={handleReload}
-            >
-              <RefreshCw className="size-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" sideOffset={4}>
-            {reloadLabel}
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              aria-label={openExternallyLabel}
-              aria-disabled={!panel}
-              onClick={handleOpenExternally}
-            >
-              <ExternalLink className="size-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" sideOffset={4}>
-            {openExternallyLabel}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      {panel && !isWebClientLocation() && (
-        <>
-          <MegamindConnection navigate={(url) => navigateRef.current?.(url)} />
-          <MegamindPrerequisites />
-        </>
-      )}
-      <div className="relative flex min-h-0 flex-1 overflow-hidden" ref={containerRef}>
-        {state === 'error' || state === 'unsupported' ? (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background px-6 text-center">
-            <AlertCircle className="size-6 text-muted-foreground" />
-            <p className="text-sm font-medium">
-              {state === 'unsupported'
-                ? translate('arca.megamind.unsupportedTitle', 'Megamind needs the desktop app')
-                : translate('arca.megamind.errorTitle', 'Megamind is unreachable')}
-            </p>
-            <p className="max-w-sm text-xs text-muted-foreground">
-              {state === 'unsupported'
-                ? translate(
-                    'arca.megamind.unsupportedDetail',
-                    'This panel embeds the ARCA Mainframe, which only runs in the desktop app.'
-                  )
-                : translate(
-                    'arca.megamind.errorDetail',
-                    'The ARCA Mainframe did not respond. Check your connection and try again.'
-                  )}
-            </p>
-            {state === 'error' ? (
-              <Button type="button" variant="outline" size="sm" onClick={handleReload}>
-                {translate('arca.megamind.retry', 'Try again')}
+        {panelUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label={openExternallyLabel}
+                onClick={() => void window.api.shell.openUrl(panelUrl)}
+              >
+                <ExternalLink className="size-3" />
               </Button>
-            ) : null}
-          </div>
-        ) : null}
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={4}>
+              {openExternallyLabel}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
+      <MegamindConnection />
+      <MegamindPrerequisites />
+      <Tabs
+        value={route.tab}
+        onValueChange={(value) => isSubTab(value) && setMegamindSubTab(value)}
+        className="min-h-0 flex-1"
+      >
+        <div className="shrink-0 border-b border-border px-1">
+          <TabsList variant="line">
+            <SubTabTrigger
+              value="chat"
+              label={translate('arca.megamind.tabChat', 'Chat')}
+              count={unread}
+            />
+            <SubTabTrigger
+              value="presence"
+              label={translate('arca.megamind.tabPresence', 'Presence')}
+              count={0}
+            />
+            <SubTabTrigger
+              value="approvals"
+              label={translate('arca.megamind.tabApprovals', 'Approvals')}
+              count={approvals.items.length}
+            />
+          </TabsList>
+        </div>
+        <TabsContent value="chat" className="flex min-h-0 flex-col">
+          <MegamindChatTab
+            state={state}
+            members={members}
+            selectChannel={selectChannel}
+            post={post}
+          />
+        </TabsContent>
+        <TabsContent value="presence" className="flex min-h-0 flex-col">
+          <MegamindPresenceTab
+            members={members}
+            degraded={degraded}
+            channels={state.channels}
+            onOpenDm={(channel) => {
+              selectChannel(channel)
+              setMegamindSubTab('chat')
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="approvals" className="flex min-h-0 flex-col">
+          <MegamindApprovalsTab />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
