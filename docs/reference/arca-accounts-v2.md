@@ -86,6 +86,20 @@ o arquivo de login por conta. Sem cópia nova do refresh token, sem bump de vers
    - Implementação e prova: `clientes/arca-pi` branch `feat/pi-account-env`
      (`overlay/pi-account-env.patch`, `test/e2e/pi-account-env.e2e.mjs`); extensão em
      `arca` branch `feat/accounts-proper-lock`.
+   - **Diário de rotação** (revisão, P2): rotação gravada em
+     `~/.pi/agent/accounts.rotations/<ts>-<pid>.json` → `accounts.json` → `auth.json`; o
+     diário é apagado por último. Kill no meio ou trava comprometida deixam o diário, que a
+     próxima operação travada do Pi reaplica em toda cópia com o refresh consumido. O app
+     não precisa escrever o diário, mas **não deve apagá-lo** e, ao gravar uma entrada sob a
+     trava, não pode trocar um token por um mais antigo.
+   - **Lockstep com `/accounts`** (revisão, P1): o Pi só honra `PI_ACCOUNT_*` quando a
+     extensão que registra `/accounts` declara
+     `globalThis[Symbol.for("arca.accounts.lockProtocol")] = 2` (ARCA/arca `d88cff2`+).
+     Com `/accounts` antigo carregado, erro claro citando o arquivo da extensão; sem
+     extensão `/accounts` (subagente `--no-extensions`), vale. Sessões Pi abertas antes da
+     atualização continuam com a extensão antiga até reiniciar: o app deve pedir para
+     reabrir terminais Pi antigos antes de usar conta por projeto. O app fica fora do
+     lockstep (é outro processo): precisa do item 4 abaixo antes de ser liberado.
    - Pendente no app (item 4): `src/main/pi-accounts/auth-lock.ts` ainda usa arquivo `wx`;
      com um arquivo `auth.json.lock` órfão, o proper-lockfile do pi falha com `ENOTDIR` até
      alguém remover. `service.ts`/`pi-account-editor.ts` gravam o bucket inteiro lido antes
