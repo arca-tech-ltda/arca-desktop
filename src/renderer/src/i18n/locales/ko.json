@@ -15376,8 +15376,6 @@
     "use": "사용",
     "rename": "이름 변경",
     "remove": "삭제",
-    "renameAccount": "{{value0}} 이름 변경",
-    "removeAccount": "{{value0}} 삭제",
     "renameTitle": "계정 이름 변경",
     "name": "계정 이름",
     "save": "저장",
@@ -15408,6 +15406,20 @@
     "projectMenu": "계정",
     "newPiWithAccount": "계정을 선택해 새 Pi…",
     "noAccounts": "저장된 계정 없음",
-    "useAnotherAccount": "이 세션에서 다른 계정 사용: 이 탭을 마우스 오른쪽 클릭 → {{value0}}"
+    "useAnotherAccount": "이 세션에서 다른 계정 사용: 이 탭을 마우스 오른쪽 클릭 → {{value0}}",
+    "intro": "Pi와 Claude·Codex CLI가 로그인에 사용하는 계정과 각 계정의 남은 할당량입니다.",
+    "details": "세부 정보",
+    "emptyProvider": "{{value0}}에 저장된 계정이 없습니다.",
+    "accountActions": "{{value0}} 작업",
+    "usageSession": "5시간",
+    "usageWeekly": "주",
+    "usageRenewsIn": "{{value0}} 후 갱신",
+    "usageLoading": "사용량을 읽는 중…",
+    "usageUnavailable": "지금은 사용량을 가져올 수 없습니다.",
+    "usageNoRecentData": "최근 데이터가 없습니다.",
+    "usageHistoryTitle": "시간에 따른 사용량(5시간 구간)",
+    "usageHistoryEmpty": "ARCA가 이 계정을 몇 번 읽으면 기록이 시작됩니다.",
+    "usageRange24h": "24시간",
+    "usageRange7d": "7일"
   }
 }

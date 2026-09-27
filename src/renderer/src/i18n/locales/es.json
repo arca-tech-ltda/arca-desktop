@@ -15209,8 +15209,6 @@
     "use": "Usar",
     "rename": "Renombrar",
     "remove": "Eliminar",
-    "renameAccount": "Renombrar {{value0}}",
-    "removeAccount": "Eliminar {{value0}}",
     "renameTitle": "Renombrar cuenta",
     "name": "Nombre de la cuenta",
     "save": "Guardar",
@@ -15241,6 +15239,20 @@
     "projectMenu": "Cuenta",
     "newPiWithAccount": "Nuevo Pi con cuenta…",
     "noAccounts": "No hay cuentas guardadas",
-    "useAnotherAccount": "Usar otra cuenta en esta sesión: clic derecho en esta pestaña → {{value0}}"
+    "useAnotherAccount": "Usar otra cuenta en esta sesión: clic derecho en esta pestaña → {{value0}}",
+    "intro": "Cuentas con las que inician sesión Pi y las CLI de Claude y Codex, y cuánta cuota queda en cada una.",
+    "details": "Detalles",
+    "emptyProvider": "No hay cuentas guardadas de {{value0}}.",
+    "accountActions": "Acciones para {{value0}}",
+    "usageSession": "5 h",
+    "usageWeekly": "Semana",
+    "usageRenewsIn": "se renueva en {{value0}}",
+    "usageLoading": "Leyendo el uso…",
+    "usageUnavailable": "El uso no está disponible ahora mismo.",
+    "usageNoRecentData": "Sin datos recientes.",
+    "usageHistoryTitle": "Uso a lo largo del tiempo (ventana de 5 h)",
+    "usageHistoryEmpty": "El historial empieza cuando ARCA haya leído esta cuenta algunas veces.",
+    "usageRange24h": "24 h",
+    "usageRange7d": "7 d"
   }
 }

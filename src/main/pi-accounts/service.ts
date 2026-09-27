@@ -1,4 +1,3 @@
-import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type {
   PiAccountAddResult,
@@ -12,6 +11,7 @@ import {
   authSchema,
   bucketSchema,
   readJson,
+  resolvePiAgentDir,
   writeJson,
   type Auth,
   type Bucket,
@@ -76,8 +76,7 @@ export class PiAccountsService {
       projects?: PiAccountProjectsService
     } = {}
   ) {
-    this.agentDir =
-      options.agentDir ?? process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent')
+    this.agentDir = options.agentDir ?? resolvePiAgentDir()
     this.editor = options.editor ?? new PiAccountEditor(this.agentDir)
   }
 

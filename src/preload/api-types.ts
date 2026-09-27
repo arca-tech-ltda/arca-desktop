@@ -1,5 +1,6 @@
 import type { PiAccountsApi } from '../shared/pi-accounts'
 import type { PiAccountProjectsApi } from '../shared/pi-account-projects'
+import type { PiAccountUsageApi } from '../shared/pi-account-usage'
 import type { ArcaProjectsSyncApi } from '../shared/arca-projects-sync'
 import type { ArcaMegamindApi } from '../shared/arca-megamind'
 import type {
@@ -138,6 +139,7 @@ export type PreloadApi = {
   arcaMainframe: ArcaMainframeApi['arcaMainframe']
   piAccounts: PiAccountsApi
   piAccountProjects: PiAccountProjectsApi
+  piAccountUsage: PiAccountUsageApi
   arcaProjectsSync: ArcaProjectsSyncApi
   arcaMegamind: ArcaMegamindApi
   arcaPriorities: ArcaPrioritiesApi

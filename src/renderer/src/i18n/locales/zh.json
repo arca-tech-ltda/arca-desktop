@@ -15350,8 +15350,6 @@
     "use": "使用",
     "rename": "重命名",
     "remove": "删除",
-    "renameAccount": "重命名 {{value0}}",
-    "removeAccount": "删除 {{value0}}",
     "renameTitle": "重命名账户",
     "name": "账户名称",
     "save": "保存",
@@ -15382,6 +15380,20 @@
     "projectMenu": "账号",
     "newPiWithAccount": "用指定账号新建 Pi…",
     "noAccounts": "没有已保存的账号",
-    "useAnotherAccount": "在本会话中使用其他账号：右键点击此标签页 → {{value0}}"
+    "useAnotherAccount": "在本会话中使用其他账号：右键点击此标签页 → {{value0}}",
+    "intro": "Pi 以及 Claude 和 Codex CLI 登录所用的账户，以及每个账户的剩余配额。",
+    "details": "详细信息",
+    "emptyProvider": "没有为 {{value0}} 保存的账户。",
+    "accountActions": "{{value0}} 的操作",
+    "usageSession": "5 小时",
+    "usageWeekly": "周",
+    "usageRenewsIn": "{{value0}} 后重置",
+    "usageLoading": "正在读取用量…",
+    "usageUnavailable": "当前无法获取用量。",
+    "usageNoRecentData": "暂无近期数据。",
+    "usageHistoryTitle": "用量变化（5 小时窗口）",
+    "usageHistoryEmpty": "ARCA 读取该账户几次后将开始记录历史。",
+    "usageRange24h": "24 小时",
+    "usageRange7d": "7 天"
   }
 }

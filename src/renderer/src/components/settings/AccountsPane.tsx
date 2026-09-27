@@ -385,8 +385,9 @@ export function AccountsPane({
 
   return (
     <div className="space-y-8">
-      <MegamindSettingsSection />
+      {/* Pi accounts lead: Megamind, Gemini and OpenCode are separate provider sections below them. */}
       {ARCA_PI_IS_AUTHORITY ? <PiAccountsSection /> : null}
+      <MegamindSettingsSection />
       {renderAccountsRemovalDialogs(model, removeCodexTarget, removeClaudeTarget)}
       {visibleSections.map((section, index) => (
         <div key={index} className="space-y-8">

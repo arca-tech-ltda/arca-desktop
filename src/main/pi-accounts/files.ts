@@ -1,8 +1,14 @@
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { homedir } from 'node:os'
+import { dirname, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { setTimeout } from 'node:timers/promises'
 import { z } from 'zod'
+
+/** Pi's agent directory: the bucket and the auth slot both live here. */
+export function resolvePiAgentDir(): string {
+  return process.env.PI_CODING_AGENT_DIR ?? join(homedir(), '.pi', 'agent')
+}
 
 export const credentialSchema = z
   .object({

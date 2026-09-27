@@ -11,6 +11,7 @@ import {
   DialogTitle
 } from '../ui/dialog'
 import { Input } from '../ui/input'
+import { piAccountProviderLabel } from './pi-account-provider-label'
 
 export function RemovePiAccountDialog({
   target,
@@ -30,7 +31,7 @@ export function RemovePiAccountDialog({
         <DialogHeader>
           <DialogTitle>
             {translate('piAccounts.removeTitle', 'Remove {{value0}}?', {
-              value0: target ? `${target.provider} / ${target.name}` : ''
+              value0: target ? `${piAccountProviderLabel(target.provider)} / ${target.name}` : ''
             })}
           </DialogTitle>
           <DialogDescription>

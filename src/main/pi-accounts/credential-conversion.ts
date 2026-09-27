@@ -50,6 +50,18 @@ function decodeJwtClaims(token: string): z.infer<typeof codexClaimsSchema> | nul
   }
 }
 
+/** Identity carried inside a Codex access token; the token itself stays in main. */
+export function readCodexAccessTokenIdentity(access: string | undefined): {
+  email: string | null
+  accountId: string | null
+} {
+  const claims = access ? decodeJwtClaims(access) : null
+  return {
+    email: claims?.['https://api.openai.com/profile']?.email?.trim() || null,
+    accountId: claims?.['https://api.openai.com/auth']?.chatgpt_account_id ?? null
+  }
+}
+
 function sanitizeName(candidate: string | null | undefined, fallback: string): string {
   // Pi's /accounts parses `save <provider> <name>` on whitespace, so a name with spaces is unusable there.
   const trimmed = (candidate ?? '').trim().replace(/\s+/gu, '-')

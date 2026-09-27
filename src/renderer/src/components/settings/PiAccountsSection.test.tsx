@@ -40,10 +40,30 @@ const add = vi.fn(async () => ({
   name: 'dev@example.com',
   state: initial
 }))
-const remove = vi.fn(async () => ({ status: 'removed' as const, state: initial }))
-const rename = vi.fn(async () => ({ status: 'renamed' as const, state: initial }))
+const remove = vi.fn(async () => ({
+  status: 'removed' as const,
+  state: initial
+}))
+const rename = vi.fn(async () => ({
+  status: 'renamed' as const,
+  state: initial
+}))
 const cancelAdd = vi.fn(async () => true)
 const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
+const usageList = vi.fn(async () => ({ accounts: [] }))
+const usageSetWatching = vi.fn(async () => ({ accounts: [] }))
+const usageHistory = vi.fn(async (provider: string, name: string) => ({
+  provider,
+  name,
+  samples: []
+}))
+
+async function openAccountMenu(name: string): Promise<void> {
+  fireEvent.pointerDown(
+    await screen.findByRole('button', { name: `Actions for ${name}` }),
+    new MouseEvent('pointerdown', { bubbles: true, button: 0 })
+  )
+}
 
 beforeEach(() => {
   useAppStore.setState({
@@ -66,6 +86,12 @@ beforeEach(() => {
           return stop
         },
         onLoginUrl: () => () => {}
+      },
+      piAccountUsage: {
+        list: usageList,
+        setWatching: usageSetWatching,
+        history: usageHistory,
+        onChange: () => () => {}
       }
     }
   })
@@ -79,27 +105,40 @@ afterEach(() => {
   }
 })
 
-it('lists the bucket, switches through IPC, and reacts to external changes', async () => {
+it('groups accounts under a provider card, never showing the raw provider id', async () => {
   render(<PiAccountsSection />)
-  await screen.findByText('anthropic / personal')
+  await screen.findByText('personal')
+  expect(screen.getByText('Claude')).toBeTruthy()
+  expect(screen.getByText('Codex')).toBeTruthy()
+  expect(screen.queryByText('anthropic / personal')).toBeNull()
   expect(screen.getByText('Active')).toBeTruthy()
-  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[0])
-  await waitFor(() => expect(select).toHaveBeenCalledWith('anthropic', 'personal'))
   await act(async () =>
-    receive({ accounts: [{ provider: 'anthropic', name: 'external', active: true, drift: true }] })
+    receive({
+      accounts: [{ provider: 'anthropic', name: 'external', active: true, drift: true }]
+    })
   )
-  expect(screen.getByText('anthropic / external')).toBeTruthy()
+  expect(screen.getByText('external')).toBeTruthy()
   expect(screen.getByText('Pi refreshed this token; Use syncs it.')).toBeTruthy()
+})
+
+it('switches through IPC from the row menu', async () => {
+  render(<PiAccountsSection />)
+  await openAccountMenu('personal')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Use' }))
+  await waitFor(() => expect(select).toHaveBeenCalledWith('anthropic', 'personal'))
 })
 
 it('switches Pi first, then stands managed accounts down and re-mirrors Pi over the restored snapshot', async () => {
   useAppStore.setState({
-    settings: { ...getDefaultSettings('/tmp'), activeClaudeManagedAccountId: 'managed-1' },
+    settings: {
+      ...getDefaultSettings('/tmp'),
+      activeClaudeManagedAccountId: 'managed-1'
+    },
     fetchSettings: vi.fn(async () => {})
   })
   render(<PiAccountsSection />)
-  await screen.findByText('anthropic / personal')
-  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[0])
+  await openAccountMenu('personal')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Use' }))
   await waitFor(() => expect(remirror).toHaveBeenCalledWith('anthropic'))
   expect(order).toEqual(['use', 'deselect-claude', 'remirror'])
   expect(selectClaudeProviderAccount).toHaveBeenCalledTimes(1)
@@ -108,7 +147,7 @@ it('switches Pi first, then stands managed accounts down and re-mirrors Pi over 
 
 it('signs in a new account and reports the saved name', async () => {
   render(<PiAccountsSection />)
-  await screen.findByText('anthropic / personal')
+  await screen.findByText('personal')
   fireEvent.click(screen.getByRole('button', { name: 'Add Claude account' }))
   expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy()
   await waitFor(() => expect(add).toHaveBeenCalledWith('anthropic'))
@@ -117,9 +156,9 @@ it('signs in a new account and reports the saved name', async () => {
 
 it('confirms before removing, and refuses to remove the active account while another exists', async () => {
   render(<PiAccountsSection />)
-  await screen.findByText('anthropic / personal')
-  fireEvent.click(screen.getByRole('button', { name: 'Remove anthropic / work' }))
-  await screen.findByText('Remove anthropic / work?')
+  await openAccountMenu('work')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove' }))
+  await screen.findByText('Remove Claude / work?')
   expect(
     screen.getByText(
       'This account is in use. Choose another account with Use first, then remove this one.'
@@ -127,16 +166,17 @@ it('confirms before removing, and refuses to remove the active account while ano
   ).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Remove' }).hasAttribute('disabled')).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Remove anthropic / personal' }))
-  await screen.findByText('Remove anthropic / personal?')
+  await openAccountMenu('personal')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove' }))
+  await screen.findByText('Remove Claude / personal?')
   fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
   await waitFor(() => expect(remove).toHaveBeenCalledWith('anthropic', 'personal'))
 })
 
 it('renames an account through the dialog', async () => {
   render(<PiAccountsSection />)
-  await screen.findByText('anthropic / personal')
-  fireEvent.click(screen.getByRole('button', { name: 'Rename anthropic / personal' }))
+  await openAccountMenu('personal')
+  fireEvent.click(await screen.findByRole('menuitem', { name: 'Rename' }))
   const input = await screen.findByLabelText('Account name')
   fireEvent.change(input, { target: { value: 'home' } })
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -145,10 +185,14 @@ it('renames an account through the dialog', async () => {
 
 it('never reads or switches desktop accounts when the account owner is remote', () => {
   useAppStore.setState({
-    settings: { ...getDefaultSettings('/tmp'), activeRuntimeEnvironmentId: 'remote' }
+    settings: {
+      ...getDefaultSettings('/tmp'),
+      activeRuntimeEnvironmentId: 'remote'
+    }
   })
   render(<PiAccountsSection />)
   expect(screen.getByText('Switch to the local desktop to manage these accounts.')).toBeTruthy()
   expect(list).not.toHaveBeenCalled()
   expect(select).not.toHaveBeenCalled()
+  expect(usageSetWatching).not.toHaveBeenCalled()
 })
