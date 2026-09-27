@@ -29,6 +29,16 @@ export function piAccountNoticeText(notice: PiAccountsNotice): string {
         'piAccounts.removeBlocked',
         'This account is in use. Choose another account with Use first, then remove this one.'
       )
+    case 'removeBlockedProject':
+      return translate(
+        'piAccounts.removeBlockedProject',
+        'This account is fixed for a project. Set that project back to the active account first.'
+      )
+    case 'removeBlockedTerminal':
+      return translate(
+        'piAccounts.removeBlockedTerminal',
+        'This account is running in an open terminal. Close it first, then remove the account.'
+      )
   }
 }
 

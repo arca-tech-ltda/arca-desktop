@@ -22,6 +22,7 @@ import { getVirtualRowTransform } from '../viewport/virtual-rows'
 import { resolveProjectGroupHeaderColor } from '../../project-header-color'
 import { getRepoHeaderCreateState } from '../../repo-header-create-state'
 import { ProjectHeaderActions } from '../../ProjectHeaderActions'
+import { PiAccountProjectBadge } from '@/components/settings/PiAccountProjectBadge'
 import {
   getProjectGroupHeaderPaddingLeft,
   WORKTREE_SECTION_HEADER_PADDING_LEFT
@@ -335,6 +336,9 @@ export function renderWorktreeSectionHeaderRow(args: {
                 {row.label}
               </div>
               {row.repo && !row.repo.connectionId && <ArcaSyncBadge repo={row.repo} />}
+              {row.repo && !row.repo.connectionId ? (
+                <PiAccountProjectBadge projectPath={row.repo.path} />
+              ) : null}
               <RepoForkIndicator upstream={row.repo?.upstream} />
               <FolderPathStatusIndicator status={projectGroupPathStatus} />
               {isRepoHeader ? <RepoScanUnavailableIndicator repo={row.repo!} /> : null}

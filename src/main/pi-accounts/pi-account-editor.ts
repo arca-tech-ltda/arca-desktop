@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import type { PiAccountProvider } from '../../shared/pi-accounts'
-import { withAuthLock } from './auth-lock'
+import { withBucketLock } from './auth-lock'
 import {
   findDuplicatePiAccount,
   insertPiAccount,
@@ -38,7 +38,7 @@ export class PiAccountEditor {
   }
 
   private async mutate<T>(change: (bucket: Bucket) => T): Promise<T> {
-    return withAuthLock(this.agentDir, async () => {
+    return withBucketLock(this.agentDir, async () => {
       const bucket = bucketSchema.parse(
         await readJson(this.bucketPath, {
           version: 1,

@@ -14,6 +14,7 @@ const LAUNCH_AGENT_IN_NEW_TAB_CALLERS = [
   'src/renderer/src/components/right-sidebar/runSourceControlAgentActionStart.ts',
   'src/renderer/src/components/right-sidebar/source-control/ai/recovery-launch.ts',
   'src/renderer/src/components/right-sidebar/source-control/sync/use-git-history-commit-actions.ts',
+  'src/renderer/src/components/tab-bar/NewPiWithAccountMenu.tsx',
   'src/renderer/src/components/tab-bar/QuickLaunchButton.tsx',
   'src/renderer/src/components/tab-bar/use-tab-bar-create-menu-controller.ts',
   'src/renderer/src/components/terminal-pane/terminal-agent-session-fork.ts',

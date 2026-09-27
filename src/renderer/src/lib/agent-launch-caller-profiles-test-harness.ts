@@ -257,6 +257,28 @@ export const AGENT_LAUNCH_CALLER_PROFILES: readonly AgentLaunchCallerProfile[] =
     readsBack: ['prompt-delivery-result']
   },
   {
+    id: 'tab-bar-new-pi-with-account',
+    caller: 'src/renderer/src/components/tab-bar/NewPiWithAccountMenu.tsx',
+    sourceMarkers: [
+      "agent: 'pi'",
+      'agentEnvOverrides: { [piAccountEnvKey(provider)]: name }',
+      "launchSource: 'tab_bar_quick_launch'"
+    ],
+    // Codex stands in for the call site's literal `pi`: the shared behaviour suites compare every
+    // profile on one agent, and what this profile characterizes is the env override, not the agent.
+    args: {
+      agent: 'codex',
+      worktreeId: 'wt-1',
+      groupId: 'group-1',
+      agentEnvOverrides: { PI_ACCOUNT_ANTHROPIC: 'work' },
+      launchSource: 'tab_bar_quick_launch'
+    },
+    passesBeforeSurfaceOpen: false,
+    passesLaunchPlan: false,
+    passesOnPromptDelivered: false,
+    readsBack: ['discarded']
+  },
+  {
     id: 'quick-command',
     caller: 'src/renderer/src/lib/run-quick-command-in-new-tab.ts',
     sourceMarkers: [

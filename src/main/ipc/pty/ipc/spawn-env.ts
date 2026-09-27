@@ -17,6 +17,8 @@ import { resolvePathEnvKey } from '../../../pty/windows-environment-path'
 import { routesFreshSpawnsToLocalProvider } from '../host-env/fresh-spawn-routing'
 import { stripRemotePaneEnvWhenHooksDisabled } from '../provider/liveness'
 import { parseValidPaneKey } from '../pane/key-state'
+import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
+import { buildPiAccountPtyEnv } from '../../../pi-accounts/pi-account-pty-env'
 import { shouldRefreshNativeClaudeAgentTeamsEnv } from '../pane/launch-authority'
 import type { PtyIpcSpawnState } from './spawn-state'
 import { assemblePtyIpcSpawnCodexEnv } from './spawn-env-codex'
@@ -141,6 +143,22 @@ export async function assemblePtyIpcSpawnEnv(ctx: PtyIpcSpawnState): Promise<voi
   // Why: SSH can strip ORCA_PANE_KEY when remote hooks are off; IPC tab/leaf metadata still names the pane.
   ctx.reservationPaneKey = ctx.metadataPaneKey ?? ctx.validatedPaneKey
   ctx.validatedLeafId = ctx.verifiedLeafId ?? ctx.metadataLeafId
+  if (ctx.baseEnv) {
+    const repoId = args.worktreeId ? getRepoIdFromWorktreeId(args.worktreeId) : undefined
+    Object.assign(
+      ctx.baseEnv,
+      buildPiAccountPtyEnv({
+        projectPath: repoId ? (ctx.deps.store?.getRepo?.(repoId)?.path ?? null) : null,
+        cwd: ctx.cwd ?? args.cwd,
+        connectionId: args.connectionId,
+        isWsl:
+          args.projectRuntime?.status === 'resolved' && args.projectRuntime.runtime.kind === 'wsl',
+        tabId: typeof args.tabId === 'string' ? args.tabId : null,
+        worktreeId: args.worktreeId ?? null,
+        existingEnv: ctx.baseEnv
+      })
+    )
+  }
   ctx.spawnTiming.mark('pane_env')
   await assemblePtyIpcSpawnCodexEnv(ctx)
 }

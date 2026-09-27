@@ -41,6 +41,8 @@ export type LaunchAgentInNewTabArgs = {
   prompt?: string
   /** Optional CLI arguments appended to the selected agent command. */
   agentArgs?: string | null
+  /** Per-launch env on top of the agent defaults; carries a one-off Pi account choice. */
+  agentEnvOverrides?: Record<string, string> | null
   initialCwd?: string | null
   /** How to deliver the prompt: `draft` leaves it editable, `submit-after-ready` sends it once the TUI is ready. */
   promptDelivery?: 'auto-submit' | 'draft' | 'submit-after-ready'
@@ -107,6 +109,7 @@ function launchAgentInNewTabInternal(args: LaunchAgentInNewTabArgs): LaunchAgent
     groupId,
     prompt,
     agentArgs,
+    agentEnvOverrides,
     initialCwd,
     promptDelivery = 'auto-submit',
     launchSource,
@@ -128,7 +131,10 @@ function launchAgentInNewTabInternal(args: LaunchAgentInNewTabArgs): LaunchAgent
     agentArgs !== undefined
       ? agentArgs
       : resolveTuiAgentLaunchArgs(agent, store.settings?.agentDefaultArgs)
-  const agentEnv = resolveTuiAgentLaunchEnv(agent, store.settings?.agentDefaultEnv)
+  const agentEnv = {
+    ...resolveTuiAgentLaunchEnv(agent, store.settings?.agentDefaultEnv),
+    ...agentEnvOverrides
+  }
   const trimmedPrompt = prompt?.trim() ?? ''
   const hasPrompt = trimmedPrompt.length > 0
   const isFollowupPath = TUI_AGENT_CONFIG[agent].promptInjectionMode === 'stdin-after-start'

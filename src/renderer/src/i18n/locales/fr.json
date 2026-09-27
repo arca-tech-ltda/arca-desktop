@@ -16786,6 +16786,21 @@
     "empty": "Aucun compte Pi enregistré.",
     "loading": "Chargement des comptes…",
     "mirrorFailed": "Pi a changé de compte, mais la copie pour le CLI a échoué. Exécutez /accounts mirror dans Pi.",
-    "failed": "Impossible de lire ou de changer les comptes Pi. Vérifiez les fichiers et exécutez /accounts dans Pi ; enregistrez toute nouvelle connexion avant de changer."
+    "failed": "Impossible de lire ou de changer les comptes Pi. Vérifiez les fichiers et exécutez /accounts dans Pi ; enregistrez toute nouvelle connexion avant de changer.",
+    "projectBadgeLine": "{{value0}} : {{value1}}",
+    "removeBlockedProject": "Ce compte est fixé pour un projet. Remettez d’abord ce projet sur le compte actif.",
+    "removeBlockedTerminal": "Ce compte tourne dans un terminal ouvert. Fermez-le avant de le supprimer.",
+    "projectSectionTitle": "Compte Pi",
+    "projectSectionDescription": "Toujours ouvrir Pi dans ce projet avec un compte enregistré précis.",
+    "projectSectionLongDescription": "Les terminaux Pi ouverts dans ce projet utilisent le compte choisi. Les terminaux déjà ouverts gardent leur compte de départ.",
+    "projectSectionUnsupported": "Le Pi installé ne gère pas encore les comptes par projet. Mettez à jour le Pi d’ARCA pour l’activer.",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "Compte actif (par défaut)",
+    "unsupported": "Mettez à jour le Pi d’ARCA",
+    "projectMenu": "Compte",
+    "newPiWithAccount": "Nouveau Pi avec un compte…",
+    "noAccounts": "Aucun compte enregistré",
+    "useAnotherAccount": "Utiliser un autre compte dans cette session : clic droit sur cet onglet → {{value0}}"
   }
 }

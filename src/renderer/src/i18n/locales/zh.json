@@ -15367,6 +15367,21 @@
     "empty": "没有已保存的 Pi 账户。",
     "loading": "正在加载账户…",
     "mirrorFailed": "Pi 已切换账户，但 CLI 镜像失败。请在 Pi 中运行 /accounts mirror。",
-    "failed": "无法读取或切换 Pi 账户。请检查文件并在 Pi 中运行 /accounts；切换前请保存新的登录。"
+    "failed": "无法读取或切换 Pi 账户。请检查文件并在 Pi 中运行 /accounts；切换前请保存新的登录。",
+    "projectBadgeLine": "{{value0}}：{{value1}}",
+    "removeBlockedProject": "该账号已固定给某个项目。请先把那个项目改回活动账号。",
+    "removeBlockedTerminal": "该账号正在一个打开的终端中使用。请先关闭该终端再删除。",
+    "projectSectionTitle": "Pi 账号",
+    "projectSectionDescription": "在此项目中始终用指定的已保存账号打开 Pi。",
+    "projectSectionLongDescription": "在此项目中新开的 Pi 终端使用所选账号。已经打开的终端保持启动时的账号。",
+    "projectSectionUnsupported": "已安装的 Pi 还不支持按项目分账号。请更新 ARCA 的 Pi。",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "活动账号（默认）",
+    "unsupported": "请更新 ARCA 的 Pi",
+    "projectMenu": "账号",
+    "newPiWithAccount": "用指定账号新建 Pi…",
+    "noAccounts": "没有已保存的账号",
+    "useAnotherAccount": "在本会话中使用其他账号：右键点击此标签页 → {{value0}}"
   }
 }

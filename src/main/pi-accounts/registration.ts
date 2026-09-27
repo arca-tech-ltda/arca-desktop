@@ -4,6 +4,12 @@ import type { PiAccountProvider } from '../../shared/pi-accounts'
 import { isTrustedUIRenderer } from '../ipc/ui'
 import { isValidPiAccountName } from './bucket-account-edits'
 import { PiAccountsService } from './service'
+import { PiAccountProjectsService, setPiAccountProjectsService } from './account-project-map'
+import {
+  refreshPiAccountSelectionSupport,
+  setPiAccountSelectionSupportProbe
+} from './pi-account-selection-support'
+import { probePiAccountEnvSupport } from './pi-account-capabilities-probe'
 
 function assertProvider(provider: unknown): PiAccountProvider {
   if (provider !== 'anthropic' && provider !== 'openai-codex') {
@@ -33,11 +39,61 @@ export function getPiAccountsService(): PiAccountsService | null {
   return piAccounts
 }
 
+function registerPiAccountProjects(service: PiAccountProjectsService): void {
+  ipcMain.handle('piAccountProjects:get', (event) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted Pi accounts caller')
+    }
+    return service.getState()
+  })
+  ipcMain.handle(
+    'piAccountProjects:set',
+    async (event, projectPath: unknown, provider: unknown, name: unknown) => {
+      if (!isTrustedUIRenderer(event.sender)) {
+        throw new Error('Untrusted Pi accounts caller')
+      }
+      if (typeof projectPath !== 'string' || !projectPath.trim() || projectPath.length > 4096) {
+        throw new Error('Invalid Pi account project')
+      }
+      const target = assertProvider(provider)
+      if (name !== null && (typeof name !== 'string' || !isValidPiAccountName(name))) {
+        throw new Error('Invalid Pi account name')
+      }
+      if (!(await refreshPiAccountSelectionSupport())) {
+        return { status: 'unsupported', state: service.getState() }
+      }
+      if (name !== null) {
+        const known = await piAccounts?.list()
+        if (
+          !known?.accounts.some((account) => account.provider === target && account.name === name)
+        ) {
+          return { status: 'unknown-account', state: service.getState() }
+        }
+      }
+      await service.setProjectAccount(projectPath, target, name)
+      return { status: 'saved', state: service.getState() }
+    }
+  )
+  ipcMain.handle('piAccountProjects:syncOpenTabs', (event, tabIds: unknown) => {
+    if (!isTrustedUIRenderer(event.sender)) {
+      throw new Error('Untrusted Pi accounts caller')
+    }
+    service.syncOpenTabs(Array.isArray(tabIds) ? tabIds.filter((id) => typeof id === 'string') : [])
+    return service.getState()
+  })
+}
+
 export function registerPiAccounts(): void {
   if (!ARCA_PI_IS_AUTHORITY) {
     return
   }
-  const service = new PiAccountsService()
+  const projects = new PiAccountProjectsService()
+  setPiAccountProjectsService(projects)
+  setPiAccountSelectionSupportProbe(probePiAccountEnvSupport)
+  void projects.load()
+  void refreshPiAccountSelectionSupport().then(() => projects.publish())
+  registerPiAccountProjects(projects)
+  const service = new PiAccountsService({ projects })
   piAccounts = service
   ipcMain.handle('piAccounts:list', (event) => {
     if (!isTrustedUIRenderer(event.sender)) {
@@ -86,9 +142,11 @@ export function registerPiAccounts(): void {
     return service.rename(assertProvider(provider), assertName(from), target)
   })
   const stopLoginUrl = service.onLoginUrlChanged((url) => broadcast('piAccounts:loginUrl', url))
+  const stopProjects = projects.onChange((state) => broadcast('piAccountProjects:changed', state))
   const stop = service.watch((state) => broadcast('piAccounts:changed', state))
   app.once('before-quit', () => {
     stopLoginUrl()
+    stopProjects()
     stop()
   })
 }

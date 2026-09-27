@@ -18397,6 +18397,21 @@
     "empty": "No saved Pi accounts.",
     "loading": "Loading accounts…",
     "mirrorFailed": "Pi switched accounts, but the CLI mirror failed. Run /accounts mirror in Pi.",
-    "failed": "Could not read or switch Pi accounts. Check the files and run /accounts in Pi; save any new login before switching."
+    "failed": "Could not read or switch Pi accounts. Check the files and run /accounts in Pi; save any new login before switching.",
+    "projectBadgeLine": "{{value0}}: {{value1}}",
+    "removeBlockedProject": "This account is fixed for a project. Set that project back to the active account first.",
+    "removeBlockedTerminal": "This account is running in an open terminal. Close it first, then remove the account.",
+    "projectSectionTitle": "Pi Account",
+    "projectSectionDescription": "Always open Pi in this project with a specific saved account.",
+    "projectSectionLongDescription": "Pi terminals opened in this project use the chosen account. Terminals already open keep the account they started with.",
+    "projectSectionUnsupported": "The installed Pi does not support per-project accounts yet. Update ARCA's Pi to enable this.",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "Active account (default)",
+    "unsupported": "Update ARCA's Pi",
+    "projectMenu": "Account",
+    "newPiWithAccount": "New Pi with account…",
+    "noAccounts": "No saved accounts",
+    "useAnotherAccount": "Use another account in this session: right-click this tab → {{value0}}"
   }
 }

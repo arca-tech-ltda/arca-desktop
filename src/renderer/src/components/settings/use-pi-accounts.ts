@@ -8,7 +8,13 @@ import {
 import type { PiAccount, PiAccountProvider, PiAccountsState } from '../../../../shared/pi-accounts'
 
 export type PiAccountsNotice = {
-  kind: 'added' | 'duplicate' | 'addFailed' | 'removeBlocked'
+  kind:
+    | 'added'
+    | 'duplicate'
+    | 'addFailed'
+    | 'removeBlocked'
+    | 'removeBlockedProject'
+    | 'removeBlockedTerminal'
   name?: string
 }
 export type PiAccountNameError = 'nameTaken' | 'nameInvalid'
@@ -46,7 +52,7 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (remote || !window.api.piAccounts) {
+    if (remote || !window.api?.piAccounts) {
       return
     }
     let disposed = false
@@ -146,10 +152,23 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
   const removeAccount = async (target: PiAccount): Promise<void> => {
     setNotice(null)
     try {
+      // Why here: main blocks removal of an account a terminal is running on, and only the renderer
+      // knows which terminals still exist. Refresh that list right before the check.
+      await window.api.piAccountProjects
+        ?.syncOpenTabs(
+          Object.values(useAppStore.getState().tabsByWorktree).flatMap((tabs) =>
+            (tabs ?? []).map((tab) => tab.id)
+          )
+        )
+        .catch(() => {})
       const result = await window.api.piAccounts.remove(target.provider, target.name)
       setState(result.state)
       if (result.status === 'active-in-use') {
         setNotice({ kind: 'removeBlocked' })
+      } else if (result.status === 'pinned-to-project') {
+        setNotice({ kind: 'removeBlockedProject' })
+      } else if (result.status === 'open-in-terminal') {
+        setNotice({ kind: 'removeBlockedTerminal' })
       }
     } catch {
       setFailed(true)
