@@ -83,7 +83,7 @@ it('lists the bucket, switches through IPC, and reacts to external changes', asy
   render(<PiAccountsSection />)
   await screen.findByText('anthropic / personal')
   expect(screen.getByText('Active')).toBeTruthy()
-  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[1])
+  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[0])
   await waitFor(() => expect(select).toHaveBeenCalledWith('anthropic', 'personal'))
   await act(async () =>
     receive({ accounts: [{ provider: 'anthropic', name: 'external', active: true, drift: true }] })
@@ -99,7 +99,7 @@ it('switches Pi first, then stands managed accounts down and re-mirrors Pi over 
   })
   render(<PiAccountsSection />)
   await screen.findByText('anthropic / personal')
-  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[1])
+  fireEvent.click(screen.getAllByRole('button', { name: 'Use' })[0])
   await waitFor(() => expect(remirror).toHaveBeenCalledWith('anthropic'))
   expect(order).toEqual(['use', 'deselect-claude', 'remirror'])
   expect(selectClaudeProviderAccount).toHaveBeenCalledTimes(1)

@@ -33,9 +33,11 @@ export function PiAccountRow({
         </span>
       ) : null}
       <div className="flex shrink-0 items-center gap-1">
-        <Button size="sm" variant="outline" disabled={busy} onClick={onUse}>
-          {translate('piAccounts.use', 'Use')}
-        </Button>
+        {account.active && !account.drift ? null : (
+          <Button size="sm" variant="outline" disabled={busy} onClick={onUse}>
+            {translate('piAccounts.use', 'Use')}
+          </Button>
+        )}
         <Button
           size="sm"
           variant="ghost"
