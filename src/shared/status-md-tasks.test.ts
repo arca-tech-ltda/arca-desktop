@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { filterStatusMdTasks, groupStatusMdTasksBySection, parseStatusMd } from './status-md-tasks'
+import {
+  filterStatusMdTasks,
+  groupStatusMdTasksBySection,
+  parseStatusMd
+} from './status-md-tasks'
 
 describe('parseStatusMd', () => {
   it('parses checkbox variants, sections, indentation, formatting and updated date', () => {
@@ -18,14 +22,7 @@ describe('parseStatusMd', () => {
 
     expect(result.updatedAt).toBe('2025-02-03')
     expect(result.tasks).toMatchObject([
-      {
-        title: 'Ship the parser docs',
-        rawText: '**Ship** the `parser` [docs](https://example.test)',
-        completed: false,
-        depth: 0,
-        section: 'Now',
-        lineNumber: 3
-      },
+      { title: 'Ship the parser docs', rawText: '**Ship** the `parser` [docs](https://example.test)', completed: false, depth: 0, section: 'Now', lineNumber: 3 },
       { title: 'Done item', completed: true, depth: 1, section: 'Now', lineNumber: 4 },
       { title: 'Also done', completed: true, depth: 0, section: 'Now', lineNumber: 5 },
       { title: 'Nested', completed: false, depth: 2, section: 'Later', lineNumber: 7 }
@@ -43,12 +40,7 @@ describe('parseStatusMd', () => {
   })
 
   it('supports tilde fences and caps output at 1000 items', () => {
-    const markdown = [
-      '~~~',
-      '- [ ] ignored',
-      '~~~',
-      ...Array.from({ length: 1001 }, (_, i) => `- [ ] task ${i}`)
-    ].join('\n')
+    const markdown = ['~~~', '- [ ] ignored', '~~~', ...Array.from({ length: 1001 }, (_, i) => `- [ ] task ${i}`)].join('\n')
     const result = parseStatusMd(markdown)
     expect(result.tasks).toHaveLength(1000)
     expect(result.tasks[0]?.title).toBe('task 0')

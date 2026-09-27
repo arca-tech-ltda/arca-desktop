@@ -57,23 +57,9 @@ it('hides archived, flagged legacy, and named legacy projects by default', async
     errors: [],
     entries: [
       { name: 'brain', repoKey: 'github.com/arca/brain', url: 'https://github.com/arca/brain.git' },
-      {
-        name: 'old',
-        repoKey: 'github.com/arca/old',
-        url: 'https://github.com/arca/old.git',
-        archived: true
-      },
-      {
-        name: 'legacy',
-        repoKey: 'github.com/arca/legacy',
-        url: 'https://github.com/arca/legacy.git',
-        legacy: true
-      },
-      {
-        name: 'active',
-        repoKey: 'github.com/arca/active',
-        url: 'https://github.com/arca/active.git'
-      }
+      { name: 'old', repoKey: 'github.com/arca/old', url: 'https://github.com/arca/old.git', archived: true },
+      { name: 'legacy', repoKey: 'github.com/arca/legacy', url: 'https://github.com/arca/legacy.git', legacy: true },
+      { name: 'active', repoKey: 'github.com/arca/active', url: 'https://github.com/arca/active.git' }
     ].map((entry) => ({ ...entry, destination: `/arca/${entry.name}` }))
   })
   mocks.scan.mockResolvedValue([])

@@ -53,7 +53,9 @@ export function ArcaProjectsSettingsSection(): React.JSX.Element {
           {error}
         </p>
       )}
-      {status.diskWarning && <p className="text-xs text-destructive">{status.diskWarning}</p>}
+      {status.diskWarning && (
+        <p className="text-xs text-destructive">{status.diskWarning}</p>
+      )}
       {status.errors.map((message) => (
         <p key={message} className="text-xs text-muted-foreground">
           {message}

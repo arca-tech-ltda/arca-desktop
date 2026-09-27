@@ -217,4 +217,5 @@ describe('root directory guard', () => {
     expect(result.stderr).not.toContain('node:internal')
     expect(result.stdout).not.toContain('guard passed')
   })
+
 })

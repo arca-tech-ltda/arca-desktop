@@ -4,20 +4,11 @@ import path from 'node:path'
 import { afterEach, expect, it } from 'vitest'
 import { gitExecFileAsync } from '../git/runner'
 import type { ArcaCatalogEntry } from '../../shared/arca-projects-sync'
-import {
-  cloneArcaProject,
-  clonePartialMarkerPath,
-  inspectArcaCloneDestination,
-  isCloneAccessError
-} from './clone'
+import { cloneArcaProject, clonePartialMarkerPath, inspectArcaCloneDestination, isCloneAccessError } from './clone'
 
 const temporaryDirectories: string[] = []
 afterEach(async () => {
-  await Promise.all(
-    temporaryDirectories
-      .splice(0)
-      .map((directory) => rm(directory, { recursive: true, force: true }))
-  )
+  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })))
 })
 
 async function createLocalRemote(root: string): Promise<string> {
@@ -79,19 +70,13 @@ it('cleans an owned partial destination before retrying', async () => {
   await writeFile(clonePartialMarkerPath(destination), '{"repoKey":"owned"}')
   await cloneArcaProject(makeEntry(remote, destination))
   expect(await readFile(path.join(destination, 'README.md'), 'utf8')).toBe('ARCA')
-  await expect(readFile(clonePartialMarkerPath(destination))).rejects.toMatchObject({
-    code: 'ENOENT'
-  })
+  await expect(readFile(clonePartialMarkerPath(destination))).rejects.toMatchObject({ code: 'ENOENT' })
 })
 
-it.each([
-  'Connection timed out',
-  'Could not resolve hostname github.com',
-  'Connection reset by peer'
-])('does not apply a 24-hour access backoff after %s', (cause) => {
-  expect(
-    isCloneAccessError(new Error(`${cause}\nfatal: Could not read from remote repository.`))
-  ).toBe(false)
-  expect(isCloneAccessError(new Error('Authentication failed'))).toBe(true)
-  expect(isCloneAccessError(new Error('fatal: Could not read from remote repository.'))).toBe(false)
-})
+it.each(['Connection timed out', 'Could not resolve hostname github.com', 'Connection reset by peer'])(
+  'does not apply a 24-hour access backoff after %s', (cause) => {
+    expect(isCloneAccessError(new Error(`${cause}\nfatal: Could not read from remote repository.`))).toBe(false)
+    expect(isCloneAccessError(new Error('Authentication failed'))).toBe(true)
+    expect(isCloneAccessError(new Error('fatal: Could not read from remote repository.'))).toBe(false)
+  }
+)
