@@ -1,13 +1,14 @@
 import { expect, it, vi } from 'vitest'
 import { configuredIdleMs, createMegamindHookProvider } from './agent-presence-service'
 import type { AgentHookObservation } from '../agent-hooks/hook-prompt-context'
+import type { MegamindAgentActivity } from './agent-sessions'
 
 const PANE = 'tab-1:11111111-1111-4111-8111-111111111111'
 
 function provider() {
   const service = {
-    noteActivity: vi.fn(async () => true),
-    noteSessionEnd: vi.fn(async () => {}),
+    noteActivity: vi.fn(async (_activity: MegamindAgentActivity) => true),
+    noteSessionEnd: vi.fn(async (_paneKey: string) => {}),
     promptContext: vi.fn(async () => 'contexto')
   }
   return { service, hooks: createMegamindHookProvider(service, () => 'session-do-pane') }
