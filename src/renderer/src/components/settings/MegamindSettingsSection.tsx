@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import { isWebClientLocation } from '@/lib/web-client-location'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 import type { MegamindStatus } from '../../../../shared/arca-megamind'
 
 export function MegamindSettingsSection(): React.JSX.Element | null {
+  const agentAuthority = useAgentAuthorityMode()
   const [status, setStatus] = useState<MegamindStatus>({ state: 'disconnected' })
   useEffect(() => {
     if (isWebClientLocation() || !window.api.arcaMegamind) {
@@ -34,10 +36,15 @@ export function MegamindSettingsSection(): React.JSX.Element | null {
           : translate('arca.megamind.notConnected', 'Not connected')}
       </p>
       <p className="text-xs text-muted-foreground">
-        {translate(
-          'arca.megamind.sharedCredential',
-          'Credentials are shared with Pi. Manage or revoke devices in Mainframe; this app does not delete shared credentials.'
-        )}
+        {agentAuthority === 'pi'
+          ? translate(
+              'arca.megamind.sharedCredential',
+              'Credentials are shared with Pi. Manage or revoke devices in Mainframe; this app does not delete shared credentials.'
+            )
+          : translate(
+              'arca.megamind.sharedCredentialManaged',
+              'Credentials are shared with the agents on this computer. Manage or revoke devices in Mainframe; this app does not delete shared credentials.'
+            )}
       </p>
       <Button variant="outline" size="sm" onClick={() => void manage()}>
         {translate('arca.megamind.manageDevices', 'Manage devices in Mainframe')}

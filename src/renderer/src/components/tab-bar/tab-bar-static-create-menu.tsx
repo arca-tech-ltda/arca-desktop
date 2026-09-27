@@ -5,7 +5,7 @@ import { DropdownMenuItem, DropdownMenuShortcut } from '@/components/ui/dropdown
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { MobileEmulatorTabIntroCallout } from '../emulator-pane/MobileEmulatorTabIntroCallout'
 import { ShellIcon } from './shell-icons'
-import { NewPiWithAccountMenu } from './NewPiWithAccountMenu'
+import { NewAgentWithAccountMenu } from './NewAgentWithAccountMenu'
 import type { WindowsShellMenuEntry } from './tab-bar-windows-shell-options'
 import {
   isMacOs,
@@ -179,7 +179,7 @@ export function TabBarStaticCreateMenu({
       <MobileEmulatorTabIntroCallout />
     ) : null
 
-  const newPiWithAccountMenuItem = <NewPiWithAccountMenu worktreeId={props.worktreeId} />
+  const newPiWithAccountMenuItem = <NewAgentWithAccountMenu worktreeId={props.worktreeId} />
 
   return newTabMenuOrder === 'markdown-first' ? (
     <>

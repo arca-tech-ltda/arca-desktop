@@ -35,6 +35,7 @@
       "settingsTitle": "ARCA Megamind",
       "notConnected": "연결 안 됨",
       "sharedCredential": "인증 정보는 Pi와 공유됩니다. Mainframe에서 기기를 관리하거나 해제하세요. 이 앱은 공유 인증 정보를 삭제하지 않습니다.",
+      "sharedCredentialManaged": "자격 증명은 이 컴퓨터의 에이전트와 공유됩니다. 기기 관리와 해지는 Mainframe에서 하세요. 이 앱은 공유된 자격 증명을 삭제하지 않습니다.",
       "manageDevices": "Mainframe에서 기기 관리",
       "requestFailed": "요청 실패"
     },
@@ -15433,5 +15434,12 @@
     "usageHistoryEmpty": "ARCA가 이 계정을 몇 번 읽으면 기록이 시작됩니다.",
     "usageRange24h": "24시간",
     "usageRange7d": "7일"
+  },
+  "managedAccounts": {
+    "newWithAccount": "계정을 선택해 새 {{value0}}…",
+    "projectSectionTitle": "에이전트 계정",
+    "projectSectionDescription": "이 프로젝트에서는 항상 지정한 계정으로 Claude Code 또는 Codex를 엽니다.",
+    "projectSectionLongDescription": "이 프로젝트에서 여는 Claude Code와 Codex 터미널은 선택한 계정을 사용합니다. 이미 열린 터미널은 시작할 때의 계정을 유지합니다.",
+    "projectSectionKeyword": "프로젝트별 에이전트 계정"
   }
 }

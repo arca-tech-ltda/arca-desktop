@@ -1,21 +1,23 @@
 import React from 'react'
 import { translate } from '@/i18n/i18n'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { PI_ACCOUNT_PROVIDERS } from '../../../../shared/pi-account-projects'
-import { usePiAccountProjects } from '@/components/settings/use-pi-account-projects'
-import { piAccountProviderLabel } from '@/components/settings/pi-account-project-menu'
-import { newPiWithAccountLabel } from './NewPiWithAccountMenu'
+import {
+  newAgentWithAccountLabel,
+  useProjectAccounts
+} from '@/components/settings/use-project-accounts'
 
 /** The account this terminal actually started on; a later mapping change does not move it. */
-export function PiAccountTabBadge({ tabId }: { tabId: string }): React.JSX.Element | null {
-  const projects = usePiAccountProjects()
-  const running = PI_ACCOUNT_PROVIDERS.map((provider) => ({
-    provider,
-    name: projects.sessionFor(tabId, provider)
-  })).filter((entry) => entry.name)
+export function ProjectAccountTabBadge({ tabId }: { tabId: string }): React.JSX.Element | null {
+  const accounts = useProjectAccounts()
+  const running = accounts.groups
+    .map((group) => ({ group, name: group.sessionLabel(tabId) }))
+    .filter((entry) => entry.name)
   if (running.length === 0) {
     return null
   }
+  const exit = accounts.launchEntries.find((entry) =>
+    entry.groups.some((group) => group.key === running[0]?.group.key)
+  )
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -30,14 +32,14 @@ export function PiAccountTabBadge({ tabId }: { tabId: string }): React.JSX.Eleme
         {`${running
           .map((entry) =>
             translate('piAccounts.projectBadgeLine', '{{value0}}: {{value1}}', {
-              value0: piAccountProviderLabel(entry.provider),
+              value0: entry.group.label,
               value1: entry.name ?? ''
             })
           )
           .join('\n')}\n${translate(
           'piAccounts.useAnotherAccount',
           'Use another account in this session: right-click this tab → {{value0}}',
-          { value0: newPiWithAccountLabel() }
+          { value0: exit?.label ?? newAgentWithAccountLabel('pi') }
         )}`}
       </TooltipContent>
     </Tooltip>

@@ -38,6 +38,8 @@ export type {
   CodexResetCreditRejectedBeforeProviderResult
 } from './codex-account-service-types'
 
+import { assertManagedAccountRemovable } from '../managed-account-projects/managed-account-removal-guard'
+
 export class CodexAccountService {
   // Why: serialize the read-modify-write of settings; overlapping calls (e.g. double-click Add) would lose updates.
   private mutationQueue: Promise<unknown> = Promise.resolve()
@@ -187,6 +189,11 @@ export class CodexAccountService {
   }
 
   async removeAccount(accountId: string): Promise<CodexRateLimitAccountsState> {
+    assertManagedAccountRemovable(
+      'codex',
+      accountId,
+      this.listAccounts().accounts.find((account) => account.id === accountId)?.email
+    )
     this.supersedePendingLogin()
     return this.serializeMutation(() => this.selection.remove(accountId))
   }

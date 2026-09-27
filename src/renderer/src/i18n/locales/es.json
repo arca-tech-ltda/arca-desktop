@@ -35,6 +35,7 @@
       "settingsTitle": "ARCA Megamind",
       "notConnected": "Sin conexión",
       "sharedCredential": "Las credenciales se comparten con Pi. Gestiona o revoca dispositivos en Mainframe; esta app no elimina credenciales compartidas.",
+      "sharedCredentialManaged": "Las credenciales se comparten con los agentes de este ordenador. Gestiona o revoca dispositivos en Mainframe; esta app no borra credenciales compartidas.",
       "manageDevices": "Gestionar dispositivos en Mainframe",
       "requestFailed": "La solicitud falló"
     },
@@ -15268,5 +15269,12 @@
     "usageHistoryEmpty": "El historial empieza cuando ARCA haya leído esta cuenta algunas veces.",
     "usageRange24h": "24 h",
     "usageRange7d": "7 d"
+  },
+  "managedAccounts": {
+    "newWithAccount": "Nuevo {{value0}} con cuenta…",
+    "projectSectionTitle": "Cuenta del agente",
+    "projectSectionDescription": "Abrir siempre Claude Code o Codex en este proyecto con una cuenta concreta.",
+    "projectSectionLongDescription": "Las terminales de Claude Code y Codex abiertas en este proyecto usan la cuenta elegida. Las terminales ya abiertas mantienen la cuenta con la que empezaron.",
+    "projectSectionKeyword": "cuenta del agente por proyecto"
   }
 }
