@@ -86,6 +86,14 @@ dir (nunca o item padrão, que é da conta globalmente selecionada) e só quando
 não sobrescrever um token que o próprio Claude já rotacionou. Isso roda ao fixar a conta e de novo
 antes de um spawn vindo do IPC.
 
+**Uma fonte só por plataforma.** No macOS esse item de Keychain é a *única* cópia que o app mantém
+para o launch fixado: `.credentials.json` não é mais escrito na home gerenciada — era token em claro
+no disco e, pior, uma segunda cópia que o refresh que o Claude faz no próprio item não atualiza. O
+portão síncrono do launch (`hasClaudeManagedCredential`) passa a aceitar um carimbo sem segredo
+(`.orca-managed-claude-keychain`), porque o Keychain não dá para ler sem `await`. Fora do macOS a
+fonte continua sendo o arquivo, que é de onde o Claude lê lá. Uma home de build antigo ainda pode
+ter o arquivo em claro: ele serve só de semente para o item e nunca sobrescreve um item existente.
+
 ## Bloqueios
 
 `assertManagedAccountRemovable` recusa remover uma conta fixada em algum projeto ou em uso por um

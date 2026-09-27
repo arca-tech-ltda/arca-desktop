@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { ClaudeManagedAccount, CodexManagedAccount } from '../../shared/managed-account-types'
 import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
@@ -50,7 +50,7 @@ export function resolveClaudeManagedConfigDir(accountId: string): string | null 
  */
 export function prepareClaudeManagedConfigDirForLaunch(accountId: string): string | null {
   const configDir = resolveClaudeManagedConfigDir(accountId)
-  if (!configDir || !existsSync(join(configDir, '.credentials.json'))) {
+  if (!configDir || !hasClaudeManagedCredential(configDir)) {
     return null
   }
   syncClaudeManagedHomeResources({
@@ -60,11 +60,27 @@ export function prepareClaudeManagedConfigDirForLaunch(accountId: string): strin
   return configDir
 }
 
+/** Zero-secret stamp: on macOS it records that the config dir's Keychain item was seeded. */
+const KEYCHAIN_CREDENTIAL_STAMP = '.orca-managed-claude-keychain'
+
+/** Launch gate, synchronous by necessity: the Keychain cannot be read without awaiting. */
+export function hasClaudeManagedCredential(configDir: string): boolean {
+  return (
+    existsSync(join(configDir, '.credentials.json')) ||
+    (process.platform === 'darwin' && existsSync(join(configDir, KEYCHAIN_CREDENTIAL_STAMP)))
+  )
+}
+
 /**
- * The credential has to be reachable from the pinned config dir itself. On macOS Claude scopes its
- * Keychain item by config dir, so seed that item — never the default one, which belongs to whatever
- * account is globally selected — and only when it is missing, so a token Claude refreshed in place
- * is never rolled back. Runs when a pin is saved and again before an IPC-spawned terminal starts.
+ * The credential has to be reachable from the pinned config dir itself.
+ *
+ * On macOS that place is the Keychain item Claude scopes by config dir — never the default one,
+ * which belongs to whatever account is globally selected. That item is also the **only** copy ARCA
+ * keeps for a pinned launch: writing `.credentials.json` next to it would put a token on disk in
+ * the clear and, worse, leave a second copy that Claude's next in-place refresh does not update.
+ * An existing item is never overwritten, so a refreshed token is never rolled back.
+ *
+ * Runs when a pin is saved and again before an IPC-spawned terminal starts.
  */
 export async function materializeClaudeManagedCredential(
   accountId: string,
@@ -73,21 +89,39 @@ export async function materializeClaudeManagedCredential(
   if (!configDir) {
     return false
   }
-  let credentials = readClaudeManagedAuthFile(configDir, '.credentials.json')
-  if (!credentials) {
-    credentials = await readManagedClaudeKeychainCredentials(accountId)
-    if (credentials) {
-      writeClaudeManagedAuthFile(configDir, '.credentials.json', credentials)
+  if (process.platform !== 'darwin') {
+    const credentials =
+      readClaudeManagedAuthFile(configDir, '.credentials.json') ??
+      (await readManagedClaudeKeychainCredentials(accountId))
+    if (!credentials) {
+      return false
     }
+    writeClaudeManagedAuthFile(configDir, '.credentials.json', credentials)
+    return true
   }
-  if (!credentials) {
+  if (await readActiveClaudeKeychainCredentialsStrict(configDir)) {
+    stampKeychainCredential(configDir)
+    return true
+  }
+  // Only as a seed: a home from an older build may still hold the cleartext copy.
+  const seed =
+    (await readManagedClaudeKeychainCredentials(accountId)) ??
+    readClaudeManagedAuthFile(configDir, '.credentials.json')
+  if (!seed) {
     return false
   }
-  if (
-    process.platform === 'darwin' &&
-    !(await readActiveClaudeKeychainCredentialsStrict(configDir))
-  ) {
-    await writeActiveClaudeKeychainCredentials(credentials, configDir)
-  }
+  await writeActiveClaudeKeychainCredentials(seed, configDir)
+  stampKeychainCredential(configDir)
   return true
+}
+
+function stampKeychainCredential(configDir: string): void {
+  try {
+    writeFileSync(join(configDir, KEYCHAIN_CREDENTIAL_STAMP), 'keychain\n', {
+      encoding: 'utf-8',
+      mode: 0o600
+    })
+  } catch {
+    /* The stamp only spares a re-seed; the launch gate still accepts a legacy cleartext copy. */
+  }
 }
