@@ -16800,6 +16800,7 @@
     "newPiWithAccount": "Nouveau Pi avec un compte…",
     "noAccounts": "Aucun compte enregistré",
     "useAnotherAccount": "Utiliser un autre compte dans cette session : clic droit sur cet onglet → {{value0}}",
+    "projectsUsing": "Projets qui utilisent ce compte :",
     "intro": "Comptes utilisés par Pi et les CLI Claude et Codex, et quota restant pour chacun.",
     "details": "Détails",
     "emptyProvider": "Aucun compte enregistré pour {{value0}}.",

@@ -15407,6 +15407,7 @@
     "newPiWithAccount": "계정을 선택해 새 Pi…",
     "noAccounts": "저장된 계정 없음",
     "useAnotherAccount": "이 세션에서 다른 계정 사용: 이 탭을 마우스 오른쪽 클릭 → {{value0}}",
+    "projectsUsing": "이 계정을 사용하는 프로젝트:",
     "intro": "Pi와 Claude·Codex CLI가 로그인에 사용하는 계정과 각 계정의 남은 할당량입니다.",
     "details": "세부 정보",
     "emptyProvider": "{{value0}}에 저장된 계정이 없습니다.",

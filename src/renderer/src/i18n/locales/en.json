@@ -18411,6 +18411,7 @@
     "newPiWithAccount": "New Pi with account…",
     "noAccounts": "No saved accounts",
     "useAnotherAccount": "Use another account in this session: right-click this tab → {{value0}}",
+    "projectsUsing": "Projects using this account:",
     "intro": "Accounts Pi and the Claude and Codex CLIs sign in with, and how much of each quota is left.",
     "details": "Details",
     "emptyProvider": "No accounts saved for {{value0}}.",

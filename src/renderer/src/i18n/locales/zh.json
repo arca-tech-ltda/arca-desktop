@@ -15381,6 +15381,7 @@
     "newPiWithAccount": "用指定账号新建 Pi…",
     "noAccounts": "没有已保存的账号",
     "useAnotherAccount": "在本会话中使用其他账号：右键点击此标签页 → {{value0}}",
+    "projectsUsing": "使用此账号的项目：",
     "intro": "Pi 以及 Claude 和 Codex CLI 登录所用的账户，以及每个账户的剩余配额。",
     "details": "详细信息",
     "emptyProvider": "没有为 {{value0}} 保存的账户。",

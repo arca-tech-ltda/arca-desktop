@@ -15240,6 +15240,7 @@
     "newPiWithAccount": "Nuevo Pi con cuenta…",
     "noAccounts": "No hay cuentas guardadas",
     "useAnotherAccount": "Usar otra cuenta en esta sesión: clic derecho en esta pestaña → {{value0}}",
+    "projectsUsing": "Proyectos que usan esta cuenta:",
     "intro": "Cuentas con las que inician sesión Pi y las CLI de Claude y Codex, y cuánta cuota queda en cada una.",
     "details": "Detalles",
     "emptyProvider": "No hay cuentas guardadas de {{value0}}.",

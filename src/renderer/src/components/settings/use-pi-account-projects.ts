@@ -16,6 +16,8 @@ export type PiAccountProjectsController = {
   selectionFor: (projectPath: string | null | undefined) => PiAccountProjectSelection
   /** The account a terminal tab was opened with, for the tab badge. */
   sessionFor: (tabId: string, provider: PiAccountProvider) => string | null
+  /** Project path keys fixed to one account, for the accounts screen. */
+  projectsUsing: (provider: PiAccountProvider, name: string) => string[]
   setProjectAccount: (
     projectPath: string,
     provider: PiAccountProvider,
@@ -24,7 +26,7 @@ export type PiAccountProjectsController = {
 }
 
 // Path keys are folded on the host that wrote them; the renderer needs the same rule to read back.
-function rendererPathPlatform(): NodeJS.Platform {
+export function rendererPathPlatform(): NodeJS.Platform {
   return typeof navigator !== 'undefined' && navigator.userAgent.includes('Windows')
     ? 'win32'
     : 'darwin'
@@ -84,6 +86,11 @@ export function usePiAccountProjects(): PiAccountProjectsController {
     sessionFor: (tabId, provider) =>
       current.sessions.find((session) => session.tabId === tabId && session.provider === provider)
         ?.name ?? null,
+    projectsUsing: (provider, name) =>
+      Object.entries(current.map.projects)
+        .filter(([, selection]) => selection[provider] === name)
+        .map(([path]) => path)
+        .sort((left, right) => left.localeCompare(right)),
     setProjectAccount
   }
 }

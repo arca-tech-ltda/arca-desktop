@@ -15269,6 +15269,7 @@
     "newPiWithAccount": "アカウントを選んで新しい Pi…",
     "noAccounts": "保存済みアカウントがありません",
     "useAnotherAccount": "このセッションで別のアカウントを使う: このタブを右クリック → {{value0}}",
+    "projectsUsing": "このアカウントを使うプロジェクト:",
     "intro": "Pi と Claude・Codex の CLI がサインインに使うアカウントと、各アカウントの残りクォータです。",
     "details": "詳細",
     "emptyProvider": "{{value0}} の保存済みアカウントはありません。",
