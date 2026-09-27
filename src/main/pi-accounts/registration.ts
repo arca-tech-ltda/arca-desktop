@@ -5,7 +5,11 @@ import { isTrustedUIRenderer } from '../ipc/ui'
 import { isValidPiAccountName } from './bucket-account-edits'
 import { PiAccountsService } from './service'
 import { PiAccountProjectsService, setPiAccountProjectsService } from './account-project-map'
-import { refreshPiAccountSelectionSupport } from './pi-account-selection-support'
+import {
+  refreshPiAccountSelectionSupport,
+  setPiAccountSelectionSupportProbe
+} from './pi-account-selection-support'
+import { probePiAccountEnvSupport } from './pi-account-capabilities-probe'
 
 function assertProvider(provider: unknown): PiAccountProvider {
   if (provider !== 'anthropic' && provider !== 'openai-codex') {
@@ -85,6 +89,7 @@ export function registerPiAccounts(): void {
   }
   const projects = new PiAccountProjectsService()
   setPiAccountProjectsService(projects)
+  setPiAccountSelectionSupportProbe(probePiAccountEnvSupport)
   void projects.load()
   void refreshPiAccountSelectionSupport().then(() => projects.publish())
   registerPiAccountProjects(projects)

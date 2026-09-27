@@ -82,6 +82,16 @@ it('breaks a lock left behind more than the stale window ago', async () => {
   await held().catch(() => {})
 })
 
+it('clears the stale wx lock file older builds left behind', async () => {
+  const dir = await agentDir()
+  const legacy = join(dir, 'auth.json.lock')
+  await writeFile(legacy, '{"pid":1}')
+  const stale = new Date(Date.now() - AUTH_LOCK_STALE_MS - 1_000)
+  await utimes(legacy, stale, stale)
+  await expect(withAuthLock(dir, async () => 'done')).resolves.toBe('done')
+  expect(await readdir(dir)).toEqual([])
+})
+
 it('takes accounts.json before auth.json so writers cannot deadlock against each other', async () => {
   const dir = await agentDir()
   await withBucketAndAuthLock(dir, async () => {

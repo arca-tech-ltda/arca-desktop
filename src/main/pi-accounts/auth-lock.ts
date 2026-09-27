@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises'
+import { mkdir, stat, unlink } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { lock } from 'proper-lockfile'
@@ -11,6 +11,21 @@ const MAX_RETRY_DELAY_MS = 2_000
 
 function errorCode(error: unknown): string | undefined {
   return error && typeof error === 'object' && 'code' in error ? String(error.code) : undefined
+}
+
+/**
+ * Older ARCA/Pi-extension builds locked with a `<file>.lock` FILE (`wx`). proper-lockfile then
+ * fails with ENOTDIR forever, so an abandoned one past the stale window has to go.
+ */
+async function clearLegacyLockFile(path: string): Promise<void> {
+  try {
+    const entry = await stat(`${path}.lock`)
+    if (!entry.isDirectory() && Date.now() - entry.mtimeMs >= AUTH_LOCK_STALE_MS) {
+      await unlink(`${path}.lock`).catch(() => {})
+    }
+  } catch {
+    // No lock at all is the common case.
+  }
 }
 
 async function acquire(path: string): Promise<() => Promise<void>> {
@@ -31,6 +46,7 @@ async function acquire(path: string): Promise<() => Promise<void>> {
       }
       const base = Math.min(10 * 2 ** retry, MAX_RETRY_DELAY_MS / 2)
       await sleep(Math.min(Math.round(base * (1 + Math.random())), remainingMs))
+      await clearLegacyLockFile(path)
     }
   }
 }
@@ -38,6 +54,7 @@ async function acquire(path: string): Promise<() => Promise<void>> {
 /** Serializes read-modify-write of a Pi credential file against Pi's own `/accounts` commands. */
 export async function withPiFileLock<T>(path: string, run: () => Promise<T>): Promise<T> {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 })
+  await clearLegacyLockFile(path)
   const release = await acquire(path)
   try {
     return await run()
