@@ -1,6 +1,6 @@
 import type { MegamindRecord } from './arca-megamind'
 import type { MegamindChatMessage } from './arca-megamind-chat'
-import { mentionsHandle } from './arca-megamind-mentions'
+import { mentionsPerson } from './arca-megamind-mentions'
 
 /** What earns a chat message a native notification; everything else stays a silent unread. */
 export type MegamindChatAlert = 'dm' | 'mention'
@@ -12,7 +12,8 @@ export function classifyMegamindChatAlert(
   if (message.mine || (viewerHandle && message.authorName === viewerHandle)) {
     return null
   }
-  if (mentionsHandle(message.body, viewerHandle)) {
+  // `@me-pi` asks this viewer's agent to work; only `@me` is addressed to the person.
+  if (mentionsPerson(message.body, viewerHandle, message.mentions)) {
     return 'mention'
   }
   return message.channel.startsWith('dm:') ? 'dm' : null

@@ -50,6 +50,40 @@ export function mentionsHandle(body: string, handle: string): boolean {
   return bodyMentionHandles(body).includes(handle.toLowerCase())
 }
 
+/** Handles mentioned as the person (`@handle`); `@handle-pi` addresses their agent, not them. */
+export function personMentionHandles(body: string): string[] {
+  const handles: string[] = []
+  for (const match of body.matchAll(MENTION_IN_BODY)) {
+    const handle = match[2].toLowerCase()
+    if (!AGENT_SUFFIX.test(handle) && !handles.includes(handle)) {
+      handles.push(handle)
+    }
+  }
+  return handles
+}
+
+/**
+ * Whether `handle` was addressed as the person. The server's `mentions` list is trusted for what
+ * the body does not show, but never over a body that only names the agent (`@handle-pi`).
+ */
+export function mentionsPerson(
+  body: string,
+  handle: string,
+  serverMentions?: readonly string[]
+): boolean {
+  if (!handle) {
+    return false
+  }
+  const needle = handle.toLowerCase()
+  if (personMentionHandles(body).includes(needle)) {
+    return true
+  }
+  if (bodyMentionHandles(body).includes(needle)) {
+    return false
+  }
+  return (serverMentions ?? []).some((mention) => mention.toLowerCase() === needle)
+}
+
 export type MentionDraft = { query: string; start: number }
 
 /** The `@…` token the caret sits in, or null when the caret is not writing a mention. */

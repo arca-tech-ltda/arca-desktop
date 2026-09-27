@@ -17,12 +17,44 @@ const message = (fields: Partial<MegamindChatMessage>): MegamindChatMessage => (
 
 it('notifies on DMs and mentions of the viewer, never on the viewer’s own messages', () => {
   expect(classifyMegamindChatAlert(message({ channel: 'dm:aaa:bbb' }), 'biel')).toBe('dm')
-  expect(classifyMegamindChatAlert(message({ body: 'cc @biel-pi' }), 'biel')).toBe('mention')
+  expect(classifyMegamindChatAlert(message({ body: 'cc @biel' }), 'biel')).toBe('mention')
   expect(classifyMegamindChatAlert(message({}), 'biel')).toBeNull()
   expect(
     classifyMegamindChatAlert(message({ channel: 'dm:aaa:bbb', mine: true }), 'biel')
   ).toBeNull()
   expect(classifyMegamindChatAlert(message({ authorName: 'biel' }), 'biel')).toBeNull()
+})
+
+it('leaves an agent mention to the agent instead of notifying the person', () => {
+  expect(classifyMegamindChatAlert(message({ body: 'roda o deploy @biel-pi' }), 'biel')).toBeNull()
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: 'roda o deploy @biel-pi', mentions: ['biel-pi'] }),
+      'biel'
+    )
+  ).toBeNull()
+  // The server listing the person is not enough when the body only addressed the agent.
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: 'roda o deploy @biel-pi', mentions: ['biel'] }),
+      'biel'
+    )
+  ).toBeNull()
+  expect(
+    classifyMegamindChatAlert(
+      message({ body: '@biel-pi e @biel olhem', mentions: ['biel'] }),
+      'biel'
+    )
+  ).toBe('mention')
+})
+
+it('trusts the server mention list for what the body does not spell out', () => {
+  expect(
+    classifyMegamindChatAlert(message({ body: 'olha isso', mentions: ['biel'] }), 'biel')
+  ).toBe('mention')
+  expect(
+    classifyMegamindChatAlert(message({ body: 'olha isso', mentions: ['enzo'] }), 'biel')
+  ).toBeNull()
 })
 
 it('deduplicates chat alerts by message id', () => {

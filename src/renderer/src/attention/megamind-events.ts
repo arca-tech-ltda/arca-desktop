@@ -18,10 +18,22 @@ export function megamindApprovalTarget(): string | undefined {
 }
 
 function chatNotificationTitle(item: MegamindRecord): string {
-  const author = typeof item.author === 'string' ? item.author : ''
-  return item.alert === 'dm'
-    ? translate('arca.megamind.chatDirectMessage', 'Direct message from {{author}}', { author })
-    : translate('arca.megamind.chatMention', '{{author}} mentioned you', { author })
+  const author =
+    typeof item.author === 'string'
+      ? item.author
+      : typeof item.author_name === 'string'
+        ? item.author_name
+        : ''
+  if (item.alert === 'dm') {
+    return translate('arca.megamind.chatDirectMessage', 'Direct message from {{author}}', {
+      author
+    })
+  }
+  // Only the chat service classifies an alert; anything else is a plain chat record.
+  if (item.alert !== 'mention') {
+    return translate('arca.megamind.chatMessage', 'New chat message')
+  }
+  return translate('arca.megamind.chatMention', '{{author}} mentioned you', { author })
 }
 
 function notificationRoute(item: MegamindRecord): MegamindPanelRoute {
