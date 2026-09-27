@@ -148,16 +148,56 @@ describe('terminal clipboard paste', () => {
     })
   })
 
-  it('still tries image paste when browser text clipboard reads fail', async () => {
+  it('prefers a screenshot image over accompanying OCR text', async () => {
+    const pasteText = vi.fn()
+    const readClipboardText = vi.fn().mockResolvedValue('o'.repeat(461))
+    const saveClipboardImageAsTempFile = vi
+      .fn()
+      .mockResolvedValue('/tmp/orca-paste-1760000000000-id.png')
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText,
+      saveClipboardImageAsTempFile,
+      pasteText,
+      preferImage: true
+    })
+
+    expect(readClipboardText).not.toHaveBeenCalled()
+    expect(pasteText).toHaveBeenCalledWith('/tmp/orca-paste-1760000000000-id.png', {
+      forceBracketedPaste: true,
+      recoverImagePasteWebglAtlas: true
+    })
+    expect(result).toEqual({ status: 'pasted', kind: 'image-path' })
+  })
+
+  it('keeps browser text paste ahead of image probing', async () => {
+    const saveClipboardImageAsTempFile = vi.fn()
+    const pasteText = vi.fn()
+    const readClipboardText = vi.fn().mockResolvedValue('hello')
+
+    await pasteTerminalClipboard({
+      readClipboardText,
+      saveClipboardImageAsTempFile,
+      pasteText,
+      preferImage: false
+    })
+
+    expect(pasteText).toHaveBeenCalledWith('hello')
+    expect(readClipboardText).toHaveBeenCalledWith({ maxBytes: 16 * 1024 * 1024 })
+    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+  })
+
+  it('falls back to browser image paste when the text clipboard read fails', async () => {
     const pasteText = vi.fn()
     const saveClipboardImageAsTempFile = vi
       .fn()
       .mockResolvedValue('/tmp/orca-paste-1760000000000-id.png')
 
-    await pasteTerminalClipboard({
+    const result = await pasteTerminalClipboard({
       readClipboardText: vi.fn().mockRejectedValue(new Error('No text clipboard permission')),
       saveClipboardImageAsTempFile,
-      pasteText
+      pasteText,
+      preferImage: false
     })
 
     expect(saveClipboardImageAsTempFile).toHaveBeenCalledWith({
@@ -168,25 +208,10 @@ describe('terminal clipboard paste', () => {
       forceBracketedPaste: true,
       recoverImagePasteWebglAtlas: true
     })
+    expect(result).toEqual({ status: 'pasted', kind: 'image-path' })
   })
 
-  it('preserves the text fast path without probing for images', async () => {
-    const saveClipboardImageAsTempFile = vi.fn()
-    const pasteText = vi.fn()
-    const readClipboardText = vi.fn().mockResolvedValue('hello')
-
-    await pasteTerminalClipboard({
-      readClipboardText,
-      saveClipboardImageAsTempFile,
-      pasteText
-    })
-
-    expect(pasteText).toHaveBeenCalledWith('hello')
-    expect(readClipboardText).toHaveBeenCalledWith({ maxBytes: 16 * 1024 * 1024 })
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
-  })
-
-  it('reports text paste execution failures without probing for image fallback', async () => {
+  it('reports text paste execution failures after finding no image', async () => {
     const pasteError = new Error('terminal disconnected')
     const saveClipboardImageAsTempFile = vi.fn()
     const onTextPasteError = vi.fn()
@@ -201,11 +226,11 @@ describe('terminal clipboard paste', () => {
     })
 
     expect(onTextPasteError).toHaveBeenCalledWith(pasteError)
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
     expect(result).toEqual({ status: 'skipped', reason: 'text-paste-failed' })
   })
 
-  it('reports rejected text paste execution without probing for image fallback', async () => {
+  it('reports rejected text paste execution after finding no image', async () => {
     const saveClipboardImageAsTempFile = vi.fn()
     const onTextPasteError = vi.fn()
 
@@ -217,11 +242,11 @@ describe('terminal clipboard paste', () => {
     })
 
     expect(onTextPasteError).not.toHaveBeenCalled()
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
     expect(result).toEqual({ status: 'skipped', reason: 'text-paste-rejected' })
   })
 
-  it('rejects oversized clipboard text without probing for image fallback', async () => {
+  it('rejects oversized clipboard text after finding no image', async () => {
     const saveClipboardImageAsTempFile = vi.fn()
     const pasteText = vi.fn()
     const onTextPasteError = vi.fn()
@@ -241,7 +266,7 @@ describe('terminal clipboard paste', () => {
       })
     )
     expect(pasteText).not.toHaveBeenCalled()
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
     expect(result).toEqual({ status: 'skipped', reason: 'text-too-large' })
   })
 
@@ -260,17 +285,20 @@ describe('terminal clipboard paste', () => {
     expect(result).toEqual({ status: 'skipped', reason: 'image-paste-rejected' })
   })
 
-  it('reports image extraction failures without attempting image-path paste', async () => {
+  it('reports image extraction failures without falling back to OCR text', async () => {
     const imageError = new Error('no image data')
     const pasteText = vi.fn()
+    const readClipboardText = vi.fn().mockResolvedValue('recognized screenshot text')
     const onImagePasteError = vi.fn()
     const result = await pasteTerminalClipboard({
-      readClipboardText: vi.fn().mockResolvedValue(''),
+      readClipboardText,
       saveClipboardImageAsTempFile: vi.fn().mockRejectedValue(imageError),
       pasteText,
-      onImagePasteError
+      onImagePasteError,
+      preferImage: true
     })
 
+    expect(readClipboardText).not.toHaveBeenCalled()
     expect(pasteText).not.toHaveBeenCalled()
     expect(onImagePasteError).toHaveBeenCalledWith(imageError)
     expect(result).toEqual({ status: 'skipped', reason: 'image-paste-failed' })
@@ -290,7 +318,7 @@ describe('terminal clipboard paste', () => {
     expect(pasteText).toHaveBeenCalledWith('line one\nline two', {
       forceBracketedPasteForMultiline: true
     })
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
   })
 
   it('delegates multiline protection to the terminal paste coordinator', async () => {
@@ -337,7 +365,7 @@ describe('terminal clipboard paste', () => {
     expect(pasteText).toHaveBeenCalledWith('hello', {
       forceBracketedPasteForMultiline: true
     })
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
   })
 
   it('does not pre-scan large text before delegating multiline policy', async () => {
@@ -360,7 +388,7 @@ describe('terminal clipboard paste', () => {
     expect(pasteText).toHaveBeenCalledWith('x'.repeat(64), {
       forceBracketedPasteForMultiline: true
     })
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
   })
 
   it('keeps normal single-line text paste on the stale Ctrl+C protection path', async () => {
@@ -386,6 +414,6 @@ describe('terminal clipboard paste', () => {
 
     expect(terminal.paste).toHaveBeenCalledWith('a69ce28e1d092e0c8825cd1a109ac36409962bc1')
     expect(observedIgnoreBracketedPasteMode).toEqual([true])
-    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
   })
 })

@@ -2,6 +2,7 @@ import {
   isClipboardTextTooLargeError,
   type ReadClipboardTextOptions
 } from '../../../../shared/clipboard-text'
+import { isWebClientLocation } from '@/lib/web-client-location'
 import {
   TERMINAL_PASTE_MAX_BYTES,
   type TerminalPasteTextOptions
@@ -25,6 +26,7 @@ type PasteTerminalClipboardDeps = {
   protectedMultilineTextPasteOptions?: TerminalPasteTextOptions
   onTextPasteError?: (error: unknown) => void
   onImagePasteError?: (error: unknown) => void
+  preferImage?: boolean
 }
 
 export type TerminalClipboardPasteResult =
@@ -49,8 +51,39 @@ export async function pasteTerminalClipboard({
   forceBracketedMultilineTextPaste = false,
   protectedMultilineTextPasteOptions,
   onTextPasteError,
-  onImagePasteError
+  onImagePasteError,
+  // Why: GarimeCapture includes OCR text with its image; browsers need the independent text-read permission path.
+  preferImage = !isWebClientLocation()
 }: PasteTerminalClipboardDeps): Promise<TerminalClipboardPasteResult> {
+  const pasteImage = async (): Promise<TerminalClipboardPasteResult | null> => {
+    try {
+      const filePath = await saveClipboardImageAsTempFile({ connectionId, runtimeEnvironmentId })
+      if (!filePath) {
+        return null
+      }
+      const result = await pasteText(filePath, {
+        // Why: a generated clipboard-image path is terminal image injection, not
+        // ordinary one-line text. Keep it off the Ctrl+C stale-text paste path.
+        forceBracketedPaste: true,
+        recoverImagePasteWebglAtlas: true
+      })
+      if (result === false) {
+        return { status: 'skipped', reason: 'image-paste-rejected' }
+      }
+      return { status: 'pasted', kind: 'image-path' }
+    } catch (error) {
+      onImagePasteError?.(error)
+      return { status: 'skipped', reason: 'image-paste-failed' }
+    }
+  }
+
+  if (preferImage) {
+    const imageResult = await pasteImage()
+    if (imageResult) {
+      return imageResult
+    }
+  }
+
   let text = ''
   try {
     text = await readClipboardText({ maxBytes: TERMINAL_PASTE_MAX_BYTES })
@@ -59,42 +92,27 @@ export async function pasteTerminalClipboard({
       onTextPasteError?.(error)
       return { status: 'skipped', reason: 'text-too-large' }
     }
-    // Why: browser clipboard text reads can fail for image-only clipboards.
-    // Still try the image path so Cmd/Ctrl+V works for screenshots.
+    return preferImage
+      ? { status: 'skipped', reason: 'empty' }
+      : ((await pasteImage()) ?? { status: 'skipped', reason: 'empty' })
   }
-  if (text) {
-    try {
-      const textOptions =
-        protectedMultilineTextPasteOptions ??
-        (forceBracketedMultilineTextPaste ? { forceBracketedPasteForMultiline: true } : undefined)
-      const result = await (textOptions ? pasteText(text, textOptions) : pasteText(text))
-      if (result === false) {
-        return { status: 'skipped', reason: 'text-paste-rejected' }
-      }
-      return { status: 'pasted', kind: 'text' }
-    } catch (error) {
-      onTextPasteError?.(error)
-      return { status: 'skipped', reason: 'text-paste-failed' }
-    }
+  if (!text) {
+    return preferImage
+      ? { status: 'skipped', reason: 'empty' }
+      : ((await pasteImage()) ?? { status: 'skipped', reason: 'empty' })
   }
 
   try {
-    const filePath = await saveClipboardImageAsTempFile({ connectionId, runtimeEnvironmentId })
-    if (!filePath) {
-      return { status: 'skipped', reason: 'empty' }
-    }
-    const result = await pasteText(filePath, {
-      // Why: a generated clipboard-image path is terminal image injection, not
-      // ordinary one-line text. Keep it off the Ctrl+C stale-text paste path.
-      forceBracketedPaste: true,
-      recoverImagePasteWebglAtlas: true
-    })
+    const textOptions =
+      protectedMultilineTextPasteOptions ??
+      (forceBracketedMultilineTextPaste ? { forceBracketedPasteForMultiline: true } : undefined)
+    const result = await (textOptions ? pasteText(text, textOptions) : pasteText(text))
     if (result === false) {
-      return { status: 'skipped', reason: 'image-paste-rejected' }
+      return { status: 'skipped', reason: 'text-paste-rejected' }
     }
-    return { status: 'pasted', kind: 'image-path' }
+    return { status: 'pasted', kind: 'text' }
   } catch (error) {
-    onImagePasteError?.(error)
-    return { status: 'skipped', reason: 'image-paste-failed' }
+    onTextPasteError?.(error)
+    return { status: 'skipped', reason: 'text-paste-failed' }
   }
 }

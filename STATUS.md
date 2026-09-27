@@ -43,7 +43,7 @@ _Nenhuma._
 
 ### 🟡 Em andamento
 - [ ] Contas v2, etapa 1 (Pi na aba "contas v2", worktree `/tmp/arca-accounts-v2-wt`)
-- [ ] Teste manual do login de conta pelo app (Claude e Codex, Mac e Windows) — código na 1.5.9
+- [ ] Teste manual do login de conta pelo app no Windows (Mac ok em 2026-09-26: duas contas novas)
 
 ### ⚪ A fazer (priorizado)
 - [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.11, aceitar a permissão de notificação e confirmar o ARCA em Ajustes › Notificações e apagar `dist/mac-arm64/ARCA.app`
