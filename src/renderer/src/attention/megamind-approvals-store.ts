@@ -32,13 +32,17 @@ export function subscribeMegamindApprovals(listener: () => void): () => void {
 
 export function refreshMegamindApprovals(): void {
   const api = window.api.arcaMegamind
-  if (!api) {
+  // An older preload, or the paired web client, has no approvals channel to poll.
+  if (typeof api?.approvals !== 'function') {
     return
   }
-  void api
-    .approvals()
-    .then((items) => update({ items, login: false, error: false }))
-    .catch(() => update({ ...state, error: true }))
+  try {
+    void Promise.resolve(api.approvals())
+      .then((items) => update({ items, login: false, error: false }))
+      .catch(() => update({ ...state, error: true }))
+  } catch {
+    update({ ...state, error: true })
+  }
 }
 
 /**

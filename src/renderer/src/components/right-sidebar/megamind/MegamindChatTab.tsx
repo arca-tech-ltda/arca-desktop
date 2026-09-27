@@ -44,11 +44,20 @@ export function MegamindChatTab({
   post
 }: MegamindChatTabProps): React.JSX.Element {
   const active = state.channels.find((channel) => channel.channel === state.activeChannel)
-  // The post route addresses the group by name and a DM by the partner's handle, never by channel id.
-  const target = active?.kind === 'dm' ? active.handle : MEGAMIND_GROUP_CHANNEL
+  // The post route addresses the group by name and a DM by the partner's handle, never by channel
+  // id. Until the directory resolves the active DM there is no safe target: sending anyway would
+  // put a private message in the group.
+  const target =
+    active?.kind === 'dm'
+      ? active.handle
+      : state.activeChannel === MEGAMIND_GROUP_CHANNEL
+        ? MEGAMIND_GROUP_CHANNEL
+        : null
   const send = useCallback(
     async (body: string) => {
-      await post(target, body)
+      if (target) {
+        await post(target, body)
+      }
     },
     [post, target]
   )
@@ -96,7 +105,7 @@ export function MegamindChatTab({
       />
       <MegamindComposer
         members={members}
-        disabled={state.availability !== 'ready'}
+        disabled={state.availability !== 'ready' || target === null}
         placeholder={
           active?.kind === 'dm'
             ? translate('arca.megamind.composerDm', 'Message @{{handle}}', {

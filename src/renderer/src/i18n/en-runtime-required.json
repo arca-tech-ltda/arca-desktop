@@ -12,14 +12,6 @@
     }
   },
   "arca": {
-    "megamind": {
-      "errorDetail": "The ARCA Mainframe did not respond. Check your connection and try again.",
-      "errorTitle": "Megamind is unreachable",
-      "guestAriaLabel": "ARCA Megamind",
-      "reload": "Reload Megamind",
-      "retry": "Try again",
-      "unsupportedDetail": "This panel embeds the ARCA Mainframe, which only runs in the desktop app."
-    },
     "updater": {
       "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
     }
