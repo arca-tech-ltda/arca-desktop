@@ -26,11 +26,15 @@ const mapSchema = z.object({
   projects: z.record(z.string(), selectionSchema)
 })
 
+/** The slice of global settings the per-project map needs; `Store` satisfies it. */
+export type ManagedAccountSettingsSnapshot = {
+  claudeManagedAccounts?: ClaudeManagedAccount[]
+  codexManagedAccounts?: CodexManagedAccount[]
+  agentStatusHooksEnabled?: boolean
+}
+
 export type ManagedAccountSettingsSource = {
-  getSettings: () => {
-    claudeManagedAccounts?: ClaudeManagedAccount[]
-    codexManagedAccounts?: CodexManagedAccount[]
-  }
+  getSettings: () => ManagedAccountSettingsSnapshot
 }
 
 function normalizeMap(map: ManagedAccountProjectMap): ManagedAccountProjectMap {

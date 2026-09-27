@@ -49,7 +49,7 @@ export function registerManagedAccountProjects(
   const projects = new ManagedAccountProjectsService({ userDataPath, settings })
   service = projects
   setManagedAccountProjectsService(projects)
-  setManagedAccountSettingsReader(() => settings.getSettings() as never)
+  setManagedAccountSettingsReader(() => settings.getSettings())
   projects.load()
   void materializePinnedClaudeCredentials(projects)
   ipcMain.handle('managedAccountProjects:get', (event) => {

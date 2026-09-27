@@ -100,7 +100,7 @@ The execution host owns agent status in one store, the hook server's, and every 
 
 ## Agent Authority (ARCA)
 
-Who owns agent credentials is a per-machine mode (`pi` for Gabriel, `managed` for the partners' Claude Code/Codex), resolved in main and mirrored to the renderer — not a constant. Before gating anything on Pi, adding a Pi-only registration, or touching the accounts screen, read [`docs/reference/arca-agent-authority.md`](./docs/reference/arca-agent-authority.md).
+Who owns agent credentials is a per-machine mode (`pi` for Gabriel, `managed` for the partners' Claude Code/Codex), resolved in main and mirrored to the renderer — not a constant. Before gating anything on Pi, adding a Pi-only registration, or touching the accounts screen, read [`docs/reference/arca-agent-authority.md`](./docs/reference/arca-agent-authority.md). In `managed` mode a project can pin a managed Claude/Codex account, which moves `CLAUDE_CONFIG_DIR`/`CODEX_HOME` per terminal and needs hooks, MCP and skills mirrored into that home: read [`docs/reference/arca-managed-account-projects.md`](./docs/reference/arca-managed-account-projects.md) before touching the map, the PTY injection or those homes.
 
 ## Megamind Presence (ARCA)
 

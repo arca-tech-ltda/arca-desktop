@@ -84,6 +84,8 @@ it('links the skills directory rather than copying it where the platform allows'
   const paths = homes()
   syncClaudeManagedHomeResources(paths)
   if (process.platform !== 'win32') {
-    expect(readlinkSync(join(paths.configDir, 'skills'))).toBe(join(paths.systemConfigDir, 'skills'))
+    expect(readlinkSync(join(paths.configDir, 'skills'))).toBe(
+      join(paths.systemConfigDir, 'skills')
+    )
   }
 })

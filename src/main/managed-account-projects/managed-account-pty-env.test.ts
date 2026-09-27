@@ -120,16 +120,16 @@ it('lets an explicit per-terminal account win over the project mapping', async (
 
 it('refuses the launch when the pinned account is gone instead of falling back', async () => {
   await service.setProjectAccount('/tmp/repo', 'claude', 'removed-account')
-  expect(() =>
-    applyManagedAccountPtyEnv({}, { projectPath: '/tmp/repo', service })
-  ).toThrowError(/not available/u)
+  expect(() => applyManagedAccountPtyEnv({}, { projectPath: '/tmp/repo', service })).toThrowError(
+    /not available/u
+  )
 })
 
 it('refuses the launch when the pinned Claude home cannot be prepared', () => {
   configDir = null
-  expect(() =>
-    applyManagedAccountPtyEnv({}, { projectPath: '/tmp/repo', service })
-  ).toThrowError(/not available/u)
+  expect(() => applyManagedAccountPtyEnv({}, { projectPath: '/tmp/repo', service })).toThrowError(
+    /not available/u
+  )
   expect(prepared).toEqual(['claude-1'])
 })
 

@@ -98,7 +98,10 @@ function LaunchEntrySubmenu({
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         {single ? (
-          <AccountItems group={single} onSelect={(value) => launch(entry.agent, single.envKey, value)} />
+          <AccountItems
+            group={single}
+            onSelect={(value) => launch(entry.agent, single.envKey, value)}
+          />
         ) : (
           entry.groups.map((group) => (
             <DropdownMenuSub key={group.key}>

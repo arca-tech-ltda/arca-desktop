@@ -116,7 +116,11 @@ it('re-reads the file inside each write so a second window does not lose its ent
   await f.instance.setProjectAccount('/tmp/c', 'codex', 'codex-1')
   expect(await f.file()).toEqual({
     version: 1,
-    projects: { '/tmp/b': { codex: 'codex-1' }, '/tmp/a': { claude: 'claude-1' }, '/tmp/c': { codex: 'codex-1' } }
+    projects: {
+      '/tmp/b': { codex: 'codex-1' },
+      '/tmp/a': { claude: 'claude-1' },
+      '/tmp/c': { codex: 'codex-1' }
+    }
   })
 })
 

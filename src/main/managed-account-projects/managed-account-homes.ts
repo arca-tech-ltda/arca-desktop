@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import type { GlobalSettings } from '../../shared/global-settings-types'
 import type { ClaudeManagedAccount, CodexManagedAccount } from '../../shared/managed-account-types'
 import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
 import {
@@ -14,12 +13,9 @@ import {
   writeClaudeManagedAuthFile
 } from '../claude-accounts/managed-auth-path'
 import { syncClaudeManagedHomeResources } from './claude-managed-home-resources'
+import type { ManagedAccountSettingsSnapshot } from './managed-account-project-map'
 
-type ManagedAccountSettingsReader = () => Pick<
-  GlobalSettings,
-  'claudeManagedAccounts' | 'codexManagedAccounts'
-> &
-  Partial<GlobalSettings>
+type ManagedAccountSettingsReader = () => ManagedAccountSettingsSnapshot
 
 let readSettings: ManagedAccountSettingsReader | null = null
 
@@ -59,7 +55,7 @@ export function prepareClaudeManagedConfigDirForLaunch(accountId: string): strin
   }
   syncClaudeManagedHomeResources({
     configDir,
-    hooksEnabled: isAgentStatusHooksEnabled(readSettings?.() as GlobalSettings | undefined)
+    hooksEnabled: isAgentStatusHooksEnabled(readSettings?.())
   })
   return configDir
 }

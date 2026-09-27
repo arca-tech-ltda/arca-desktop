@@ -39,10 +39,7 @@ export type PiAccountsController = {
 }
 
 /** Shared Pi account state and IPC for both the settings section and the status-bar menu. */
-export function usePiAccounts(
-  provider?: PiAccountProvider,
-  enabled = true
-): PiAccountsController {
+export function usePiAccounts(provider?: PiAccountProvider, enabled = true): PiAccountsController {
   const settings = useAppStore((s) => s.settings)
   const fetchSettings = useAppStore((s) => s.fetchSettings)
   const remote = hasRemoteProviderAccountOwner(settings)

@@ -60,7 +60,9 @@ export function RepositoryProjectAccountSection({
     >
       <div className="min-w-0 space-y-1">
         <div className="text-sm font-semibold">{title}</div>
-        <p className="text-xs text-muted-foreground">{sectionExplanation(pi, accounts.supported)}</p>
+        <p className="text-xs text-muted-foreground">
+          {sectionExplanation(pi, accounts.supported)}
+        </p>
       </div>
       {accounts.groups.map((group) => (
         <div key={group.key} className="space-y-1.5">
