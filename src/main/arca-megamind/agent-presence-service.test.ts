@@ -9,7 +9,10 @@ function provider() {
   const service = {
     noteActivity: vi.fn(async (_activity: MegamindAgentActivity) => true),
     noteSessionEnd: vi.fn(async (_paneKey: string) => {}),
-    promptContext: vi.fn(async () => 'contexto')
+    promptContext: vi.fn(async (_paneKey: string) => ({
+      text: 'contexto',
+      delivered: async () => {}
+    }))
   }
   return { service, hooks: createMegamindHookProvider(service, () => 'session-do-pane') }
 }
@@ -60,8 +63,8 @@ it('hands off on SessionEnd but never on Stop', () => {
 
 it('asks the pane session for the prompt context', async () => {
   const { service, hooks } = provider()
-  await expect(hooks.promptContext(observation({ hookEventName: 'UserPromptSubmit' }))).resolves.toBe(
-    'contexto'
-  )
+  await expect(
+    hooks.promptContext(observation({ hookEventName: 'UserPromptSubmit' }))
+  ).resolves.toMatchObject({ text: 'contexto' })
   expect(service.promptContext).toHaveBeenCalledWith(PANE)
 })

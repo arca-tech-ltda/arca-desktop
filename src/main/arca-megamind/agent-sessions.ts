@@ -18,6 +18,12 @@ export type MegamindAgentActivity = {
   cwd: string
 }
 
+export type MegamindPromptContext = {
+  text: string
+  /** Confirms the items to the gateway; until it runs they are redelivered. */
+  delivered: () => Promise<void>
+}
+
 export type MegamindAgentSessionsDeps = {
   /** Rejects when the device has no Megamind credential — that is the silent no-op path. */
   callTool: (name: string, args: MegamindRecord) => Promise<MegamindRecord>
@@ -109,8 +115,11 @@ export class MegamindAgentSessions {
     })
   }
 
-  /** Pending inbox of this pane as prompt context, acknowledged once handed to the agent. */
-  async promptContext(paneKey: string): Promise<string | null> {
+  /**
+   * Pending inbox of this pane as prompt context. `acknowledge` is the caller's to make, after the
+   * text is really on its way to the agent: a prompt that timed out must keep its items pending.
+   */
+  async promptContext(paneKey: string): Promise<MegamindPromptContext | null> {
     // The first prompt of a pane races its own registration; the inbox needs the session to exist.
     if (!(await this.ensureRegistered(paneKey))) {
       return null
@@ -119,15 +128,20 @@ export class MegamindAgentSessions {
     if (!pane?.registered || !this.take()) {
       return null
     }
-    const inbox = await this.call('inbox', { session_id: pane.sessionId, limit: INBOX_LIMIT })
+    const sessionId = pane.sessionId
+    const inbox = await this.call('inbox', { session_id: sessionId, limit: INBOX_LIMIT })
     const context = inbox ? formatInboxContext(records(inbox)) : null
     if (!context) {
       return null
     }
-    if (this.take()) {
-      await this.call('acknowledge', { session_id: pane.sessionId, ids: context.ids })
+    return {
+      text: context.text,
+      delivered: async () => {
+        if (this.take()) {
+          await this.call('acknowledge', { session_id: sessionId, ids: context.ids })
+        }
+      }
     }
-    return context.text
   }
 
   stop(): void {

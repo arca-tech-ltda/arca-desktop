@@ -145,7 +145,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
         if (context) {
           // The hook script prints this body; it is the agent's context channel, not status.
           res.writeHead(200, { 'Content-Type': context.contentType })
-          res.end(context.body)
+          res.end(context.body, () => context.delivered())
           return
         }
         res.writeHead(204)

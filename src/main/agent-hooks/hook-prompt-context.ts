@@ -13,11 +13,17 @@ export type AgentHookObservation = {
   cwd: string | null
 }
 
+export type AgentHookPromptContext = {
+  text: string
+  /** Called only once the body is on the wire, so a timed-out prompt keeps its items pending. */
+  delivered: () => void | Promise<void>
+}
+
 export type AgentHookPromptContextProvider = {
   /** Every observed hook event of a context source; must never throw. */
   observe: (observation: AgentHookObservation) => void
   /** Context to hand the agent with this prompt, or null. */
-  promptContext: (observation: AgentHookObservation) => Promise<string | null>
+  promptContext: (observation: AgentHookObservation) => Promise<AgentHookPromptContext | null>
 }
 
 let provider: AgentHookPromptContextProvider | null = null
@@ -80,7 +86,11 @@ export function readAgentHookObservation(
   }
 }
 
-export type AgentHookContextResponse = { contentType: string; body: string }
+export type AgentHookContextResponse = {
+  contentType: string
+  body: string
+  delivered: () => void
+}
 
 /**
  * How each CLI takes extra context from a hook. Claude Code appends non-JSON stdout of a
@@ -90,13 +100,20 @@ export type AgentHookContextResponse = { contentType: string; body: string }
  */
 export function buildHookContextResponse(
   source: AgentHookSource,
-  context: string
+  context: AgentHookPromptContext
 ): AgentHookContextResponse | null {
-  if (!context.trim()) {
+  if (!context.text.trim()) {
     return null
   }
+  const delivered = (): void => {
+    try {
+      void Promise.resolve(context.delivered()).catch(() => {})
+    } catch {
+      /* Acknowledging is best effort; an unconfirmed item is simply redelivered. */
+    }
+  }
   if (source === 'claude') {
-    return { contentType: 'text/plain; charset=utf-8', body: `${context}\n` }
+    return { contentType: 'text/plain; charset=utf-8', body: `${context.text}\n`, delivered }
   }
   if (source === 'codex') {
     return {
@@ -104,9 +121,10 @@ export function buildHookContextResponse(
       body: JSON.stringify({
         hookSpecificOutput: {
           hookEventName: 'UserPromptSubmit',
-          additionalContext: context
+          additionalContext: context.text
         }
-      })
+      }),
+      delivered
     }
   }
   return null
@@ -143,6 +161,7 @@ export async function resolveAgentHookContextResponse(
         timer.unref?.()
       })
     ])
+    // A late answer is dropped without acknowledging: the hook already gave up on the body.
     return context ? buildHookContextResponse(source, context) : null
   } catch {
     return null

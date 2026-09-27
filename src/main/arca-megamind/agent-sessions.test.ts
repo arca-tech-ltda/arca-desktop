@@ -128,9 +128,12 @@ describe('inbox as prompt context', () => {
     await sessions.noteActivity(activity)
     const context = await sessions.promptContext(PANE)
 
-    expect(context).toContain('2 itens pendentes')
-    expect(context).toContain('abcdefghij12345')
-    expect(context).toContain('enzo')
+    expect(context?.text).toContain('2 itens pendentes')
+    expect(context?.text).toContain('abcdefghij12345')
+    expect(context?.text).toContain('enzo')
+    // The gateway is told only after the caller confirms the body reached the agent.
+    expect(calls.some((call) => call.name === 'acknowledge')).toBe(false)
+    await context?.delivered()
     expect(calls.at(-1)).toEqual({
       name: 'acknowledge',
       args: { session_id: SESSION, ids: ['abcdefghij12345', 'bbcdefghij12345'] }
