@@ -8,7 +8,13 @@ import {
 import type { PiAccount, PiAccountProvider, PiAccountsState } from '../../../../shared/pi-accounts'
 
 export type PiAccountsNotice = {
-  kind: 'added' | 'duplicate' | 'addFailed' | 'removeBlocked'
+  kind:
+    | 'added'
+    | 'duplicate'
+    | 'addFailed'
+    | 'removeBlocked'
+    | 'removeBlockedProject'
+    | 'removeBlockedTerminal'
   name?: string
 }
 export type PiAccountNameError = 'nameTaken' | 'nameInvalid'
@@ -150,6 +156,10 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
       setState(result.state)
       if (result.status === 'active-in-use') {
         setNotice({ kind: 'removeBlocked' })
+      } else if (result.status === 'pinned-to-project') {
+        setNotice({ kind: 'removeBlockedProject' })
+      } else if (result.status === 'open-in-terminal') {
+        setNotice({ kind: 'removeBlockedTerminal' })
       }
     } catch {
       setFailed(true)
