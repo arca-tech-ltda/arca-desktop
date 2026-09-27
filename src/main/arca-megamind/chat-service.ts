@@ -42,6 +42,10 @@ export class MegamindChatService {
   private visible = false
   private running = false
   private busy = false
+  /** A refresh asked for while one was in flight (a channel switch): run once the current ends. */
+  private queued = false
+  /** `created` of the newest message already read, so the next poll asks only for what came after. */
+  private since = ''
   private cancelTimer?: () => void
   private readonly setTimer: NonNullable<MegamindChatServiceOptions['setTimer']>
 
@@ -123,17 +127,21 @@ export class MegamindChatService {
   async post(target: string, body: string): Promise<MegamindChatPostResult> {
     const result = await this.options.client.post(target, body)
     if (!result.ok) {
-      this.fail(result.reason)
-      return result.reason
+      // A rejected write says nothing about whether the chat is readable; only a session fact does.
+      if (result.reason === 'login' || result.reason === 'unsupported') {
+        this.fail(result.reason)
+      }
+      return { status: result.reason }
     }
     await this.refresh()
-    return 'ok'
+    return { status: 'ok', woken: result.value }
   }
 
   /** Signing in or out invalidates the viewer, so the next poll re-reads it and re-seeds. */
   resetSession(): void {
     this.state = { ...this.state, viewerHandle: '', availability: 'loading' }
     this.seeded = false
+    this.since = ''
     void this.refresh()
   }
 
@@ -152,14 +160,23 @@ export class MegamindChatService {
   }
 
   async refresh(): Promise<void> {
-    if (this.busy || !this.running) {
+    if (!this.running) {
+      return
+    }
+    if (this.busy) {
+      this.queued = true
       return
     }
     this.busy = true
     try {
       await this.poll()
+      while (this.queued && this.running) {
+        this.queued = false
+        await this.poll()
+      }
     } finally {
       this.busy = false
+      this.queued = false
       this.schedule()
     }
   }
@@ -178,7 +195,7 @@ export class MegamindChatService {
       this.fail(channels.reason)
       return
     }
-    const recent = await this.options.client.recent()
+    const recent = await this.options.client.recent(this.since)
     if (!recent.ok) {
       this.fail(recent.reason)
       return
@@ -205,8 +222,14 @@ export class MegamindChatService {
     if (history.ok) {
       return history.value
     }
-    // A failed history poll keeps the panel readable with what the shared feed already carries.
-    return recent.filter((message) => message.channel === this.state.activeChannel)
+    // A failed history poll keeps the panel readable with what is already shown plus the feed.
+    const known = new Set(this.state.messages.map((message) => message.id))
+    return [
+      ...this.state.messages,
+      ...recent.filter(
+        (message) => message.channel === this.state.activeChannel && !known.has(message.id)
+      )
+    ]
   }
 
   /** Channels the directory does not list yet (a brand-new DM) still deserve their unread badge. */
@@ -224,6 +247,9 @@ export class MegamindChatService {
 
   private applyRecent(messages: readonly MegamindChatMessage[]): void {
     for (const message of messages) {
+      if (message.createdAt > this.since) {
+        this.since = message.createdAt
+      }
       if (this.seen.has(message.id)) {
         continue
       }

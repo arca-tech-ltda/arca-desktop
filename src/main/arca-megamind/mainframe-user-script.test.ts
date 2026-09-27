@@ -141,6 +141,37 @@ it('projects only presentation fields and flags the viewer’s own rows', async 
   })
 })
 
+it('projects which mentioned agents the chat route woke', async () => {
+  const script = buildMainframeUserScript({
+    origin,
+    path: '/api/arca/chat',
+    projection: 'chatPost',
+    body: { channel: 'arca', body: 'oi @enzo-pi' }
+  })
+  expect(
+    await runInNewContext(
+      script,
+      guest({
+        fetch: async () =>
+          response(200, {
+            id: 'abcdefghijklmno',
+            woken: ['enzo', { handle: 'daniel', woken: false }, { handle: 'ana', awake: false }]
+          })
+      })
+    )
+  ).toEqual({
+    status: 200,
+    data: [
+      { handle: 'enzo', woken: true },
+      { handle: 'daniel', woken: false },
+      { handle: 'ana', woken: false }
+    ]
+  })
+  expect(
+    await runInNewContext(script, guest({ fetch: async () => response(200, { id: 'x' }) }))
+  ).toEqual({ status: 200, data: [] })
+})
+
 it('reads the handle from the session, falling back to the e-mail local part', async () => {
   expect(
     await runInNewContext(

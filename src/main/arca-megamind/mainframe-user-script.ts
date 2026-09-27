@@ -5,11 +5,19 @@
  * only the projected public fields below ever cross back into this process.
  */
 
-export type MainframeUserProjection = 'ok' | 'approvals' | 'chatChannels' | 'chatMessages'
+export type MainframeUserProjection =
+  | 'ok'
+  | 'approvals'
+  | 'chatChannels'
+  | 'chatMessages'
+  | 'chatPost'
 
 /** Expressions evaluated in the guest over the parsed response (`data`) and the viewer id (`uid`). */
 const PROJECTIONS: Record<MainframeUserProjection, string> = {
   ok: "'ok'",
+  // `woken` reports the agents an `@handle-pi` mention reached; a handle-only entry means it woke.
+  chatPost:
+    'Array.isArray(data.woken) ? data.woken.map(item => typeof item === "string" ? {handle: item, woken: true} : {handle: typeof item?.handle === "string" ? item.handle : "", woken: item?.woken !== false && item?.awake !== false}) : []',
   approvals:
     'Array.isArray(data.items) ? data.items.map(item => ({id: item.id, summary: item.summary, relevant: item.owner === uid})) : []',
   chatChannels:

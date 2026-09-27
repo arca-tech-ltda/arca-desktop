@@ -50,15 +50,16 @@ beforeEach(() => {
         prerequisites: vi
           .fn()
           .mockResolvedValue({ pi: true, installer: true, extension: true, windows: false }),
-        approvals: vi
-          .fn()
-          .mockResolvedValue([{ id: 'zzzzzzzzzzzzzzz', summary: 'git push feat/x' }]),
+        approvals: vi.fn().mockResolvedValue({
+          ok: true,
+          items: [{ id: 'zzzzzzzzzzzzzzz', summary: 'git push feat/x' }]
+        }),
         decide: vi.fn().mockResolvedValue('ok'),
         chatState: vi.fn().mockResolvedValue(chatState),
         onChatState: () => () => {},
         chatSetVisible: vi.fn().mockResolvedValue(undefined),
         chatSelectChannel,
-        chatPost: vi.fn().mockResolvedValue('ok'),
+        chatPost: vi.fn().mockResolvedValue({ status: 'ok', woken: [] }),
         members: vi.fn().mockResolvedValue({
           items: [
             {

@@ -16,7 +16,8 @@ type MegamindComposerProps = {
   members: readonly MegamindMember[]
   placeholder: string
   disabled: boolean
-  onSend: (body: string) => Promise<void>
+  /** Resolves false when the message did not land, so the draft stays where the user can retry. */
+  onSend: (body: string) => Promise<boolean>
 }
 
 export function MegamindComposer({
@@ -74,9 +75,10 @@ export function MegamindComposer({
     }
     setSending(true)
     try {
-      await onSend(text)
-      setBody('')
-      setCandidates([])
+      if (await onSend(text)) {
+        setBody('')
+        setCandidates([])
+      }
     } finally {
       setSending(false)
     }

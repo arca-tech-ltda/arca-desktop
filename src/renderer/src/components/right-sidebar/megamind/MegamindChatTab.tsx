@@ -1,10 +1,13 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { MEGAMIND_GROUP_CHANNEL } from '../../../../../shared/arca-megamind-chat'
 import type {
+  MegamindChatPostFailure,
   MegamindChatState,
   MegamindChatPostResult,
+  MegamindChatWake,
   MegamindMember
 } from '../../../../../shared/arca-megamind-chat'
 import { MegamindChannelBar } from './MegamindChannelBar'
@@ -37,12 +40,60 @@ function MegamindChatNotice({
   )
 }
 
+function postFailureMessage(reason: MegamindChatPostFailure): string {
+  switch (reason) {
+    case 'login':
+      return translate(
+        'arca.megamind.chatPostLogin',
+        'Your Mainframe session expired. Sign in and send again.'
+      )
+    case 'rate':
+      return translate(
+        'arca.megamind.chatPostRateLimited',
+        'Too many messages at once. Wait a moment and send again.'
+      )
+    case 'tooLong':
+      return translate(
+        'arca.megamind.chatPostTooLong',
+        'The Mainframe rejected this message: it is too long.'
+      )
+    case 'forbidden':
+      return translate('arca.megamind.chatPostForbidden', 'You cannot post in this channel.')
+    case 'unsupported':
+      return translate('arca.megamind.chatPostUnsupported', 'This Mainframe has no chat.')
+    case 'error':
+      return translate(
+        'arca.megamind.chatPostFailed',
+        'The message was not sent. Check your connection and try again.'
+      )
+  }
+}
+
+/** What the server did with the `@handle-pi` mentions in the message that was just sent. */
+function wakeMessage(woken: readonly MegamindChatWake[]): string | null {
+  const lines = woken.map((wake) =>
+    wake.woken
+      ? translate('arca.megamind.chatAgentWoken', 'Agent of {{handle}} woken', {
+          handle: wake.handle
+        })
+      : translate('arca.megamind.chatAgentAsleep', 'No active agent for {{handle}}', {
+          handle: wake.handle
+        })
+  )
+  return lines.length > 0 ? lines.join(' · ') : null
+}
+
+/** Tied to the channel it was raised in, so switching channels leaves it behind. */
+type ComposerNotice = { channel: string; tone: 'error' | 'info'; text: string }
+
 export function MegamindChatTab({
   state,
   members,
   selectChannel,
   post
 }: MegamindChatTabProps): React.JSX.Element {
+  const [pendingNotice, setNotice] = useState<ComposerNotice | null>(null)
+  const notice = pendingNotice?.channel === state.activeChannel ? pendingNotice : null
   const active = state.channels.find((channel) => channel.channel === state.activeChannel)
   // The post route addresses the group by name and a DM by the partner's handle, never by channel
   // id. Until the directory resolves the active DM there is no safe target: sending anyway would
@@ -54,12 +105,21 @@ export function MegamindChatTab({
         ? MEGAMIND_GROUP_CHANNEL
         : null
   const send = useCallback(
-    async (body: string) => {
-      if (target) {
-        await post(target, body)
+    async (body: string): Promise<boolean> => {
+      if (!target) {
+        return false
       }
+      const result = await post(target, body)
+      const channel = state.activeChannel
+      if (result.status !== 'ok') {
+        setNotice({ channel, tone: 'error', text: postFailureMessage(result.status) })
+        return false
+      }
+      const wake = wakeMessage(result.woken)
+      setNotice(wake ? { channel, tone: 'info', text: wake } : null)
+      return true
     },
-    [post, target]
+    [post, state.activeChannel, target]
   )
   if (state.availability === 'unsupported') {
     return (
@@ -103,6 +163,17 @@ export function MegamindChatTab({
             : translate('arca.megamind.chatEmpty', 'No messages in this channel yet.')
         }
       />
+      {notice && (
+        <p
+          role={notice.tone === 'error' ? 'alert' : 'status'}
+          className={cn(
+            'shrink-0 px-2 pt-1 text-[11px]',
+            notice.tone === 'error' ? 'text-destructive' : 'text-muted-foreground'
+          )}
+        >
+          {notice.text}
+        </p>
+      )}
       <MegamindComposer
         members={members}
         disabled={state.availability !== 'ready' || target === null}

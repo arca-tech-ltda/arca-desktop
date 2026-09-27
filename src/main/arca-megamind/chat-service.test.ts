@@ -46,7 +46,7 @@ function setup(): Harness {
     }),
     recent: vi.fn().mockResolvedValue({ ok: true, value: [] }),
     history: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-    post: vi.fn().mockResolvedValue({ ok: true, value: 'ok' })
+    post: vi.fn().mockResolvedValue({ ok: true, value: [] })
   }
   const states: MegamindChatState[] = []
   const alerts: { handle: string; alert: string }[] = []
@@ -141,9 +141,75 @@ it('surfaces a server without chat and a signed-out session without retrying as 
 it('reports a post failure by reason and refreshes after a successful one', async () => {
   harness.service.start()
   await vi.waitFor(() => expect(latest().availability).toBe('ready'))
-  expect(await harness.service.post('enzo', 'oi')).toBe('ok')
+  expect(await harness.service.post('enzo', 'oi')).toEqual({ status: 'ok', woken: [] })
   expect(harness.client.post).toHaveBeenCalledWith('enzo', 'oi')
   harness.client.post.mockResolvedValue({ ok: false, reason: 'login' })
-  expect(await harness.service.post('enzo', 'oi')).toBe('login')
+  expect(await harness.service.post('enzo', 'oi')).toEqual({ status: 'login' })
   expect(latest().availability).toBe('login')
+})
+
+it('keeps the chat readable when a single post is rejected', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  for (const reason of ['rate', 'tooLong', 'forbidden', 'error'] as const) {
+    harness.client.post.mockResolvedValue({ ok: false, reason })
+    expect(await harness.service.post('enzo', 'oi')).toEqual({ status: reason })
+    expect(latest().availability).toBe('ready')
+  }
+})
+
+it('passes the agents the server woke back to the caller', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.client.post.mockResolvedValue({
+    ok: true,
+    value: [
+      { handle: 'enzo', woken: true },
+      { handle: 'daniel', woken: false }
+    ]
+  })
+  expect(await harness.service.post('arca', 'oi @enzo-pi @daniel-pi')).toEqual({
+    status: 'ok',
+    woken: [
+      { handle: 'enzo', woken: true },
+      { handle: 'daniel', woken: false }
+    ]
+  })
+})
+
+it('asks only for what arrived after the newest message it already read', async () => {
+  harness.client.recent.mockResolvedValue({
+    ok: true,
+    value: [
+      message({ id: 'aaaaaaaaaaaaaaa', createdAt: '2026-01-01 00:00:00.000Z' }),
+      message({ id: 'bbbbbbbbbbbbbbb', createdAt: '2026-01-02 00:00:00.000Z' })
+    ]
+  })
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  expect(harness.client.recent).toHaveBeenCalledWith('')
+  await harness.service.refresh()
+  expect(harness.client.recent).toHaveBeenLastCalledWith('2026-01-02 00:00:00.000Z')
+})
+
+it('runs a queued refresh when the channel changes while one is in flight', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.service.setVisible(true)
+  await vi.waitFor(() => expect(harness.client.history).toHaveBeenCalled())
+  let release = (): void => {}
+  harness.client.recent.mockReturnValue(
+    new Promise((resolve) => {
+      release = () => resolve({ ok: true, value: [] })
+    })
+  )
+  const polls = harness.client.recent.mock.calls.length
+  const inFlight = harness.service.refresh()
+  const switched = harness.service.setActiveChannel(DM)
+  harness.client.recent.mockResolvedValue({ ok: true, value: [] })
+  release()
+  await Promise.all([inFlight, switched])
+  // The switch must earn its own poll instead of waiting for the next scheduled one.
+  expect(harness.client.recent.mock.calls.length).toBe(polls + 2)
+  expect(harness.client.history).toHaveBeenLastCalledWith(DM)
 })

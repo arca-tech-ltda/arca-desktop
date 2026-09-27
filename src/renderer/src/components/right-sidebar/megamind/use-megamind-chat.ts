@@ -45,8 +45,8 @@ export function useMegamindChat(visible: boolean): {
     }
   }, [selectChannel, visible, state.channels])
   const post = useCallback(
-    (target: string, body: string) =>
-      window.api.arcaMegamind.chatPost(target, body).catch(() => 'error' as const),
+    (target: string, body: string): Promise<MegamindChatPostResult> =>
+      window.api.arcaMegamind.chatPost(target, body).catch(() => ({ status: 'error' }) as const),
     []
   )
   return { state, selectChannel, post }

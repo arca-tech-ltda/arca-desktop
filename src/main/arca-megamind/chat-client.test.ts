@@ -57,6 +57,23 @@ describe('chat reads', () => {
     expect(result.ok && result.value).toHaveLength(1)
   })
 
+  it('asks only for messages created after the last one it read, with a bigger page', async () => {
+    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({ status: 200, data: [] })
+    await client(run).recent('2026-01-02 03:04:05.000Z')
+    const request = run.mock.calls[0][0]
+    const path = request === 'identity' ? '' : request.path
+    expect(path).toContain('filter=created%3E%222026-01-02+03%3A04%3A05.000Z%22')
+    expect(path).toContain('perPage=200')
+  })
+
+  it('never puts an unrecognised cursor into the filter expression', async () => {
+    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({ status: 200, data: [] })
+    await client(run).recent('" || id!="')
+    const request = run.mock.calls[0][0]
+    const path = request === 'identity' ? '' : request.path
+    expect(path).not.toContain('filter=')
+  })
+
   it('reads a 404 as a server without chat and a missing session as login', async () => {
     expect(await client(vi.fn().mockResolvedValue({ status: 404, data: null })).channels()).toEqual(
       {
@@ -72,6 +89,17 @@ describe('chat reads', () => {
       ok: false,
       reason: 'error'
     })
+  })
+
+  it('tells a rate limit, a refusal and a rejected body apart from a plain failure', async () => {
+    const reasons = await Promise.all(
+      [429, 403, 400, 500].map((status) =>
+        client(vi.fn().mockResolvedValue({ status, data: null }))
+          .channels()
+          .then((result) => (result.ok ? 'ok' : result.reason))
+      )
+    )
+    expect(reasons).toEqual(['rate', 'forbidden', 'tooLong', 'error'])
   })
 
   it('keeps only channels the contract can address', async () => {
@@ -94,12 +122,31 @@ describe('chat reads', () => {
 
 describe('chat writes', () => {
   it('posts to the human route addressed by group or handle', async () => {
-    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({ status: 200, data: 'ok' })
-    expect(await client(run).post('enzo', 'oi')).toEqual({ ok: true, value: 'ok' })
+    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({ status: 200, data: [] })
+    expect(await client(run).post('enzo', 'oi')).toEqual({ ok: true, value: [] })
     expect(run).toHaveBeenCalledWith({
       path: '/api/arca/chat',
-      projection: 'ok',
+      projection: 'chatPost',
       body: { channel: 'enzo', body: 'oi' }
+    })
+  })
+
+  it('reports which mentioned agents the server woke and drops unusable entries', async () => {
+    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({
+      status: 200,
+      data: [
+        { handle: 'enzo', woken: true },
+        { handle: 'daniel', woken: false },
+        { handle: 'NOPE', woken: true },
+        { woken: true }
+      ]
+    })
+    expect(await client(run).post('arca', 'oi @enzo-pi')).toEqual({
+      ok: true,
+      value: [
+        { handle: 'enzo', woken: true },
+        { handle: 'daniel', woken: false }
+      ]
     })
   })
 
@@ -109,8 +156,16 @@ describe('chat writes', () => {
       ok: false,
       reason: 'error'
     })
-    expect(await client(run).post('arca', '')).toEqual({ ok: false, reason: 'error' })
-    expect(await client(run).post('arca', 'x'.repeat(8193))).toEqual({ ok: false, reason: 'error' })
+    expect(await client(run).post('arca', '')).toEqual({ ok: false, reason: 'tooLong' })
+    expect(await client(run).post('arca', 'x'.repeat(8193))).toEqual({
+      ok: false,
+      reason: 'tooLong'
+    })
     expect(run).not.toHaveBeenCalled()
+  })
+
+  it('reports a rate-limited post as such instead of a generic failure', async () => {
+    const run = vi.fn<MainframeUserRunner>().mockResolvedValue({ status: 429, data: null })
+    expect(await client(run).post('arca', 'oi')).toEqual({ ok: false, reason: 'rate' })
   })
 })

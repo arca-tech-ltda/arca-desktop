@@ -74,7 +74,21 @@ export type MegamindMembers = {
   degraded: boolean
 }
 
-export type MegamindChatPostResult = 'ok' | 'login' | 'unsupported' | 'error'
+/** Why a post did not land. `tooLong` covers every body the server rejected as malformed. */
+export type MegamindChatPostFailure =
+  | 'login'
+  | 'unsupported'
+  | 'forbidden'
+  | 'rate'
+  | 'tooLong'
+  | 'error'
+
+/** One `@handle-pi` mention the server tried to wake. */
+export type MegamindChatWake = { handle: string; woken: boolean }
+
+export type MegamindChatPostResult =
+  | { status: 'ok'; woken: MegamindChatWake[] }
+  | { status: MegamindChatPostFailure }
 
 export const emptyMegamindChatState = (): MegamindChatState => ({
   availability: 'loading',

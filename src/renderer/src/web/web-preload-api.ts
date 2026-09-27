@@ -104,7 +104,7 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       chatSetVisible: async () => {},
       chatSelectChannel: async () => {},
       chatMarkRead: async () => {},
-      chatPost: async () => 'unsupported' as const,
+      chatPost: async () => ({ status: 'unsupported' }) as const,
       members: async () => ({ items: [], degraded: false }),
       openMainframeLogin: async () => {},
       onChatState: () => () => {},

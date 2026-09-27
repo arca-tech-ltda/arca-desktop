@@ -12,7 +12,7 @@ const members: MegamindMember[] = [
 
 afterEach(cleanup)
 
-function composer(onSend = vi.fn().mockResolvedValue(undefined)): {
+function composer(onSend = vi.fn().mockResolvedValue(true)): {
   input: HTMLTextAreaElement
   onSend: ReturnType<typeof vi.fn>
 } {
@@ -43,6 +43,14 @@ it('sends on Enter and keeps Shift+Enter as a newline', async () => {
   fireEvent.keyDown(input, { key: 'Enter', keyCode: 13 })
   expect(onSend).toHaveBeenCalledWith('oi pessoal')
   await waitFor(() => expect(input.value).toBe(''))
+})
+
+it('keeps the draft when the message did not land', async () => {
+  const { input, onSend } = composer(vi.fn().mockResolvedValue(false))
+  type(input, 'oi pessoal')
+  fireEvent.keyDown(input, { key: 'Enter', keyCode: 13 })
+  await waitFor(() => expect(onSend).toHaveBeenCalled())
+  expect(input.value).toBe('oi pessoal')
 })
 
 it('does not send an empty body', () => {
