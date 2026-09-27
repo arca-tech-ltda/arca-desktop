@@ -1,4 +1,9 @@
 import type { ArcaDeepLink } from './arca-deep-link'
+import type {
+  MegamindChatPostResult,
+  MegamindChatState,
+  MegamindMembers
+} from './arca-megamind-chat'
 
 export type MegamindRecord = Record<string, unknown>
 export type MegamindStatus = {
@@ -22,6 +27,14 @@ export type ArcaMegamindApi = {
   requests(): Promise<MegamindRecord[]>
   approvals(): Promise<MegamindApproval[]>
   decide(id: string, decision: 'approved' | 'denied'): Promise<'ok' | 'login'>
+  chatState(): Promise<MegamindChatState>
+  chatSetVisible(visible: boolean): Promise<void>
+  chatSelectChannel(channel: string): Promise<void>
+  chatMarkRead(channel: string): Promise<void>
+  chatPost(target: string, body: string): Promise<MegamindChatPostResult>
+  members(): Promise<MegamindMembers>
+  openMainframeLogin(): Promise<void>
+  onChatState(callback: (state: MegamindChatState) => void): () => void
   createRequest(to: string, title: string, body: string, projectId: string): Promise<void>
   onUpdate(callback: (status: MegamindStatus) => void): () => void
   onNotification(callback: (item: MegamindRecord) => void): () => void

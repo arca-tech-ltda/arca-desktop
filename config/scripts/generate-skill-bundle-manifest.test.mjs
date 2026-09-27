@@ -551,5 +551,4 @@ describe('skill bundle manifest generator', () => {
 
     expect(gitTreeSha(files)).toBe(expected)
   })
-
 })

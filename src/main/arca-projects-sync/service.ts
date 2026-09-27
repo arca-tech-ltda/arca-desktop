@@ -110,10 +110,7 @@ export class ArcaProjectsSync {
     this.changed(this.current)
   }
 
-  private async registerAndSync(
-    entry: ArcaCatalogEntry,
-    diskPath: string
-  ): Promise<ArcaSyncRow> {
+  private async registerAndSync(entry: ArcaCatalogEntry, diskPath: string): Promise<ArcaSyncRow> {
     const row: ArcaSyncRow = { ...entry, diskPath, state: 'error' }
     const registration = await addLocalRepoFromPath(this.store, diskPath)
     if ('error' in registration) {
@@ -148,7 +145,9 @@ export class ArcaProjectsSync {
       }
       const disk = await scanArcaDisk(homedir())
       const projects: ArcaSyncRow[] = []
-      const visibleEntries = catalog.entries.filter((entry) => !isArcaProjectExcludedByDefault(entry))
+      const visibleEntries = catalog.entries.filter(
+        (entry) => !isArcaProjectExcludedByDefault(entry)
+      )
       for (const [index, entry] of visibleEntries.entries()) {
         const foundAtCatalogPath = disk.find(
           (repo) =>
@@ -210,33 +209,33 @@ export class ArcaProjectsSync {
                 percent: 0
               }
             })
-          try {
-            await cloneArcaProject(entry, (progress) => {
-              this.publish({
-                cloneProgress: {
-                  current: index + 1,
-                  total: visibleEntries.length,
-                  name: entry.name,
-                  percent: progress.percent
-                }
+            try {
+              await cloneArcaProject(entry, (progress) => {
+                this.publish({
+                  cloneProgress: {
+                    current: index + 1,
+                    total: visibleEntries.length,
+                    name: entry.name,
+                    percent: progress.percent
+                  }
+                })
               })
-            })
-            downloaded++
-            found = { repoKey: entry.repoKey, path: entry.destination }
-            disk.push(found)
-            this.inaccessibleUntil.delete(entry.repoKey)
-            await this.persistBackoff()
-          } catch (error) {
-            if (isCloneAccessError(error)) {
-              const until = Date.now() + ACCESS_BACKOFF_MS
-              this.inaccessibleUntil.set(entry.repoKey, until)
+              downloaded++
+              found = { repoKey: entry.repoKey, path: entry.destination }
+              disk.push(found)
+              this.inaccessibleUntil.delete(entry.repoKey)
               await this.persistBackoff()
-              projects.push({ ...entry, state: 'inaccessible', error: String(error) })
-            } else {
-              projects.push({ ...entry, state: 'error', error: String(error) })
+            } catch (error) {
+              if (isCloneAccessError(error)) {
+                const until = Date.now() + ACCESS_BACKOFF_MS
+                this.inaccessibleUntil.set(entry.repoKey, until)
+                await this.persistBackoff()
+                projects.push({ ...entry, state: 'inaccessible', error: String(error) })
+              } else {
+                projects.push({ ...entry, state: 'error', error: String(error) })
+              }
+              continue
             }
-            continue
-          }
           }
         }
 

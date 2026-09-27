@@ -140,23 +140,11 @@ export default function AgentWorktreeGroupRow({
         </div>
       ) : (
         <div className="flex items-center gap-1.5 pt-0.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
-            disabled={busy}
-            onClick={onOpen}
-          >
+          <Button type="button" variant="outline" size="xs" disabled={busy} onClick={onOpen}>
             <FolderOpen className="size-3" aria-hidden="true" />
             {translate('auto.components.sidebar.AgentWorktreeGroupRow.open', 'Open')}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
-            disabled={busy}
-            onClick={onReviewDiff}
-          >
+          <Button type="button" variant="outline" size="xs" disabled={busy} onClick={onReviewDiff}>
             <GitCompare className="size-3" aria-hidden="true" />
             {translate('auto.components.sidebar.AgentWorktreeGroupRow.reviewDiff', 'Review diff')}
           </Button>

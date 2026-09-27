@@ -1350,7 +1350,7 @@
       ],
       "demotionRule": "Keep experimental until CI soak is stable; investigate any budget failure without weakening transcript preservation."
     },
-        {
+    {
       "id": "terminal-output.prestarted-shell-snapshot-adoption",
       "title": "Prestarted shell adoption paints covered output once",
       "maturity": "experimental",
@@ -10267,7 +10267,7 @@
       ],
       "demotionRule": "Cannot promote without deterministic user-visible oracle, failure artifacts, and stable runtime history."
     },
-        {
+    {
       "id": "terminal-platform.windows-conpty-liveness",
       "title": "Windows ConPTY terminals stay input-live, render-live, and geometry-live",
       "maturity": "experimental",
@@ -17292,7 +17292,7 @@
       ],
       "demotionRule": "Demote or quarantine if the gate flakes once without a product bug or harness bug filed to the owner."
     },
-        {
+    {
       "id": "terminal-input.plugin-explicit-worktree-routing",
       "title": "Plugin terminal input stays inside the freshly resolved worktree",
       "maturity": "experimental",
@@ -17687,7 +17687,7 @@
       ],
       "demotionRule": "Demote if any exit duration can evade the spawn budget, concurrent children or timers appear, cleanup retains resources, or a transient failure cannot recover within the budget."
     },
-        {
+    {
       "id": "runtime.linux-cli-launch-contract",
       "title": "Packaged Linux CLI commands run without FUSE, user namespaces, or a display",
       "maturity": "experimental",
@@ -18861,6 +18861,6 @@
         "Codex replay artifact evidence uses a deterministic remote TUI on Linux CI; real-service, macOS/Windows clients and cross-version replay remain separate coverage gaps."
       ],
       "demotionRule": "Keep experimental while any recovery reproduction fails or any teardown, identity, resource-count, or rendered oracle flakes; never promote by extending sleeps or retries."
-    },
-              ]
+    }
+  ]
 }

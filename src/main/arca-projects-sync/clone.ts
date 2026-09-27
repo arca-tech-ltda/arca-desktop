@@ -1,7 +1,11 @@
 import { isTransientReviewHeadFetchError } from '../git/fetch-error-classification'
 import { lstat, mkdir, readdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { gitExecFileAsync, gitSpawnAfterWindowsEnvironmentReady, nonInteractiveGitEnv } from '../git/runner'
+import {
+  gitExecFileAsync,
+  gitSpawnAfterWindowsEnvironmentReady,
+  nonInteractiveGitEnv
+} from '../git/runner'
 import { normalizeArcaRemote } from './catalog'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import type { ArcaCatalogEntry } from '../../shared/arca-projects-sync'
@@ -21,7 +25,13 @@ export function clonePartialMarkerPath(destination: string): string {
 }
 
 function comparableRemote(value: string): string {
-  return normalizeArcaRemote(value) ?? value.trim().replace(/[\\/]+$/, '').toLowerCase()
+  return (
+    normalizeArcaRemote(value) ??
+    value
+      .trim()
+      .replace(/[\\/]+$/, '')
+      .toLowerCase()
+  )
 }
 
 function sameRemote(left: string, right: string): boolean {
@@ -60,7 +70,10 @@ async function removeWithRetries(target: string): Promise<void> {
   throw lastError
 }
 
-async function destinationState(destination: string, expectedRemote: string): Promise<DestinationState> {
+async function destinationState(
+  destination: string,
+  expectedRemote: string
+): Promise<DestinationState> {
   const marker = clonePartialMarkerPath(destination)
   try {
     await lstat(marker)
@@ -123,9 +136,13 @@ async function destinationState(destination: string, expectedRemote: string): Pr
 }
 
 function parseProgress(text: string, previous: number): CloneProgress {
-  const matches = [...text.matchAll(/(?:Receiving objects|Resolving deltas|Compressing objects):\s+(\d+)%/g)]
+  const matches = [
+    ...text.matchAll(/(?:Receiving objects|Resolving deltas|Compressing objects):\s+(\d+)%/g)
+  ]
   const percent = matches.reduce((highest, match) => Math.max(highest, Number(match[1])), previous)
-  const phase = text.match(/(?:Receiving objects|Resolving deltas|Compressing objects):/)?.[0]?.slice(0, -1) ?? 'Cloning'
+  const phase =
+    text.match(/(?:Receiving objects|Resolving deltas|Compressing objects):/)?.[0]?.slice(0, -1) ??
+    'Cloning'
   return { phase, percent }
 }
 

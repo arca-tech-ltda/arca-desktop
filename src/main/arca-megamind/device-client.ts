@@ -4,7 +4,9 @@ import { dirname } from 'node:path'
 import { hostname } from 'node:os'
 import { object, readCredential, type DeviceCredential } from './credentials'
 import { callTool, records, startMegamindEvents } from './gateway'
+import { fetchMegamindMembers } from './chat-members'
 import type { MegamindRecord } from '../../shared/arca-megamind'
+import type { MegamindMembers } from '../../shared/arca-megamind-chat'
 
 export class MegamindDeviceClient {
   private credential?: DeviceCredential
@@ -54,6 +56,9 @@ export class MegamindDeviceClient {
   priorities(): Promise<MegamindRecord> {
     return this.tool('priorities_list', {})
   }
+  members(): Promise<MegamindMembers> {
+    return fetchMegamindMembers((name, args) => this.tool(name, args))
+  }
   async requests(): Promise<MegamindRecord[]> {
     await this.loadSessions()
     const result: MegamindRecord[] = []
@@ -87,13 +92,18 @@ export class MegamindDeviceClient {
       })
     }
     // The gateway requires an owned session even for device/actor inbox readers.
-    await this.tool('register_agent', {
+    const registration = {
       session_id: id,
       project_id: project,
-      harness: 'pi',
       label: `${hostname()} ARCA Desktop`.slice(0, 80),
       note: 'Desktop inbox; no agent execution'
-    })
+    }
+    try {
+      await this.tool('register_agent', { ...registration, harness: 'desktop' })
+    } catch {
+      // A v4 server only knows the agent harnesses; the note is what marks the app there.
+      await this.tool('register_agent', { ...registration, harness: 'pi' })
+    }
     return id
   }
   async createRequest(to: string, title: string, body: string, projectId: string): Promise<void> {

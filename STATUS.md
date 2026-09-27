@@ -1,7 +1,9 @@
 # STATUS — arca-desktop
+
 > Última verificação: 2026-09-26 · Branch padrão: `arca-desktop` · Versão publicada: **1.5.11** (stable, Windows + Mac)
 
 ## Resumo
+
 ARCA Desktop é um fork do Orca (MIT, stablyai/orca, base `dac82f61b`) mantido pela ARCA Tech:
 IDE de desenvolvimento agêntico paralelo com marca/ícone/comando `arca` próprios, o Pi como
 agente principal, painel Megamind (Mainframe), atualização por clique servida pelo Mainframe,
@@ -9,6 +11,7 @@ card de tarefas lido dos `STATUS.md`, sincronização automática dos projetos d
 Claude/Codex compartilhadas com o `/accounts` do Pi.
 
 ## Estado atual
+
 - Distribuição: CI `.github/workflows/arca-desktop-build.yml` builda Windows x64 (NSIS por
   usuário) e macOS arm64 (ZIP) a cada push em `arca-desktop` e publica no canal `stable` do
   Mainframe (`/opt/arca/desktop-updates/stable`). Sem assinatura de código (Windows e Mac).
@@ -29,7 +32,9 @@ Claude/Codex compartilhadas com o `/accounts` do Pi.
   diferentes testados (Claude + Codex em paralelo).
 
 ## Prioridade: contas v2 (conta por projeto, uso/cota, quem está usando) — 1.6.0
+
 Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.md`.
+
 - [ ] 1. Patch no Pi da ARCA: arquivo de login por conta escolhido por env por provedor, com trava do Pi; migração do bucket nos 3 lados (overlay `arca-pi`, `/accounts`, app); prova de 2 sessões simultâneas em contas diferentes + subagentes + refresh concorrente. Decisões em `docs/reference/arca-accounts-v2.md` — Responsável: Gabriel Mendonça
 - [ ] 2. Mapeamento projeto → conta no bucket (leitura compatível v1/v2 no app e no core do `arca`) e resolução cwd → projeto pelo `projects.json` — Responsável: Gabriel Mendonça
 - [ ] 3. Configurar a conta do projeto no menu "⋯" da barra lateral (submenu Conta), selo ao lado do nome, Project Settings, tela de contas e `/accounts project` — Responsável: Gabriel Mendonça
@@ -38,19 +43,24 @@ Plano completo, restrições e verificação: `docs/reference/arca-accounts-v2.m
 - [ ] 6. Quem está usando cada conta via presença do Megamind (só nome/e-mail/projeto, nunca token) e alerta de cota compartilhada — depende de mudança no Mainframe — Responsável: Gabriel Mendonça
 
 ## Tarefas
+
 ### 🔴 Bloqueado
+
 _Nenhuma._
 
 ### 🟡 Em andamento
+
 - [ ] Contas v2: desenho decidido (grill 2026-09-26); especificação do patch no Pi em andamento
 - [ ] Teste manual do login de conta pelo app no Windows (Mac ok em 2026-09-26: duas contas novas)
 
 ### ⚪ A fazer (priorizado)
+
 - [ ] Teste manual da troca de contas app ↔ `/accounts` no Mac (Gabriel) e no Windows (sócios)
 - [ ] Assinatura de código Windows (Authenticode) e Mac (Developer ID + notarização) — depende de certificado
 - [ ] Reescrever `AGENTS.md` e este `STATUS.md` para que qualquer sócio edite sem contexto prévio
 
 ### ✅ Concluído recentemente (últimos ~30 dias)
+
 - [x] Mac do Gabriel: ARCA em `/Applications` na 1.5.11; notificações e tema ARCA Black confirmados
 - [x] 1.5.11: notificações no Mac (bundle selado ad-hoc com o id do app + pedido de permissão via AppKit); onboarding só "Install CLI"; botão de tarefas preso ao floating workspace; grupo "agentes trabalhando" na barra lateral (marcador `arca-agent.json` ou pasta temporária); limpeza do updater herdado e cache/debounce do STATUS.md; menu de contas compacto na barra de status
 - [x] 1.5.10: tema de terminal "ARCA Black" (fundo preto) como padrão escuro, com migração única; login de contas passando pelo wrapper de processos
@@ -63,6 +73,7 @@ _Nenhuma._
 - [x] Stats & Usage: tempo ativo por projeto — `ec6dbd7a`
 
 ## Observações / riscos
+
 - Sem assinatura de código: SmartScreen avisa no Windows; no Mac o executável se identifica como
   "Electron", o que afeta notificações e permissões do sistema.
 - SSH/WSL: extensões do app ainda são gravadas na pasta do Pi remoto; troca de conta nesses

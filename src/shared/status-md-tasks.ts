@@ -47,7 +47,10 @@ function indentationDepth(indentation: string): number {
   return Math.floor(columns / 2)
 }
 
-export function parseStatusMd(markdown: string | null | undefined, repoId = 'repo'): ParsedStatusMd {
+export function parseStatusMd(
+  markdown: string | null | undefined,
+  repoId = 'repo'
+): ParsedStatusMd {
   if (!markdown) {
     return { tasks: [], updatedAt: null }
   }
@@ -129,7 +132,8 @@ export function filterStatusMdTasks(
 ): StatusMdTask[] {
   const normalizedSearch = search.trim().toLocaleLowerCase()
   return tasks.filter((task) => {
-    const matchesFilter = filter === 'all' || (filter === 'completed' ? task.completed : !task.completed)
+    const matchesFilter =
+      filter === 'all' || (filter === 'completed' ? task.completed : !task.completed)
     const matchesSearch =
       normalizedSearch.length === 0 ||
       `${task.title} ${task.section ?? ''}`.toLocaleLowerCase().includes(normalizedSearch)

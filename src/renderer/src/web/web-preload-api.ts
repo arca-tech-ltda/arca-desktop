@@ -1,4 +1,5 @@
 import { emptyArcaSyncStatus } from '../../../shared/arca-projects-sync'
+import { emptyMegamindChatState } from '../../../shared/arca-megamind-chat'
 import type { PreloadApi } from '../../../preload/api-types'
 import type { StatsSummary } from '../../../shared/process-stats-types'
 import { createWebE2EApi } from './preload-api/web-e2e-api'
@@ -83,7 +84,12 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       onRepoUpdated: () => () => {}
     },
     arcaMegamind: {
-      prerequisites: async () => ({ pi: false, installer: false, extension: false, windows: false }),
+      prerequisites: async () => ({
+        pi: false,
+        installer: false,
+        extension: false,
+        windows: false
+      }),
       status: async () => ({ state: 'disconnected' }),
       startEnrollment: async () => ({ state: 'disconnected' }),
       agents: async () => [],
@@ -91,6 +97,17 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       approvals: async () => [],
       decide: async () => 'login',
       createRequest: async () => {},
+      chatState: async () => ({
+        ...emptyMegamindChatState(),
+        availability: 'unsupported' as const
+      }),
+      chatSetVisible: async () => {},
+      chatSelectChannel: async () => {},
+      chatMarkRead: async () => {},
+      chatPost: async () => 'unsupported' as const,
+      members: async () => ({ items: [], degraded: false }),
+      openMainframeLogin: async () => {},
+      onChatState: () => () => {},
       onUpdate: () => () => {},
       onNotification: () => () => {},
       onDeepLink: () => () => {},
