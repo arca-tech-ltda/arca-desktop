@@ -1,9 +1,6 @@
 import { isWslUncPath } from '../../shared/wsl-paths'
 import { piAccountEnvKey, PI_ACCOUNT_PROVIDERS } from '../../shared/pi-account-projects'
-import {
-  getPiAccountProjectsService,
-  type PiAccountProjectsService
-} from './account-project-map'
+import { getPiAccountProjectsService, type PiAccountProjectsService } from './account-project-map'
 
 export type PiAccountPtyEnvInput = {
   /** Project (repo or folder workspace) path; the mapping key. */

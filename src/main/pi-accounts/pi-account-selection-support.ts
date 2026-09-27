@@ -12,7 +12,9 @@ const DEV_OVERRIDE_ENV = 'ARCA_FORCE_PI_ACCOUNT_SUPPORT'
 let probe: PiAccountSelectionSupportProbe | null = null
 let cached: boolean | null = null
 
-export function setPiAccountSelectionSupportProbe(next: PiAccountSelectionSupportProbe | null): void {
+export function setPiAccountSelectionSupportProbe(
+  next: PiAccountSelectionSupportProbe | null
+): void {
   probe = next
   cached = null
 }

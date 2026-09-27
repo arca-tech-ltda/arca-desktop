@@ -4,7 +4,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { lock } from 'proper-lockfile'
-import { AUTH_LOCK_STALE_MS, withAuthLock, withBucketAndAuthLock, withBucketLock } from './auth-lock'
+import {
+  AUTH_LOCK_STALE_MS,
+  withAuthLock,
+  withBucketAndAuthLock,
+  withBucketLock
+} from './auth-lock'
 
 const dirs: string[] = []
 afterEach(async () => {

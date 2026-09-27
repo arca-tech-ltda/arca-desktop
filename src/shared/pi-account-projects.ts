@@ -92,7 +92,10 @@ export function resolvePiAccountSelectionForLaunch(
   const separator = platform === 'win32' ? '\\' : '/'
   let best = ''
   for (const key of Object.keys(map.projects)) {
-    if (key !== cwdKey && !cwdKey.startsWith(key.endsWith(separator) ? key : `${key}${separator}`)) {
+    if (
+      key !== cwdKey &&
+      !cwdKey.startsWith(key.endsWith(separator) ? key : `${key}${separator}`)
+    ) {
       continue
     }
     if (key.length > best.length) {

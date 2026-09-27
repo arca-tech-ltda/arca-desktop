@@ -15226,6 +15226,21 @@
     "empty": "No hay cuentas de Pi guardadas.",
     "loading": "Cargando cuentas…",
     "mirrorFailed": "Pi cambió de cuenta, pero falló la copia para el CLI. Ejecuta /accounts mirror en Pi.",
-    "failed": "No se pudieron leer o cambiar las cuentas de Pi. Revisa los archivos y ejecuta /accounts en Pi; guarda cualquier nuevo inicio de sesión antes de cambiar."
+    "failed": "No se pudieron leer o cambiar las cuentas de Pi. Revisa los archivos y ejecuta /accounts en Pi; guarda cualquier nuevo inicio de sesión antes de cambiar.",
+    "projectBadgeLine": "{{value0}}: {{value1}}",
+    "removeBlockedProject": "Esta cuenta está fijada en un proyecto. Devuelve ese proyecto a la cuenta activa primero.",
+    "removeBlockedTerminal": "Esta cuenta se está usando en un terminal abierto. Ciérralo antes de eliminarla.",
+    "projectSectionTitle": "Cuenta de Pi",
+    "projectSectionDescription": "Abrir siempre Pi en este proyecto con una cuenta guardada concreta.",
+    "projectSectionLongDescription": "Los terminales de Pi abiertos en este proyecto usan la cuenta elegida. Los terminales ya abiertos conservan la cuenta con la que empezaron.",
+    "projectSectionUnsupported": "El Pi instalado aún no admite cuentas por proyecto. Actualiza el Pi de ARCA para activarlo.",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "Cuenta activa (predeterminada)",
+    "unsupported": "Actualiza el Pi de ARCA",
+    "projectMenu": "Cuenta",
+    "newPiWithAccount": "Nuevo Pi con cuenta…",
+    "noAccounts": "No hay cuentas guardadas",
+    "useAnotherAccount": "Usar otra cuenta en esta sesión: clic derecho en esta pestaña → {{value0}}"
   }
 }

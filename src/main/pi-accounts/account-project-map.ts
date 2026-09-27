@@ -86,7 +86,10 @@ export class PiAccountProjectsService {
   }
 
   /** The accounts a launch in this project should use. Empty when Pi has no support yet. */
-  resolveSelection(paths: { projectPath?: string | null; cwd?: string | null }): PiAccountProjectSelection {
+  resolveSelection(paths: {
+    projectPath?: string | null
+    cwd?: string | null
+  }): PiAccountProjectSelection {
     if (!isPiAccountSelectionSupported()) {
       return {}
     }
@@ -118,7 +121,11 @@ export class PiAccountProjectsService {
   }
 
   /** Contract v1 §7: a rename must not orphan the projects pointing at the old name. */
-  renameAccount(provider: PiAccountProvider, from: string, to: string): Promise<PiAccountProjectMap> {
+  renameAccount(
+    provider: PiAccountProvider,
+    from: string,
+    to: string
+  ): Promise<PiAccountProjectMap> {
     return this.mutate((map) => {
       for (const selection of Object.values(map.projects)) {
         if (selection[provider] === from) {

@@ -21,7 +21,8 @@ async function acquire(path: string): Promise<() => Promise<void>> {
         realpath: false,
         retries: 0,
         stale: AUTH_LOCK_STALE_MS,
-        onCompromised: (error) => console.warn(`[pi-accounts] Lock on ${path} was compromised`, error)
+        onCompromised: (error) =>
+          console.warn(`[pi-accounts] Lock on ${path} was compromised`, error)
       })
     } catch (error) {
       const remainingMs = deadline - Date.now()

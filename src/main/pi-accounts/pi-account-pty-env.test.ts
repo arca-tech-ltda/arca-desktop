@@ -32,9 +32,9 @@ it('injects both providers for a mapped local project', () => {
 })
 
 it('never injects on SSH or WSL', () => {
-  expect(buildPiAccountPtyEnv({ projectPath: '/tmp/repo', connectionId: 'ssh-1', service })).toEqual(
-    {}
-  )
+  expect(
+    buildPiAccountPtyEnv({ projectPath: '/tmp/repo', connectionId: 'ssh-1', service })
+  ).toEqual({})
   expect(buildPiAccountPtyEnv({ projectPath: '/tmp/repo', isWsl: true, service })).toEqual({})
   expect(
     buildPiAccountPtyEnv({ projectPath: '\\\\wsl$\\Ubuntu\\home\\bi\\repo', service })

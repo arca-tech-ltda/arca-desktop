@@ -15393,6 +15393,21 @@
     "empty": "저장된 Pi 계정이 없습니다.",
     "loading": "계정 로딩 중…",
     "mirrorFailed": "Pi 계정은 전환되었지만 CLI 복사에 실패했습니다. Pi에서 /accounts mirror를 실행하세요.",
-    "failed": "Pi 계정을 읽거나 전환하지 못했습니다. 파일을 확인하고 Pi에서 /accounts를 실행하세요. 전환하기 전에 새 로그인을 저장하세요."
+    "failed": "Pi 계정을 읽거나 전환하지 못했습니다. 파일을 확인하고 Pi에서 /accounts를 실행하세요. 전환하기 전에 새 로그인을 저장하세요.",
+    "projectBadgeLine": "{{value0}}: {{value1}}",
+    "removeBlockedProject": "이 계정은 프로젝트에 고정되어 있습니다. 해당 프로젝트를 먼저 활성 계정으로 되돌리세요.",
+    "removeBlockedTerminal": "이 계정은 열려 있는 터미널에서 사용 중입니다. 먼저 닫은 뒤 삭제하세요.",
+    "projectSectionTitle": "Pi 계정",
+    "projectSectionDescription": "이 프로젝트에서는 항상 지정한 저장된 계정으로 Pi를 엽니다.",
+    "projectSectionLongDescription": "이 프로젝트에서 여는 Pi 터미널은 선택한 계정을 사용합니다. 이미 열린 터미널은 시작할 때의 계정을 유지합니다.",
+    "projectSectionUnsupported": "설치된 Pi는 아직 프로젝트별 계정을 지원하지 않습니다. ARCA의 Pi를 업데이트하세요.",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "활성 계정(기본값)",
+    "unsupported": "ARCA의 Pi를 업데이트하세요",
+    "projectMenu": "계정",
+    "newPiWithAccount": "계정을 선택해 새 Pi…",
+    "noAccounts": "저장된 계정 없음",
+    "useAnotherAccount": "이 세션에서 다른 계정 사용: 이 탭을 마우스 오른쪽 클릭 → {{value0}}"
   }
 }

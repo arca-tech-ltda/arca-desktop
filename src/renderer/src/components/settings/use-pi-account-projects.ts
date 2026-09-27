@@ -52,7 +52,10 @@ export function usePiAccountProjects(): PiAccountProjectsController {
     }
     const api = window.api.piAccountProjects
     const stop = api.onChange(update)
-    void api.get().then(update).catch(() => {})
+    void api
+      .get()
+      .then(update)
+      .catch(() => {})
     return () => {
       disposed = true
       stop()
@@ -79,9 +82,8 @@ export function usePiAccountProjects(): PiAccountProjectsController {
     selectionFor: (projectPath) =>
       getPiAccountProjectSelection(current.map, projectPath, rendererPathPlatform()),
     sessionFor: (tabId, provider) =>
-      current.sessions.find(
-        (session) => session.tabId === tabId && session.provider === provider
-      )?.name ?? null,
+      current.sessions.find((session) => session.tabId === tabId && session.provider === provider)
+        ?.name ?? null,
     setProjectAccount
   }
 }

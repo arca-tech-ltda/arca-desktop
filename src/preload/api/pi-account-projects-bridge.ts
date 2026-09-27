@@ -1,8 +1,5 @@
 import { ipcRenderer } from 'electron'
-import type {
-  PiAccountProjectsApi,
-  PiAccountProjectsState
-} from '../../shared/pi-account-projects'
+import type { PiAccountProjectsApi, PiAccountProjectsState } from '../../shared/pi-account-projects'
 
 export const piAccountProjectsApi: PiAccountProjectsApi = {
   get: () => ipcRenderer.invoke('piAccountProjects:get'),

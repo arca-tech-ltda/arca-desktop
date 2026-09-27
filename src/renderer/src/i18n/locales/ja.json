@@ -15255,6 +15255,21 @@
     "empty": "保存された Pi アカウントはありません。",
     "loading": "アカウントを読み込み中…",
     "mirrorFailed": "Pi のアカウントは切り替わりましたが、CLI へのコピーに失敗しました。Pi で /accounts mirror を実行してください。",
-    "failed": "Pi アカウントの読み込みまたは切り替えに失敗しました。ファイルを確認し Pi で /accounts を実行してください。切り替える前に新しいログインを保存してください。"
+    "failed": "Pi アカウントの読み込みまたは切り替えに失敗しました。ファイルを確認し Pi で /accounts を実行してください。切り替える前に新しいログインを保存してください。",
+    "projectBadgeLine": "{{value0}}: {{value1}}",
+    "removeBlockedProject": "このアカウントはプロジェクトに固定されています。先にそのプロジェクトをアクティブなアカウントに戻してください。",
+    "removeBlockedTerminal": "このアカウントは開いているターミナルで使用中です。先に閉じてから削除してください。",
+    "projectSectionTitle": "Pi アカウント",
+    "projectSectionDescription": "このプロジェクトでは常に指定した保存済みアカウントで Pi を開きます。",
+    "projectSectionLongDescription": "このプロジェクトで開く Pi ターミナルは選択したアカウントを使います。すでに開いているターミナルは開始時のアカウントのままです。",
+    "projectSectionUnsupported": "インストール済みの Pi はまだプロジェクト別アカウントに対応していません。ARCA の Pi を更新してください。",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "projectDefault": "アクティブなアカウント（既定）",
+    "unsupported": "ARCA の Pi を更新してください",
+    "projectMenu": "アカウント",
+    "newPiWithAccount": "アカウントを選んで新しい Pi…",
+    "noAccounts": "保存済みアカウントがありません",
+    "useAnotherAccount": "このセッションで別のアカウントを使う: このタブを右クリック → {{value0}}"
   }
 }

@@ -60,7 +60,9 @@ function registerPiAccountProjects(service: PiAccountProjectsService): void {
       }
       if (name !== null) {
         const known = await piAccounts?.list()
-        if (!known?.accounts.some((account) => account.provider === target && account.name === name)) {
+        if (
+          !known?.accounts.some((account) => account.provider === target && account.name === name)
+        ) {
           return { status: 'unknown-account', state: service.getState() }
         }
       }
