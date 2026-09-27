@@ -1,4 +1,5 @@
 import { piAccountsApi } from './api/pi-accounts-bridge'
+import { piAccountProjectsApi } from './api/pi-account-projects-bridge'
 import { arcaProjectsSyncApi } from './api/arca-projects-sync-bridge'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { PreloadApi } from './api-types'
@@ -168,6 +169,7 @@ const api = {
   docPreview: docPreviewApi,
   arcaMainframe: arcaMainframeApi,
   piAccounts: piAccountsApi,
+  piAccountProjects: piAccountProjectsApi,
   arcaProjectsSync: arcaProjectsSyncApi,
   arcaMegamind: arcaMegamindApi,
   arcaPriorities: arcaPrioritiesApi,

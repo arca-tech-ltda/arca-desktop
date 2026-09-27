@@ -19,6 +19,7 @@ import {
 } from './files'
 import { createAccountMirror, type MirrorResult } from './mirror'
 import { PiAccountEditor } from './pi-account-editor'
+import type { PiAccountProjectsService } from './account-project-map'
 
 const providers = ['anthropic', 'openai-codex'] as const
 
@@ -72,6 +73,7 @@ export class PiAccountsService {
       mirror?: ReturnType<typeof createAccountMirror>
       mirrorEnabled?: boolean
       editor?: PiAccountEditor
+      projects?: PiAccountProjectsService
     } = {}
   ) {
     this.agentDir =
@@ -159,6 +161,16 @@ export class PiAccountsService {
   }
 
   async remove(provider: PiAccountProvider, name: string): Promise<PiAccountRemoveResult> {
+    // Why before the edit: removing an account a project pins, or a terminal is running on, would
+    // leave that session with no credential and no way back to it (contract v1 §7).
+    const projects = this.options.projects?.getProjectsUsingAccount(provider, name) ?? []
+    if (projects.length > 0) {
+      return { status: 'pinned-to-project', blockedBy: { projects }, state: await this.list() }
+    }
+    const terminals = this.options.projects?.getSessionsUsingAccount(provider, name).length ?? 0
+    if (terminals > 0) {
+      return { status: 'open-in-terminal', blockedBy: { terminals }, state: await this.list() }
+    }
     const status = await this.enqueue(() => this.editor.remove(provider, name))
     return { status, state: await this.list() }
   }
@@ -169,6 +181,9 @@ export class PiAccountsService {
     to: string
   ): Promise<PiAccountRenameResult> {
     const status = await this.enqueue(() => this.editor.rename(provider, from, to))
+    if (status === 'renamed' && from !== to) {
+      await this.options.projects?.renameAccount(provider, from, to)
+    }
     return { status, state: await this.list() }
   }
 

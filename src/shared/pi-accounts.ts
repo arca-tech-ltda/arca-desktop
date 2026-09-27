@@ -14,7 +14,9 @@ export type PiAccountAddResult = {
   state: PiAccountsState
 }
 export type PiAccountRemoveResult = {
-  status: 'removed' | 'missing' | 'active-in-use'
+  status: 'removed' | 'missing' | 'active-in-use' | 'pinned-to-project' | 'open-in-terminal'
+  /** Project paths or terminal count behind a `pinned-to-project` / `open-in-terminal` refusal. */
+  blockedBy?: { projects?: string[]; terminals?: number }
   state: PiAccountsState
 }
 export type PiAccountRenameResult = {

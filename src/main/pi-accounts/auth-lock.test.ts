@@ -37,11 +37,11 @@ it('serializes holders and releases the lock directory afterwards', async () => 
 
 it('uses the proper-lockfile protocol Pi holds: a directory next to the file', async () => {
   const dir = await agentDir()
-  let seen: Awaited<ReturnType<typeof stat>> | null = null
+  let seenDirectory: boolean | null = null
   await withAuthLock(dir, async () => {
-    seen = await stat(join(dir, 'auth.json.lock'))
+    seenDirectory = (await stat(join(dir, 'auth.json.lock'))).isDirectory()
   })
-  expect(seen && seen.isDirectory()).toBe(true)
+  expect(seenDirectory).toBe(true)
 })
 
 it('blocks while Pi itself holds the same lock, then runs', async () => {
