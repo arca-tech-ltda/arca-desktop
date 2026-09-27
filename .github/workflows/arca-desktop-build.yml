@@ -79,7 +79,7 @@ jobs:
             dist/*.blockmap
             dist/latest.yml
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   mac:
     runs-on: macos-14
@@ -129,7 +129,7 @@ jobs:
           name: arca-desktop-macos-arm64-dmg
           path: dist/*.dmg
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
       - name: Upload macOS ZIP
         uses: actions/upload-artifact@v4
         with:
@@ -139,7 +139,7 @@ jobs:
             dist/*.blockmap
             dist/latest-mac.yml
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   publish:
     needs: [windows, mac]
