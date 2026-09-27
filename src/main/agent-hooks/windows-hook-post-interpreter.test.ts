@@ -141,11 +141,12 @@ describe('Windows managed hook post interpreter', () => {
       )
     }
 
-    // Why: hook events pipe via stdin to keep multi-KB tool output off the command line (EDR
-    // oversized-command-line rules). The statusline script stages a temp file instead.
+    // Why: the payload never rides the command line (EDR oversized-command-line rules): it is
+    // either piped via stdin or staged in a temp file, as the statusline and the two hooks that
+    // must read the event name out of it do.
     for (const script of posting.filter((s) => s.body.includes('/hook/'))) {
-      expect(script.body, `${script.name} must pipe the payload via stdin`).toContain(
-        '--data-urlencode "payload@-"'
+      expect(script.body, `${script.name} must keep the payload off the command line`).toMatch(
+        /--data-urlencode "payload@(-|%[A-Z_]+%)"/
       )
     }
   })

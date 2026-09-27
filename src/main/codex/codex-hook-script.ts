@@ -9,12 +9,16 @@ import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-u
 import {
   buildPosixHookResponseEmitLines,
   buildPosixHookResponseMaxTimeLine,
-  buildWindowsHookResponseLines,
-  HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+  buildWindowsHookPromptBudgetLines,
+  buildWindowsHookResponseLines
 } from '../agent-hooks/hook-prompt-response-script'
 
 export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
   const windowsResponse = buildWindowsHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
+  const windowsBudget = buildWindowsHookPromptBudgetLines({
+    payloadVariable: 'ORCA_HOOK_PAYLOAD_FILE',
+    maxTimeVariable: 'ORCA_HOOK_MAX_TIME'
+  })
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
@@ -22,11 +26,14 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       // Why: the endpoint file holds this install's live port/token; sourcing it lets a surviving PTY reach the current server (see claude/hook-service.ts).
       'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
+      ...windowsBudget.capture,
       windowsResponse.declare,
       buildWindowsAgentHookCurlPostCommand('codex', {
         responseFile: windowsResponse.reference,
-        maxTimeSeconds: HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+        maxTimeReference: windowsBudget.maxTimeReference,
+        payloadFile: windowsBudget.payloadReference
       }),
+      ...windowsBudget.cleanup,
       // Why: ARCA answers a prompt submission with the Codex hook wire object (additionalContext).
       ...windowsResponse.emit,
       'exit /b 0',

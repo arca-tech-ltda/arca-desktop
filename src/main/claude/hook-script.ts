@@ -5,8 +5,8 @@ import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-u
 import {
   buildPosixHookResponseEmitLines,
   buildPosixHookResponseMaxTimeLine,
-  buildWindowsHookResponseLines,
-  HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+  buildWindowsHookPromptBudgetLines,
+  buildWindowsHookResponseLines
 } from '../agent-hooks/hook-prompt-response-script'
 import { buildPosixAgentHookPostCommand } from '../agent-hooks/hook-post-command'
 import {
@@ -29,6 +29,10 @@ export function getManagedScript(
   } = {}
 ): string {
   const windowsResponse = buildWindowsHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
+  const windowsBudget = buildWindowsHookPromptBudgetLines({
+    payloadVariable: 'ORCA_HOOK_PAYLOAD_FILE',
+    maxTimeVariable: 'ORCA_HOOK_MAX_TIME'
+  })
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
@@ -53,11 +57,14 @@ export function getManagedScript(
           ]
         : []),
       // Why: use curl.exe to avoid an extra PowerShell startup per hook.
+      ...windowsBudget.capture,
       windowsResponse.declare,
       buildWindowsAgentHookCurlPostCommand('claude', {
         responseFile: windowsResponse.reference,
-        maxTimeSeconds: HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+        maxTimeReference: windowsBudget.maxTimeReference,
+        payloadFile: windowsBudget.payloadReference
       }),
+      ...windowsBudget.cleanup,
       // Why: ARCA answers a prompt submission with inbox context; Claude appends this stdout to the turn.
       ...windowsResponse.emit,
       'exit /b 0',

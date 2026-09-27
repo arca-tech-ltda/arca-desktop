@@ -51,7 +51,10 @@ event still answers 204), and the managed hook script prints it:
   Codex hook wire schema accepts (`UserPromptSubmitHookSpecificOutputWire`).
 
 The app waits at most `HOOK_PROMPT_CONTEXT_TIMEOUT_MS` (1.2 s) for the gateway, inside the script's
-own `--max-time` (raised to 4 s for this one event). `acknowledge` runs **after** the response body
+own `--max-time` (raised to 4 s **for this event only**; every other event keeps 1.5 s). On POSIX a
+`case` over the captured payload picks the budget; cmd cannot capture stdin into a variable, so the
+Windows hook buffers the payload into a temp file, `findstr`s the quoted event name in it and posts
+`payload@<file>`. `acknowledge` runs **after** the response body
 is written, never before: a prompt that timed out keeps its items pending for the next one.
 
 ## Rate and silence
