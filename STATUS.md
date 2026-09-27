@@ -46,12 +46,12 @@ _Nenhuma._
 - [ ] Teste manual do login de conta pelo app no Windows (Mac ok em 2026-09-26: duas contas novas)
 
 ### ⚪ A fazer (priorizado)
-- [ ] Gabriel: fechar o ARCA, abrir por `/Applications/ARCA.app` (cópia já feita), atualizar para 1.5.11, aceitar a permissão de notificação e confirmar o ARCA em Ajustes › Notificações e apagar `dist/mac-arm64/ARCA.app`
 - [ ] Teste manual da troca de contas app ↔ `/accounts` no Mac (Gabriel) e no Windows (sócios)
 - [ ] Assinatura de código Windows (Authenticode) e Mac (Developer ID + notarização) — depende de certificado
 - [ ] Reescrever `AGENTS.md` e este `STATUS.md` para que qualquer sócio edite sem contexto prévio
 
 ### ✅ Concluído recentemente (últimos ~30 dias)
+- [x] Mac do Gabriel: ARCA em `/Applications` na 1.5.11; notificações e tema ARCA Black confirmados
 - [x] 1.5.11: notificações no Mac (bundle selado ad-hoc com o id do app + pedido de permissão via AppKit); onboarding só "Install CLI"; botão de tarefas preso ao floating workspace; grupo "agentes trabalhando" na barra lateral (marcador `arca-agent.json` ou pasta temporária); limpeza do updater herdado e cache/debounce do STATUS.md; menu de contas compacto na barra de status
 - [x] 1.5.10: tema de terminal "ARCA Black" (fundo preto) como padrão escuro, com migração única; login de contas passando pelo wrapper de processos
 - [x] 1.5.9: adicionar/renomear/remover contas pelo app (login Claude/Codex) gravando no bucket do Pi; logo ao lado do nome no titlebar do Mac
