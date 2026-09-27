@@ -12,7 +12,7 @@ function projectLabel(
 ): string {
   const platform = rendererPathPlatform()
   const repo = repos.find((entry) => normalizeProjectPathKey(entry.path, platform) === pathKey)
-  return repo?.displayName ?? pathKey.split(/[\\/]/u).filter(Boolean).at(-1) ?? pathKey
+  return repo?.displayName ?? pathKey.split(/[\\/]/u).findLast(Boolean) ?? pathKey
 }
 
 /** "Projects using this account"; hidden while the installed Pi has no per-project support. */
