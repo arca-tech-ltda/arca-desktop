@@ -18425,6 +18425,7 @@
     "usageHistoryTitle": "Usage over time (5h window)",
     "usageHistoryEmpty": "History starts once ARCA has read this account a few times.",
     "usageRange24h": "24h",
-    "usageRange7d": "7d"
+    "usageRange7d": "7d",
+    "renameBlockedTerminal": "This account is running in an open terminal. Close it first, then rename the account."
   }
 }
