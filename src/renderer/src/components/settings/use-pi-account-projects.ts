@@ -41,7 +41,7 @@ export function usePiAccountProjects(): PiAccountProjectsController {
   const [state, setState] = useState<PiAccountProjectsState | null>(null)
 
   useEffect(() => {
-    if (!window.api.piAccountProjects) {
+    if (!window.api?.piAccountProjects) {
       return
     }
     let disposed = false
@@ -50,8 +50,9 @@ export function usePiAccountProjects(): PiAccountProjectsController {
         setState(next)
       }
     }
-    const stop = window.api.piAccountProjects.onChange(update)
-    void window.api.piAccountProjects.get().then(update).catch(() => {})
+    const api = window.api.piAccountProjects
+    const stop = api.onChange(update)
+    void api.get().then(update).catch(() => {})
     return () => {
       disposed = true
       stop()

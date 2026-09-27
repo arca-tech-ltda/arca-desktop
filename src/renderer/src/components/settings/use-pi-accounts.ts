@@ -52,7 +52,7 @@ export function usePiAccounts(provider?: PiAccountProvider): PiAccountsControlle
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (remote || !window.api.piAccounts) {
+    if (remote || !window.api?.piAccounts) {
       return
     }
     let disposed = false

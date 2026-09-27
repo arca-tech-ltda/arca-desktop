@@ -17,6 +17,7 @@ import {
   type DropIndicator
 } from './drop-indicator'
 import { preventMiddleButtonDefault } from './middle-button-default-guard'
+import { PiAccountTabBadge } from './PiAccountTabBadge'
 import { useSortableTabRename } from './use-sortable-tab-rename'
 import { SortableTabContextMenu } from './SortableTabContextMenu'
 import { translate } from '@/i18n/i18n'
@@ -296,6 +297,7 @@ export default function SortableTab({
           </TooltipContent>
         </Tooltip>
       )}
+      {!isEditing && <PiAccountTabBadge tabId={tab.id} />}
       {tab.color && !isEditing && (
         <span
           className="mr-1.5 size-2 rounded-full shrink-0"
