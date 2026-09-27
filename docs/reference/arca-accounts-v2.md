@@ -35,6 +35,42 @@ app, redesenho da tela + uso/cota; cota de contas inativas pode renovar login de
 grave pelo novo arquivo por conta sob a trava do Pi; "quem está usando" (Megamind) fica
 para depois da 1.6.0.
 
+## Contrato técnico v1 (fixado 2026-09-26)
+
+Refina o "arquivo de login por conta" da decisão: a credencial de cada conta continua
+**no próprio bucket** `~/.pi/agent/accounts.json` (formato v1 inalterado), que passa a ser
+o arquivo de login por conta. Sem cópia nova do refresh token, sem bump de versão.
+
+1. **Seleção por env (Pi patchado, overlay `arca-pi`)**: `PI_ACCOUNT_ANTHROPIC=<nome>` e
+   `PI_ACCOUNT_OPENAI_CODEX=<nome>` (id do provedor em maiúsculas, não alfanumérico → `_`).
+   Com a variável definida, o Pi resolve a credencial daquele provedor em
+   `accounts.json.accounts[<provider>][<nome>]`, e não em `auth.json`. Outros provedores
+   seguem o `auth.json`. Sem variável: comportamento atual.
+2. **Estrito**: conta inexistente, sem refresh ou refresh rejeitado → erro claro citando
+   provedor e conta (e `/accounts`), nunca fallback para `auth.json`.
+3. **Refresh**: sob trava `proper-lockfile` em `accounts.json` (mesmo protocolo do
+   `AuthStorage` do Pi), relendo o arquivo dentro da trava (outra sessão pode já ter
+   renovado) e gravando só aquela entrada. Se a conta for a `active` global do provedor,
+   atualizar também o slot em `auth.json` sob a trava dele (ordem fixa: accounts.json →
+   auth.json) para não deixar a sessão global com token morto.
+4. **Travas unificadas**: todos os escritores (Pi patchado, `arca/extensions/lib/accounts-core.ts`
+   + `auth-lock.ts`, app `src/main/pi-accounts/`) passam a usar o protocolo do
+   `proper-lockfile` (diretório `<arquivo>.lock`, mtime atualizado, stale) para
+   `auth.json` e `accounts.json`, e todo read-modify-write relê dentro da trava. Hoje o
+   app/core usam arquivo `wx` com o mesmo nome — incompatível.
+5. **Subagentes**: a env é herdada pelo processo filho; como a seleção vive no core do Pi
+   patchado, `--no-extensions` do runner não a desliga. Verificar que o runner não
+   filtra env.
+6. **Projeto → conta**: arquivo local `~/.pi/agent/account-projects.json`
+   `{version:1, projects:{"<caminho absoluto do repo>":{"anthropic"?:nome,"openai-codex"?:nome}}}`
+   escrito só pelo app (v1 vale só dentro do ARCA). O app injeta `PI_ACCOUNT_*` no PTY
+   ao abrir terminal Pi no projeto (ou a conta escolhida em "Novo Pi com conta…") e mostra
+   o selo na aba.
+7. **Rename/remove**: bloquear conta em uso por sessão aberta conhecida pelo app;
+   ao renomear, atualizar `account-projects.json`.
+8. **Detecção de suporte**: o app só oferece a feature quando o Pi instalado declara
+   suporte (ex.: `pi --version` do overlay ou marcador do patch); senão esconde.
+
 ## Estado de partida (1.5.10)
 
 - Fonte única de contas: bucket do Pi `~/.pi/agent/accounts.json`
