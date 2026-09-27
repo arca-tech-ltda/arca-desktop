@@ -15350,8 +15350,6 @@
     "use": "使用",
     "rename": "重命名",
     "remove": "删除",
-    "renameAccount": "重命名 {{value0}}",
-    "removeAccount": "删除 {{value0}}",
     "renameTitle": "重命名账户",
     "name": "账户名称",
     "save": "保存",
@@ -15367,6 +15365,22 @@
     "empty": "没有已保存的 Pi 账户。",
     "loading": "正在加载账户…",
     "mirrorFailed": "Pi 已切换账户，但 CLI 镜像失败。请在 Pi 中运行 /accounts mirror。",
-    "failed": "无法读取或切换 Pi 账户。请检查文件并在 Pi 中运行 /accounts；切换前请保存新的登录。"
+    "failed": "无法读取或切换 Pi 账户。请检查文件并在 Pi 中运行 /accounts；切换前请保存新的登录。",
+    "intro": "Pi 以及 Claude 和 Codex CLI 登录所用的账户，以及每个账户的剩余配额。",
+    "details": "详细信息",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "emptyProvider": "没有为 {{value0}} 保存的账户。",
+    "accountActions": "{{value0}} 的操作",
+    "usageSession": "5 小时",
+    "usageWeekly": "周",
+    "usageRenewsIn": "{{value0}} 后重置",
+    "usageLoading": "正在读取用量…",
+    "usageUnavailable": "当前无法获取用量。",
+    "usageNoRecentData": "暂无近期数据。",
+    "usageHistoryTitle": "用量变化（5 小时窗口）",
+    "usageHistoryEmpty": "ARCA 读取该账户几次后将开始记录历史。",
+    "usageRange24h": "24 小时",
+    "usageRange7d": "7 天"
   }
 }

@@ -15209,8 +15209,6 @@
     "use": "Usar",
     "rename": "Renombrar",
     "remove": "Eliminar",
-    "renameAccount": "Renombrar {{value0}}",
-    "removeAccount": "Eliminar {{value0}}",
     "renameTitle": "Renombrar cuenta",
     "name": "Nombre de la cuenta",
     "save": "Guardar",
@@ -15226,6 +15224,22 @@
     "empty": "No hay cuentas de Pi guardadas.",
     "loading": "Cargando cuentas…",
     "mirrorFailed": "Pi cambió de cuenta, pero falló la copia para el CLI. Ejecuta /accounts mirror en Pi.",
-    "failed": "No se pudieron leer o cambiar las cuentas de Pi. Revisa los archivos y ejecuta /accounts en Pi; guarda cualquier nuevo inicio de sesión antes de cambiar."
+    "failed": "No se pudieron leer o cambiar las cuentas de Pi. Revisa los archivos y ejecuta /accounts en Pi; guarda cualquier nuevo inicio de sesión antes de cambiar.",
+    "intro": "Cuentas con las que inician sesión Pi y las CLI de Claude y Codex, y cuánta cuota queda en cada una.",
+    "details": "Detalles",
+    "providerClaude": "Claude",
+    "providerCodex": "Codex",
+    "emptyProvider": "No hay cuentas guardadas de {{value0}}.",
+    "accountActions": "Acciones para {{value0}}",
+    "usageSession": "5 h",
+    "usageWeekly": "Semana",
+    "usageRenewsIn": "se renueva en {{value0}}",
+    "usageLoading": "Leyendo el uso…",
+    "usageUnavailable": "El uso no está disponible ahora mismo.",
+    "usageNoRecentData": "Sin datos recientes.",
+    "usageHistoryTitle": "Uso a lo largo del tiempo (ventana de 5 h)",
+    "usageHistoryEmpty": "El historial empieza cuando ARCA haya leído esta cuenta algunas veces.",
+    "usageRange24h": "24 h",
+    "usageRange7d": "7 d"
   }
 }
