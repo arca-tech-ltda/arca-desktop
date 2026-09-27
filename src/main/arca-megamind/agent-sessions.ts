@@ -8,6 +8,7 @@ import {
   type MegamindWorkspaceFacts
 } from './agent-session-project'
 import { formatInboxContext } from './agent-session-inbox-context'
+import { classifyMegamindFailure } from './megamind-call-failure'
 
 export type MegamindAgentHarness = 'claude-code' | 'codex'
 
@@ -40,7 +41,10 @@ const DEFAULT_IDLE_MS = 30 * 60_000
 /** Under the gateway's 120 req/min per device (§2.12), leaving room for the app's inbox poll. */
 const RATE_LIMIT_PER_MINUTE = 60
 const PROJECT_INDEX_TTL_MS = 10 * 60_000
-const BACKOFF_MS = 5 * 60_000
+/** A device that cannot authenticate stays broken until the user acts; asking again is noise. */
+const UNAUTHORIZED_MUTE_MS = 5 * 60_000
+const TRANSIENT_BACKOFF_MS = 2_000
+const TRANSIENT_BACKOFF_MAX_MS = 60_000
 const INBOX_LIMIT = 10
 
 type PaneSession = {
@@ -68,7 +72,8 @@ export class MegamindAgentSessions {
   private projectIndex?: { value: Map<string, string>; expires: number }
   private windowStart = 0
   private windowCalls = 0
-  private mutedUntil = 0
+  private silentUntil = 0
+  private transientFailures = 0
 
   constructor(deps: MegamindAgentSessionsDeps) {
     this.deps = {
@@ -247,23 +252,40 @@ export class MegamindAgentSessions {
     return value
   }
 
-  /** Every gateway call of this service: a failure mutes presence instead of surfacing anywhere. */
+  /** Every gateway call of this service: a failure is swallowed, never surfaced anywhere. */
   private async call(name: string, args: MegamindRecord): Promise<MegamindRecord | null> {
-    if (this.deps.now() < this.mutedUntil) {
+    if (this.deps.now() < this.silentUntil) {
       return null
     }
     try {
-      return await this.deps.callTool(name, args)
-    } catch {
-      this.mutedUntil = this.deps.now() + BACKOFF_MS
+      const result = await this.deps.callTool(name, args)
+      this.transientFailures = 0
+      this.silentUntil = 0
+      return result
+    } catch (error) {
+      this.noteFailure(error)
       return null
     }
+  }
+
+  /** Only a credential problem earns the long mute; 429/5xx/timeout get a short exponential wait. */
+  private noteFailure(error: unknown): void {
+    const now = this.deps.now()
+    if (classifyMegamindFailure(error) === 'unauthorized') {
+      this.transientFailures = 0
+      this.silentUntil = now + UNAUTHORIZED_MUTE_MS
+      return
+    }
+    this.transientFailures += 1
+    this.silentUntil =
+      now +
+      Math.min(TRANSIENT_BACKOFF_MS * 2 ** (this.transientFailures - 1), TRANSIENT_BACKOFF_MAX_MS)
   }
 
   /** One token per gateway call, inside this device's per-minute window. */
   private take(): boolean {
     const now = this.deps.now()
-    if (now < this.mutedUntil) {
+    if (now < this.silentUntil) {
       return false
     }
     if (now - this.windowStart >= 60_000) {

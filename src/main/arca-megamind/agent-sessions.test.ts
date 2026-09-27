@@ -7,12 +7,12 @@ const SESSION = '22222222-2222-4222-8222-222222222222'
 
 type Call = { name: string; args: MegamindRecord }
 
-function harness(options: { fail?: boolean; inbox?: MegamindRecord[] } = {}) {
+function harness(options: { fail?: boolean | (() => Error); inbox?: MegamindRecord[] } = {}) {
   const calls: Call[] = []
   const callTool = vi.fn(async (name: string, args: MegamindRecord) => {
     calls.push({ name, args })
     if (options.fail) {
-      throw new Error('no credential')
+      throw options.fail === true ? new Error('no credential') : options.fail()
     }
     if (name === 'projects_list') {
       return { items: [{ id: 'mainframe', repos: ['github.com/arca-tech/infra'] }] }
@@ -185,6 +185,66 @@ describe('inbox as prompt context', () => {
   it('returns nothing for a pane with no agent session', async () => {
     const { sessions } = harness({ inbox })
     await expect(sessions.promptContext(PANE)).resolves.toBeNull()
+    sessions.stop()
+  })
+})
+
+describe('failure handling', () => {
+  it('mutes presence for five minutes when the device cannot authenticate', async () => {
+    const { calls, sessions } = harness({ fail: () => new Error('Megamind HTTP 401') })
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(1)
+
+    vi.setSystemTime(Date.now() + 4 * 60_000)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(1)
+
+    vi.setSystemTime(Date.now() + 61_000)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(2)
+    sessions.stop()
+  })
+
+  it('backs a rate limit off in seconds, growing only while it keeps failing', async () => {
+    const { calls, sessions } = harness({ fail: () => new Error('Megamind HTTP 429') })
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(1)
+
+    // Still inside the first 2 s wait.
+    vi.setSystemTime(Date.now() + 1_000)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(1)
+
+    vi.setSystemTime(Date.now() + 1_500)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(2)
+
+    // Second consecutive failure doubles the wait, so 2 s is no longer enough.
+    vi.setSystemTime(Date.now() + 2_500)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(2)
+
+    vi.setSystemTime(Date.now() + 2_000)
+    await sessions.noteActivity(activity)
+    expect(calls).toHaveLength(3)
+    sessions.stop()
+  })
+
+  it('clears the backoff as soon as one call succeeds', async () => {
+    const { callTool, sessions } = harness()
+    callTool.mockRejectedValueOnce(new Error('Megamind HTTP 503'))
+    await sessions.noteActivity(activity)
+    vi.setSystemTime(Date.now() + 2_100)
+    await sessions.noteActivity(activity)
+    expect(callTool).toHaveBeenCalledTimes(2)
+
+    // A later failure starts from the short wait again, not from where the old one stopped.
+    callTool.mockRejectedValueOnce(new Error('fetch failed'))
+    vi.setSystemTime(Date.now() + 61_000)
+    await sessions.noteActivity(activity)
+    vi.setSystemTime(Date.now() + 2_100)
+    await sessions.noteActivity(activity)
+    expect(callTool).toHaveBeenCalledTimes(4)
     sessions.stop()
   })
 })

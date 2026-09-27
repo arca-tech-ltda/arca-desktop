@@ -67,8 +67,13 @@ three `git` spawns per minute per pane.
 
 All presence traffic shares one window of 60 calls/minute, under the gateway's 120/min per device
 (§2.12), and registrations coalesce to one in-flight call per pane and at most one per heartbeat
-period. Any failure — above all a device with no credential — mutes every call for 5 minutes;
-nothing is logged and nothing surfaces in the UI.
+period. Nothing is logged and nothing surfaces in the UI.
+
+Failures are split (`megamind-call-failure.ts`): a device that cannot authenticate (no credential,
+401/403, an `unauthorized` tool error) mutes presence for 5 minutes, because it will keep failing
+until the user acts. A 429, a 5xx, a timeout or a dropped connection only costs a short exponential
+wait (2 s, doubling to at most 60 s) that any successful call clears — one rate limit no longer
+takes every pane's presence down with it.
 
 ## Not covered here
 
