@@ -7,7 +7,7 @@ import type {
   PiAccountRenameResult,
   PiAccountsState
 } from '../../shared/pi-accounts'
-import { withAuthLock } from './auth-lock'
+import { withBucketAndAuthLock } from './auth-lock'
 import {
   authSchema,
   bucketSchema,
@@ -199,54 +199,56 @@ export class PiAccountsService {
   }
 
   private async switchAccount(provider: PiAccountProvider, name: string): Promise<PiAccountsState> {
-    const { bucket, auth } = await this.read()
-    if (!Object.hasOwn(bucket.accounts[provider] ?? {}, name)) {
+    const snapshot = await this.read()
+    if (!Object.hasOwn(snapshot.bucket.accounts[provider] ?? {}, name)) {
       throw new Error('Pi account not found')
     }
-    if (auth[provider] && !bucket.active[provider]) {
+    if (snapshot.auth[provider] && !snapshot.bucket.active[provider]) {
       throw saveFirst(provider)
     }
-    captureSlots(bucket, auth, { strict: true })
-    const previousName = bucket.active[provider]
-    const before = JSON.stringify(auth[provider] ?? null)
-    bucket.active[provider] = name
-    const mirrored = await this.runMirror(provider, name, bucket.accounts[provider][name])
-    bucket.accounts[provider][name] = mirrored.cred
-    // Why the lock and the re-read: mirroring does network and Keychain work, and Pi can refresh
-    // the same slot meanwhile. Only the switched provider's slot is ours to replace.
-    await withAuthLock(this.agentDir, async () => {
-      const fresh = authSchema.parse(await readJson(this.authPath, {}))
+    const before = JSON.stringify(snapshot.auth[provider] ?? null)
+    // Capture before mirroring: a slot Pi already refreshed is the credential to push, and the
+    // strict identity check has to reject before anything is written.
+    captureSlots(snapshot.bucket, snapshot.auth, { strict: true })
+    const mirrored = await this.runMirror(provider, name, snapshot.bucket.accounts[provider][name])
+    // Why the locks and the re-read: mirroring does network and Keychain work, and Pi can refresh
+    // the same credential meanwhile. Only the switched provider's slot is ours to replace.
+    await withBucketAndAuthLock(this.agentDir, async () => {
+      const { bucket, auth: fresh } = await this.read()
+      if (!Object.hasOwn(bucket.accounts[provider] ?? {}, name)) {
+        throw new Error('Pi account not found')
+      }
+      captureSlots(bucket, fresh, { strict: true })
       if (JSON.stringify(fresh[provider] ?? null) !== before) {
-        if (previousName) {
-          bucket.active[provider] = previousName
-        } else {
-          delete bucket.active[provider]
-        }
-        // Keep both the refresh Pi just made and the one the mirror rotated; the switch is aborted.
-        captureSlots(bucket, fresh)
+        // Keep the refresh Pi just made and the one the mirror rotated; the switch is aborted.
+        bucket.accounts[provider][name] = mirrored.cred
         await writeJson(this.bucketPath, bucket)
         throw new Error('Pi refreshed this provider while switching; try again')
       }
-      captureSlots(bucket, fresh, { exclude: provider })
+      bucket.active[provider] = name
+      bucket.accounts[provider][name] = mirrored.cred
       await writeJson(this.bucketPath, bucket)
-      await writeJson(this.authPath, { ...fresh, [provider]: bucket.accounts[provider][name] })
+      await writeJson(this.authPath, { ...fresh, [provider]: mirrored.cred })
     })
     return { ...(await this.list()), ...(mirrored.error ? { error: mirrored.error } : {}) }
   }
 
   private async remirrorActive(provider: PiAccountProvider): Promise<PiAccountsState> {
-    const { bucket, auth } = await this.read()
-    const name = bucket.active[provider]
-    const cred = name ? bucket.accounts[provider]?.[name] : undefined
+    const snapshot = await this.read()
+    const name = snapshot.bucket.active[provider]
+    const cred = name ? snapshot.bucket.accounts[provider]?.[name] : undefined
     if (!name || !cred) {
       return this.list()
     }
-    const before = JSON.stringify(auth[provider] ?? null)
+    const before = JSON.stringify(snapshot.auth[provider] ?? null)
     const mirrored = await this.runMirror(provider, name, cred)
     const rotated = JSON.stringify(mirrored.cred) !== JSON.stringify(cred)
     if (rotated || before !== JSON.stringify(cred)) {
-      await withAuthLock(this.agentDir, async () => {
-        const fresh = authSchema.parse(await readJson(this.authPath, {}))
+      await withBucketAndAuthLock(this.agentDir, async () => {
+        const { bucket, auth: fresh } = await this.read()
+        if (!Object.hasOwn(bucket.accounts[provider] ?? {}, name)) {
+          return
+        }
         bucket.accounts[provider][name] = mirrored.cred
         captureSlots(bucket, fresh, { exclude: provider })
         await writeJson(this.bucketPath, bucket)

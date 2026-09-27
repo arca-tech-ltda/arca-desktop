@@ -1,9 +1,10 @@
 import { afterEach, expect, it } from 'vitest'
-import { mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises'
+import { mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { AUTH_LOCK_STALE_MS, withAuthLock } from './auth-lock'
+import { lock } from 'proper-lockfile'
+import { AUTH_LOCK_STALE_MS, withAuthLock, withBucketAndAuthLock, withBucketLock } from './auth-lock'
 
 const dirs: string[] = []
 afterEach(async () => {
@@ -16,7 +17,7 @@ async function agentDir(): Promise<string> {
   return dir
 }
 
-it('serializes holders and releases the lock file afterwards', async () => {
+it('serializes holders and releases the lock directory afterwards', async () => {
   const dir = await agentDir()
   const order: string[] = []
   const run = (name: string): Promise<void> =>
@@ -34,12 +35,53 @@ it('serializes holders and releases the lock file afterwards', async () => {
   expect(await readdir(dir)).toEqual([])
 })
 
-it('breaks a lock left behind more than thirty seconds ago', async () => {
+it('uses the proper-lockfile protocol Pi holds: a directory next to the file', async () => {
   const dir = await agentDir()
-  const lock = join(dir, 'auth.json.lock')
-  await writeFile(lock, '{"pid":1}')
-  const stale = new Date(Date.now() - AUTH_LOCK_STALE_MS - 1_000)
-  await utimes(lock, stale, stale)
+  let seen: Awaited<ReturnType<typeof stat>> | null = null
+  await withAuthLock(dir, async () => {
+    seen = await stat(join(dir, 'auth.json.lock'))
+  })
+  expect(seen && seen.isDirectory()).toBe(true)
+})
+
+it('blocks while Pi itself holds the same lock, then runs', async () => {
+  const dir = await agentDir()
+  await writeFile(join(dir, 'accounts.json'), '{}')
+  const release = await lock(join(dir, 'accounts.json'), {
+    realpath: false,
+    retries: 0,
+    stale: AUTH_LOCK_STALE_MS
+  })
+  let entered = false
+  const pending = withBucketLock(dir, async () => {
+    entered = true
+  })
+  await sleep(30)
+  expect(entered).toBe(false)
+  await release()
+  await pending
+  expect(entered).toBe(true)
+})
+
+it('breaks a lock left behind more than the stale window ago', async () => {
+  const dir = await agentDir()
+  const held = await lock(join(dir, 'auth.json'), {
+    realpath: false,
+    retries: 0,
+    stale: AUTH_LOCK_STALE_MS,
+    update: 1_000_000
+  })
+  const stale = new Date(Date.now() - AUTH_LOCK_STALE_MS - 5_000)
+  await utimes(join(dir, 'auth.json.lock'), stale, stale)
   await expect(withAuthLock(dir, async () => 'done')).resolves.toBe('done')
+  await held().catch(() => {})
+})
+
+it('takes accounts.json before auth.json so writers cannot deadlock against each other', async () => {
+  const dir = await agentDir()
+  await withBucketAndAuthLock(dir, async () => {
+    expect((await stat(join(dir, 'accounts.json.lock'))).isDirectory()).toBe(true)
+    expect((await stat(join(dir, 'auth.json.lock'))).isDirectory()).toBe(true)
+  })
   expect(await readdir(dir)).toEqual([])
 })
