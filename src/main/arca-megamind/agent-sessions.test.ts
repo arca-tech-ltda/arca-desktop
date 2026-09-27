@@ -9,7 +9,7 @@ type Call = { name: string; args: MegamindRecord }
 
 function harness(options: { fail?: boolean | (() => Error); inbox?: MegamindRecord[] } = {}) {
   const calls: Call[] = []
-  const callTool = vi.fn(async (name: string, args: MegamindRecord) => {
+  const callTool = vi.fn(async (name: string, args: MegamindRecord): Promise<MegamindRecord> => {
     calls.push({ name, args })
     if (options.fail) {
       throw options.fail === true ? new Error('no credential') : options.fail()

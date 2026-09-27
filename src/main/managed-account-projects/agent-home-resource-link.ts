@@ -5,7 +5,8 @@ import {
   readdirSync,
   rmdirSync,
   symlinkSync,
-  unlinkSync
+  unlinkSync,
+  type Dirent
 } from 'node:fs'
 import { join } from 'node:path'
 
@@ -51,9 +52,9 @@ const LINK_SCAN_DEPTH = 3
  * files with the account, so the links are severed first — the link itself, never its target.
  */
 export function unlinkAgentHomeResourceLinks(homePath: string, depth = LINK_SCAN_DEPTH): void {
-  let entries: ReturnType<typeof readdirSync>
+  let entries: Dirent[]
   try {
-    entries = readdirSync(homePath, { withFileTypes: true })
+    entries = readdirSync(homePath, { withFileTypes: true, encoding: 'utf-8' })
   } catch {
     return
   }
