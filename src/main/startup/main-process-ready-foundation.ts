@@ -1,4 +1,5 @@
 import { registerPiAccounts } from '../pi-accounts/registration'
+import { registerPiAccountUsage } from '../pi-account-usage/registration'
 import { registerArcaProjectsSync } from '../arca-projects-sync/service'
 import { app, session } from 'electron'
 import { electronApp, is } from '@electron-toolkit/utils'
@@ -145,6 +146,7 @@ export async function initializeReadyFoundation(): Promise<void> {
   state.store = store
   registerArcaProjectsSync(store)
   registerPiAccounts()
+  registerPiAccountUsage()
   // Why: create pending readiness before the guard can observe the default session.
   // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell
   // proxy env vars, so the persisted proxy must land before any app-owned network fetcher runs —

@@ -71,6 +71,22 @@ function getCodexHomePath(codexHomePath?: string | null): string {
   return codexHomePath ?? process.env.CODEX_HOME ?? join(homedir(), '.codex')
 }
 
+export function buildCodexBackendAuthHeaders(
+  accessToken: string,
+  accountId?: string | null
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'User-Agent': 'codex-cli',
+    'OpenAI-Beta': 'codex-1',
+    originator: 'Codex Desktop'
+  }
+  if (accountId) {
+    headers['ChatGPT-Account-Id'] = accountId
+  }
+  return headers
+}
+
 export async function getCodexBackendAuthHeaders(
   options: CodexRateLimitFetchOptions | { codexHomePath?: string | null } | undefined,
   signal: AbortSignal
@@ -78,21 +94,17 @@ export async function getCodexBackendAuthHeaders(
   if (signal.aborted) {
     return null
   }
+  // Why: bucket-held accounts have no ~/.codex of their own; their credential is passed in directly.
+  const supplied =
+    options && 'backendCredentials' in options ? options.backendCredentials : undefined
+  if (supplied) {
+    return buildCodexBackendAuthHeaders(supplied.accessToken, supplied.accountId)
+  }
   const authPath = join(getCodexHomePath(options?.codexHomePath), 'auth.json')
   const auth = JSON.parse(await readBackendAuth(authPath, signal)) as CodexAuthFile
   const accessToken = auth.tokens?.access_token
   if (!accessToken) {
     return null
   }
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken}`,
-    'User-Agent': 'codex-cli',
-    'OpenAI-Beta': 'codex-1',
-    originator: 'Codex Desktop'
-  }
-  if (auth.tokens?.account_id) {
-    headers['ChatGPT-Account-Id'] = auth.tokens.account_id
-  }
-  return headers
+  return buildCodexBackendAuthHeaders(accessToken, auth.tokens?.account_id)
 }
