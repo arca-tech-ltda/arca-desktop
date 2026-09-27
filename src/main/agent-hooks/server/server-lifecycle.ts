@@ -14,6 +14,7 @@ import { isHookRequestTruncatedError } from '../../../shared/agent-hook-transpor
 import { drainAgentHookSpool, type SpoolRecord } from '../../../shared/agent-hook-spool'
 import { clearAllListenerCaches } from '../../../shared/agent-hook-listener/listener-state'
 import { trackEmptyPaneKeyHook } from './server-transport-rules'
+import { resolveAgentHookContextResponse } from '../hook-prompt-context'
 import { AgentHookServerRuntimeEnv } from './server-runtime-env'
 
 export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv {
@@ -95,6 +96,11 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
         const hookBody = mergeAgentHookRequestHeaders(body, req.headers)
         trackEmptyPaneKeyHook(hookBody)
         const aliasedBody = this.normalizeHookBodyPaneKeyAlias(hookBody)
+        // Why before normalization: Megamind presence must see the event even when the status
+        // pipeline suppresses it (retired pane, replay), and it reads nothing that pipeline owns.
+        const contextResponse = resolveAgentHookContextResponse(source, aliasedBody).catch(
+          () => null
+        )
         const normalized = this.normalizeLocalHookPayload(source, aliasedBody)
         const statusDisposition = normalized.event
           ? this.getAgentStatusDisposition(normalized.event.paneKey, {
@@ -134,6 +140,13 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
             this.scheduleAssistantMessageRetry(source, aliasedBody, enriched)
             this.scheduleTranscriptPoll(source, aliasedBody, enriched)
           }
+        }
+        const context = await contextResponse
+        if (context) {
+          // The hook script prints this body; it is the agent's context channel, not status.
+          res.writeHead(200, { 'Content-Type': context.contentType })
+          res.end(context.body)
+          return
         }
         res.writeHead(204)
         res.end()

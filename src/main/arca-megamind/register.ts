@@ -2,6 +2,8 @@ import { app, BrowserWindow, ipcMain, type WebContents } from 'electron'
 import { join } from 'node:path'
 import { getArcaMainframeEndpoint } from '../arca-mainframe/arca-mainframe-endpoint'
 import { megamindConfigPath } from './credentials'
+import { configureMegamindPaneSessionIdStore } from './megamind-pane-session-id'
+import { startMegamindAgentPresence } from './agent-presence-service'
 import { MegamindEnrollment } from './enrollment'
 import { MegamindDeviceClient } from './device-client'
 import { pendingApprovals, decideApproval } from './human-approvals'
@@ -17,6 +19,8 @@ function requireRenderer(sender: WebContents): void {
 }
 
 export function registerMegamind(): void {
+  configureMegamindPaneSessionIdStore(app.getPath('userData'))
+  startMegamindAgentPresence(megamindConfigPath(), !app.isPackaged)
   const publish = (channel: string, value: unknown): void => {
     for (const window of BrowserWindow.getAllWindows()) {
       window.webContents.send(channel, value)

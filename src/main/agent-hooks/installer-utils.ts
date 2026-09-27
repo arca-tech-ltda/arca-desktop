@@ -182,11 +182,16 @@ export function buildWindowsAgentHookPostCommand(
 }
 
 // Why: PowerShell per-post costs ~300ms startup and mangles UTF-8 via code-page translation; curl.exe (Win10 1803+) avoids both.
-export function buildWindowsAgentHookCurlPostCommand(source: AgentHookSource): string {
+export function buildWindowsAgentHookCurlPostCommand(
+  source: AgentHookSource,
+  // Why: the hook prints this file so ARCA can answer a prompt submission with context; cmd has
+  // no way to read the body off a pipe that curl is already writing the payload into.
+  options: { responseFile?: string; maxTimeSeconds?: number } = {}
+): string {
   return [
     '"%SystemRoot%\\System32\\curl.exe" -sS -X POST',
     `"http://127.0.0.1:%ORCA_AGENT_HOOK_PORT%/hook/${source}"`,
-    '--connect-timeout 0.5 --max-time 1.5',
+    `--connect-timeout 0.5 --max-time ${options.maxTimeSeconds ?? 1.5}`,
     '-H "Content-Type: application/x-www-form-urlencoded"',
     '-H "X-Orca-Agent-Hook-Token: %ORCA_AGENT_HOOK_TOKEN%"',
     '--data-urlencode "paneKey=%ORCA_PANE_KEY%"',
@@ -196,8 +201,25 @@ export function buildWindowsAgentHookCurlPostCommand(source: AgentHookSource): s
     '--data-urlencode "env=%ORCA_AGENT_HOOK_ENV%"',
     '--data-urlencode "version=%ORCA_AGENT_HOOK_VERSION%"',
     '--data-urlencode "payload@-"',
+    ...(options.responseFile ? [`-o "${options.responseFile}"`] : []),
     '>nul 2>&1'
   ].join(' ')
+}
+
+/** cmd lines around the post: declare the response file, then print it (empty ⇒ nothing) and drop it. */
+export function buildWindowsAgentHookResponseLines(variable: string): {
+  declare: string
+  reference: string
+  emit: string[]
+} {
+  return {
+    declare: `set "${variable}=%TEMP%\\orca-hook-%RANDOM%%RANDOM%.txt"`,
+    reference: `%${variable}%`,
+    emit: [
+      `if exist "%${variable}%" type "%${variable}%" 2>nul`,
+      `if exist "%${variable}%" del /q "%${variable}%" 2>nul`
+    ]
+  }
 }
 
 export function removeManagedCommands(

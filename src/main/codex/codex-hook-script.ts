@@ -5,9 +5,18 @@ import {
   buildWindowsHookEnvironmentGuardLines,
   buildWindowsHookStdinDrainEpilogue
 } from '../agent-hooks/hook-stdin-contract'
-import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-utils'
+import {
+  buildWindowsAgentHookCurlPostCommand,
+  buildWindowsAgentHookResponseLines
+} from '../agent-hooks/installer-utils'
+import {
+  buildPosixHookResponseEmitLines,
+  buildPosixHookResponseMaxTimeLine,
+  HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+} from '../agent-hooks/hook-prompt-response-script'
 
 export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
+  const windowsResponse = buildWindowsAgentHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
@@ -15,7 +24,13 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       // Why: the endpoint file holds this install's live port/token; sourcing it lets a surviving PTY reach the current server (see claude/hook-service.ts).
       'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
-      buildWindowsAgentHookCurlPostCommand('codex'),
+      windowsResponse.declare,
+      buildWindowsAgentHookCurlPostCommand('codex', {
+        responseFile: windowsResponse.reference,
+        maxTimeSeconds: HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+      }),
+      // Why: ARCA answers a prompt submission with the Codex hook wire object (additionalContext).
+      ...windowsResponse.emit,
       'exit /b 0',
       ...buildWindowsHookStdinDrainEpilogue(),
       ''
@@ -71,13 +86,17 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     '  [ -n "$WSL_DISTRO_NAME" ] && return 0',
     '  grep -qiE "microsoft|wsl" /proc/sys/kernel/osrelease /proc/version 2>/dev/null',
     '}',
-    'if post_codex_hook curl >/dev/null 2>&1; then',
+    buildPosixHookResponseMaxTimeLine(),
+    // Why the subshell: a prompt submission gets inbox context back, and Codex parses hook stdout.
+    'if orca_hook_response=$(post_codex_hook curl 0.5 "${max_time:-1.5}" 2>/dev/null); then',
+    ...buildPosixHookResponseEmitLines().map((line) => `  ${line}`),
     '  exit 0',
     'fi',
     'if is_wsl_runtime; then',
     '  windows_curl=$(command -v curl.exe 2>/dev/null || true)',
     '  if [ -n "$windows_curl" ] && [ -x "$windows_curl" ]; then',
-    '    if post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1; then',
+    '    if orca_hook_response=$(post_codex_hook "$windows_curl" 3 5 2>/dev/null); then',
+    ...buildPosixHookResponseEmitLines().map((line) => `      ${line}`),
     '      exit 0',
     '    fi',
     '    # post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1 || true',
