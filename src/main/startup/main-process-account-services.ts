@@ -197,7 +197,13 @@ export function standDownManagedHostAccountsForPiAuthority(): void {
   const piAccounts = getPiAccountsService()
   const claudeAccounts = state.claudeAccounts
   const codexAccounts = state.codexAccounts
-  if (getAgentAuthorityMode() !== 'pi' || !store || !piAccounts || !claudeAccounts || !codexAccounts) {
+  if (
+    getAgentAuthorityMode() !== 'pi' ||
+    !store ||
+    !piAccounts ||
+    !claudeAccounts ||
+    !codexAccounts
+  ) {
     return
   }
   const settings = store.getSettings()

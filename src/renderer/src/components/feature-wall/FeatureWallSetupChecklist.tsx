@@ -260,6 +260,9 @@ export function FeatureWallSetupChecklist(
   const { activeStep, progress, onSelectStep, layout = 'modal' } = props
   const isEmbedded = layout === 'embedded'
   const agentAuthority = useAgentAuthorityMode()
+  const activeStepCopy = activeStep
+    ? getLocalizedFeatureWallSetupChecklistCopy(activeStep, agentAuthority)
+    : null
   const activeDone = activeStep ? progress.stepDone[activeStep.id] : false
   // Only steps with a visual constrain the caption to a narrow column so the
   // illustration can sit beside it; captionless steps let the copy run full width.
@@ -331,7 +334,7 @@ export function FeatureWallSetupChecklist(
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-2xl font-semibold leading-tight text-foreground">
-                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep, agentAuthority).name}
+                  {activeStepCopy?.name}
                 </div>
               </div>
               <span
@@ -367,7 +370,7 @@ export function FeatureWallSetupChecklist(
                     hasStepVisual && !isEmbedded ? 'pr-4 sm:pr-6' : null
                   )}
                 >
-                  {getLocalizedFeatureWallSetupChecklistCopy(activeStep, agentAuthority).description}
+                  {activeStepCopy?.description}
                 </p>
                 {/* Action lives under the caption, not after the grid, so it sits just
                     below the copy instead of being pushed down by the taller visual. */}

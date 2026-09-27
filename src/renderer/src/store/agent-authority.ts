@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import {
   INITIAL_AGENT_AUTHORITY_STATE,
   MANAGED_AGENT_AUTHORITY_STATE,
@@ -29,10 +29,6 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener)
 }
 
-function getSnapshot(): AgentAuthorityState {
-  return state
-}
-
 /**
  * Main owns the mode; the renderer only mirrors it. A client with no main process to ask (the web
  * client) stays on plain Orca behaviour: managed accounts, resolved immediately.
@@ -48,7 +44,10 @@ export function ensureAgentAuthoritySubscription(): void {
     return
   }
   api.onChange(publish)
-  void api.get().then(publish).catch(() => {})
+  void api
+    .get()
+    .then(publish)
+    .catch(() => {})
 }
 
 /** Non-React read, for code that runs outside a component. */
@@ -57,8 +56,13 @@ export function getAgentAuthority(): AgentAuthorityState {
 }
 
 export function useAgentAuthority(): AgentAuthorityState {
-  useEffect(ensureAgentAuthoritySubscription, [])
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  const [current, setCurrent] = useState(state)
+  useEffect(() => {
+    ensureAgentAuthoritySubscription()
+    setCurrent(state)
+    return subscribe(() => setCurrent(state))
+  }, [])
+  return current
 }
 
 export function useAgentAuthorityMode(): AgentAuthorityMode {
@@ -71,7 +75,10 @@ export function refreshAgentAuthority(): void {
   if (!api) {
     return
   }
-  void api.refresh().then(publish).catch(() => {})
+  void api
+    .refresh()
+    .then(publish)
+    .catch(() => {})
 }
 
 export function setAgentAuthorityForTest(next: AgentAuthorityState): void {

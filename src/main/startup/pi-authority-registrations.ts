@@ -1,9 +1,6 @@
 import type { AgentAuthorityMode } from '../../shared/agent-authority'
 import { registerPiAccounts, unregisterPiAccounts } from '../pi-accounts/registration'
-import {
-  registerPiAccountUsage,
-  unregisterPiAccountUsage
-} from '../pi-account-usage/registration'
+import { registerPiAccountUsage, unregisterPiAccountUsage } from '../pi-account-usage/registration'
 import { standDownManagedHostAccountsForPiAuthority } from './main-process-account-services'
 
 /**

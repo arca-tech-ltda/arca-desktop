@@ -1,10 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { applyPiAuthorityRegistrations } from './pi-authority-registrations'
 import { registerPiAccounts, unregisterPiAccounts } from '../pi-accounts/registration'
-import {
-  registerPiAccountUsage,
-  unregisterPiAccountUsage
-} from '../pi-account-usage/registration'
+import { registerPiAccountUsage, unregisterPiAccountUsage } from '../pi-account-usage/registration'
 import { standDownManagedHostAccountsForPiAuthority } from './main-process-account-services'
 
 vi.mock('../pi-accounts/registration', () => ({

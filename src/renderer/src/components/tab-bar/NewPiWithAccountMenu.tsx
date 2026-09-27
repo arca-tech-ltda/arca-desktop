@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { piAccountEnvKey, PI_ACCOUNT_PROVIDERS } from '../../../../shared/pi-account-projects'
 import { usePiAccounts } from '@/components/settings/use-pi-accounts'
+import { useAgentAuthorityMode } from '@/store/agent-authority'
 import {
   usePiAccountProjects,
   usePiAccountSelectableWorkspace
@@ -35,9 +36,14 @@ export function NewPiWithAccountMenu({
   groupId?: string
   onLaunched?: () => void
 }): React.JSX.Element | null {
+  const agentAuthority = useAgentAuthorityMode()
   const projects = usePiAccountProjects()
   const accounts = usePiAccounts()
   const selectable = usePiAccountSelectableWorkspace(worktreeId)
+  if (agentAuthority !== 'pi') {
+    // A partner's machine launches Claude Code/Codex; there is no Pi account to pick.
+    return null
+  }
   if (!selectable) {
     // SSH and WSL terminals run the other host's Pi; a name from this bucket means nothing there.
     return null

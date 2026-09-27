@@ -9,12 +9,17 @@ import { getRepoMainWorktreeId } from '../../../../shared/worktree/id'
 import { useAppStore } from '../../store'
 import { NewPiWithAccountMenu } from '../tab-bar/NewPiWithAccountMenu'
 import { PiAccountProjectSubmenu } from './pi-account-project-menu'
+import { setAgentAuthorityForTest } from '@/store/agent-authority'
 
 const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
 const projectsState: PiAccountProjectsState = {
   supported: true,
   map: { version: 1, projects: {} },
   sessions: []
+}
+
+function mountPiAuthority(): void {
+  setAgentAuthorityForTest({ mode: 'pi', preference: 'auto', resolved: true })
 }
 
 function mountApi(): void {
@@ -72,6 +77,7 @@ afterEach(() => {
 })
 
 it('offers "New Pi with account…" on a local workspace only', async () => {
+  mountPiAuthority()
   mountApi()
   const local = mountRepo(repo({}))
   renderInMenu(<NewPiWithAccountMenu worktreeId={local} />)
@@ -110,6 +116,7 @@ it('offers "New Pi with account…" on a local workspace only', async () => {
 })
 
 it('hides the project Account submenu for SSH and WSL projects', async () => {
+  mountPiAuthority()
   mountApi()
   renderInMenu(<PiAccountProjectSubmenu projectPath="/repos/one" />)
   await waitFor(() => expect(screen.queryByTestId('pi-account-project-submenu')).not.toBeNull())
@@ -120,5 +127,17 @@ it('hides the project Account submenu for SSH and WSL projects', async () => {
   cleanup()
 
   renderInMenu(<PiAccountProjectSubmenu projectPath={'\\\\wsl$\\Ubuntu\\home\\bi\\repo'} />)
+  expect(screen.queryByTestId('pi-account-project-submenu')).toBeNull()
+})
+
+it('hides both Pi account surfaces on a machine in managed authority', () => {
+  setAgentAuthorityForTest({ mode: 'managed', preference: 'auto', resolved: true })
+  mountApi()
+  const local = mountRepo(repo({}))
+  renderInMenu(<NewPiWithAccountMenu worktreeId={local} />)
+  expect(screen.queryByText('New Pi with account…')).toBeNull()
+  cleanup()
+
+  renderInMenu(<PiAccountProjectSubmenu projectPath="/repos/one" />)
   expect(screen.queryByTestId('pi-account-project-submenu')).toBeNull()
 })

@@ -123,7 +123,8 @@ export function BrowserPane({
   ])
   const showUserAgent = matchesSettingsSearch(searchQuery, [getBrowserPaneSearchEntries()[10]])
   const showBrowserUse =
-    !ARCA_ORCA_AGENT_SKILLS_HIDDEN && matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
+    !ARCA_ORCA_AGENT_SKILLS_HIDDEN &&
+    matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
   const isMac = isMacUserAgent()
   const linkRoutingDescription = getBrowserLinkRoutingDescription(
     { isMac },
