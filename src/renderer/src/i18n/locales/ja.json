@@ -54,7 +54,7 @@
     },
     "agentAuthority": {
       "label": "アカウントの所有者",
-      "description": "このコンピューターでアカウントを所有するエージェント: Pi か、ARCA が管理する Claude Code と Codex のログイン。自動は、Pi がアカウント対応で応答する場合のみ Pi を選びます。",
+      "description": "このコンピューターでアカウントを所有する Agent: Pi か、ARCA が管理する Claude Code と Codex のログイン。自動は、Pi がアカウント対応で応答する場合のみ Pi を選びます。",
       "optionAuto": "自動",
       "optionPi": "Pi",
       "optionManaged": "Claude と Codex",
@@ -63,7 +63,7 @@
       "statusAutoManaged": "アカウント対応の Pi が見つからないため、ここでは Claude Code と Codex がアカウントを所有します。",
       "statusForcedPi": "このコンピューターでは Pi に固定されています。",
       "statusForcedManaged": "このコンピューターでは Claude Code と Codex に固定されています。",
-      "loadingAccounts": "このコンピューターでどのエージェントがアカウントを所有するか確認中…",
+      "loadingAccounts": "このコンピューターでどの Agent がアカウントを所有するか確認中…",
       "searchDescription": "このコンピューターで Pi と、管理された Claude Code と Codex のログインのどちらがアカウントを所有するかを選びます。",
       "keywordPi": "pi",
       "keywordOwner": "所有者",

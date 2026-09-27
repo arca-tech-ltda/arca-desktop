@@ -123,7 +123,8 @@ o arquivo de login por conta. Sem cópia nova do refresh token, sem bump de vers
 - App já faz: listar, Usar, Adicionar (login Claude/Codex reaproveitando os fluxos
   gerenciados do Orca), Renomear, Remover. client_id OAuth do app == do Pi (anthropic
   `9d1c250a-…`, openai-codex `app_EMoamEEZ73f0CkXaXp7hrann`).
-- Contas gerenciadas do Orca ficam escondidas com `ARCA_PI_IS_AUTHORITY`.
+- Contas gerenciadas do Orca ficam escondidas só no modo `pi` da autoridade por máquina
+  (fase C; ver [`arca-agent-authority.md`](./arca-agent-authority.md)).
 - Uso/cota hoje: só da conta ativa, na barra de status (`src/main/rate-limits/`,
   `claude-usage`, `codex-usage`; `claude-managed-account-usage.ts` já consulta contas
   inativas gerenciadas).
