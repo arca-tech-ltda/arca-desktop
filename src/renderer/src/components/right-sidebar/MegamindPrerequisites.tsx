@@ -15,18 +15,23 @@ export function MegamindPrerequisites(): React.JSX.Element | null {
       .then(setRequirements)
       .catch(() => {})
   }, [])
-  if (!requirements || (requirements.pi && requirements.extension && requirements.installer)) {
+  if (!requirements || (requirements.agent && requirements.installer)) {
     return null
   }
   const label = translate('arca.megamind.install', 'Run workspace installer')
   return (
     <div className="flex shrink-0 flex-col gap-2 border-b border-border p-2 text-xs">
-      {(!requirements.pi || !requirements.extension) && (
+      {!requirements.agent && (
         <p>
-          {translate(
-            'arca.megamind.prerequisites',
-            'Pi or its Megamind extension is missing on this computer.'
-          )}
+          {requirements.mode === 'pi'
+            ? translate(
+                'arca.megamind.prerequisites',
+                'Pi or its Megamind extension is missing on this computer.'
+              )
+            : translate(
+                'arca.megamind.prerequisitesManaged',
+                'Megamind is not set up for Claude Code or Codex on this computer.'
+              )}
         </p>
       )}
       {!requirements.installer && (

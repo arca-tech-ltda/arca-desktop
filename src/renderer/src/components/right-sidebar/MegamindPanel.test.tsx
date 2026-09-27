@@ -49,7 +49,7 @@ beforeEach(() => {
         onUpdate: () => () => {},
         prerequisites: vi
           .fn()
-          .mockResolvedValue({ pi: true, installer: true, extension: true, windows: false }),
+          .mockResolvedValue({ mode: 'pi', agent: true, installer: true, windows: false }),
         approvals: vi.fn().mockResolvedValue({
           ok: true,
           items: [{ id: 'zzzzzzzzzzzzzzz', summary: 'git push feat/x' }]

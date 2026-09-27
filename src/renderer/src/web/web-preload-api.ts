@@ -85,9 +85,9 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     },
     arcaMegamind: {
       prerequisites: async () => ({
-        pi: false,
+        mode: 'managed' as const,
+        agent: false,
         installer: false,
-        extension: false,
         windows: false
       }),
       status: async () => ({ state: 'disconnected' }),

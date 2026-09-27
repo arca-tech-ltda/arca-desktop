@@ -31,6 +31,7 @@
       "deny": "Deny",
       "install": "Run workspace installer",
       "prerequisites": "Pi or its Megamind extension is missing on this computer.",
+      "prerequisitesManaged": "Megamind is not set up for Claude Code or Codex on this computer.",
       "installerMissing": "Installer not found in ~/ARCA/arca. Install the ARCA workspace first.",
       "localInstaller": "Switch to the local environment to run this installer.",
       "settingsTitle": "ARCA Megamind",

@@ -12,7 +12,11 @@ export type MegamindStatus = {
   userCode?: string
   verificationUri?: string
 }
-export type MegamindApproval = { id: string; summary: string; relevant?: boolean }
+export type MegamindApproval = {
+  id: string
+  summary: string
+  relevant?: boolean
+}
 
 /** A failed read is not an empty list: the panel must say so instead of "no approvals". */
 export type MegamindApprovalsResult =
@@ -30,9 +34,11 @@ export type MegamindPanelRoute = {
   approvalId?: string
 }
 export type MegamindPrerequisites = {
-  pi: boolean
+  /** Which agent the Megamind link is checked for on this machine. */
+  mode: 'pi' | 'managed'
+  /** Pi with its Megamind extension (`pi`), or the Claude Code/Codex MCP proxy (`managed`). */
+  agent: boolean
   installer: boolean
-  extension: boolean
   windows: boolean
 }
 export type ArcaMegamindApi = {
