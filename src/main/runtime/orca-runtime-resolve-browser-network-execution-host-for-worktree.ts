@@ -26,6 +26,7 @@ import { WORKTREE_ID_SEPARATOR } from '../../shared/worktree/id'
 import { WorktreeIdRequiresFullPathError } from './runtime-worktree-lineage-resolution'
 import { triggerTerminalSpawnPushTargetMaterialization } from './runtime-terminal-spawn-push-target-materialization'
 import { applyPiAccountPtyEnv } from '../pi-accounts/pi-account-pty-env'
+import { applyMegamindSessionPtyEnv } from '../arca-megamind/megamind-session-pty-env'
 
 export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extends OrcaRuntimeWithTransitionGraphReloadToTerminalState {
   protected resolveBrowserNetworkExecutionHostForWorktree(worktree?: {
@@ -182,6 +183,11 @@ export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extend
       tabId,
       worktreeId: scope.id,
       existingEnv: cleanBaseEnv
+    })
+    applyMegamindSessionPtyEnv(env, {
+      paneKey,
+      cwd: scope.path,
+      connectionId: scope.connectionId
     })
     if (!scope.folderWorkspace) {
       return env

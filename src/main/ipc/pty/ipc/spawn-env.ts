@@ -19,6 +19,7 @@ import { stripRemotePaneEnvWhenHooksDisabled } from '../provider/liveness'
 import { parseValidPaneKey } from '../pane/key-state'
 import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
 import { applyPiAccountPtyEnv } from '../../../pi-accounts/pi-account-pty-env'
+import { applyMegamindSessionPtyEnv } from '../../../arca-megamind/megamind-session-pty-env'
 import { shouldRefreshNativeClaudeAgentTeamsEnv } from '../pane/launch-authority'
 import type { PtyIpcSpawnState } from './spawn-state'
 import { assemblePtyIpcSpawnCodexEnv } from './spawn-env-codex'
@@ -154,6 +155,13 @@ export async function assemblePtyIpcSpawnEnv(ctx: PtyIpcSpawnState): Promise<voi
       tabId: typeof args.tabId === 'string' ? args.tabId : null,
       worktreeId: args.worktreeId ?? null,
       existingEnv: ctx.baseEnv
+    })
+    applyMegamindSessionPtyEnv(ctx.baseEnv, {
+      paneKey: ctx.stablePaneKey,
+      cwd: ctx.cwd ?? args.cwd,
+      connectionId: args.connectionId,
+      isWsl:
+        args.projectRuntime?.status === 'resolved' && args.projectRuntime.runtime.kind === 'wsl'
     })
   }
   ctx.spawnTiming.mark('pane_env')

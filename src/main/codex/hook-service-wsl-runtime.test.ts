@@ -379,7 +379,7 @@ describe('Codex WSL runtime hook install', () => {
     expect(script).toContain('-H "X-Orca-Agent-Hook-Meta-Encoding: base64"')
     expect(script).toContain('--data-binary @-')
     expect(script).toContain('--data-urlencode "payload@-"')
-    expect(script).toContain('if post_codex_hook curl >/dev/null 2>&1; then')
+    expect(script).toContain('if orca_hook_response=$(post_codex_hook curl 0.5 "${max_time:-1.5}" 2>/dev/null); then')
     expect(script).toContain('post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1 || true')
   })
 

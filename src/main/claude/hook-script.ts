@@ -2,6 +2,12 @@
  *  Split from hook-service.ts so the service owns install/status and this owns script text,
  *  mirroring the same split under src/main/cursor/. */
 import { buildWindowsAgentHookCurlPostCommand } from '../agent-hooks/installer-utils'
+import {
+  buildPosixHookResponseEmitLines,
+  buildPosixHookResponseMaxTimeLine,
+  buildWindowsHookResponseLines,
+  HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+} from '../agent-hooks/hook-prompt-response-script'
 import { buildPosixAgentHookPostCommand } from '../agent-hooks/hook-post-command'
 import {
   buildPosixGrokReplayGuardLines,
@@ -22,6 +28,7 @@ export function getManagedScript(
     skipWhenGrokImportsClaude?: boolean
   } = {}
 ): string {
+  const windowsResponse = buildWindowsHookResponseLines('ORCA_HOOK_RESPONSE_FILE')
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
@@ -46,7 +53,13 @@ export function getManagedScript(
           ]
         : []),
       // Why: use curl.exe to avoid an extra PowerShell startup per hook.
-      buildWindowsAgentHookCurlPostCommand('claude'),
+      windowsResponse.declare,
+      buildWindowsAgentHookCurlPostCommand('claude', {
+        responseFile: windowsResponse.reference,
+        maxTimeSeconds: HOOK_PROMPT_RESPONSE_MAX_TIME_SECONDS
+      }),
+      // Why: ARCA answers a prompt submission with inbox context; Claude appends this stdout to the turn.
+      ...windowsResponse.emit,
       'exit /b 0',
       ...buildWindowsHookStdinDrainEpilogue(),
       ''
@@ -84,9 +97,14 @@ export function getManagedScript(
     '  exit 0',
     'fi',
     // Why: keep full hook JSON off the command line and avoid IDS-friendly URL-encoded paths.
-    ...buildPosixAgentHookPostCommand('claude').map((line, index, lines) =>
-      index === lines.length - 1 ? `${line} >/dev/null 2>&1 || spool_hook_event` : line
-    ),
+    'orca_post_hook() {',
+    ...buildPosixAgentHookPostCommand('claude').map((line) => `  ${line}`),
+    '}',
+    buildPosixHookResponseMaxTimeLine(),
+    // Why the subshell: ARCA answers a prompt submission with inbox context, and Claude appends
+    // non-JSON hook stdout to the turn. Every other event answers 204, so nothing is printed.
+    'orca_hook_response=$(orca_post_hook 2>/dev/null) || spool_hook_event',
+    ...buildPosixHookResponseEmitLines(),
     'exit 0',
     ''
   ].join('\n')
