@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
-import { BellRing, Bot, Siren } from 'lucide-react'
+import { BellRing, Bot, MessageSquare, Siren } from 'lucide-react'
 import { useAppStore } from '@/store'
 import {
   MacNotificationPermissionCard,
@@ -159,6 +159,22 @@ export function NotificationsPane({
         onToggle={() =>
           void updateNotificationSettings({
             terminalBell: !notificationSettings.terminalBell
+          })
+        }
+      />
+
+      <NotificationSettingToggle
+        icon={<MessageSquare className="size-4" />}
+        label={translate('arca.megamind.notifyChat', 'Megamind Chat')}
+        description={translate(
+          'arca.megamind.notifyChatDescription',
+          'A partner sends you a direct message or mentions your handle.'
+        )}
+        checked={notificationSettings.megamindChat}
+        disabled={!notificationSettings.enabled}
+        onToggle={() =>
+          void updateNotificationSettings({
+            megamindChat: !notificationSettings.megamindChat
           })
         }
       />

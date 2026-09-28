@@ -77,7 +77,8 @@ export function announceMegamind(item: MegamindRecord): void {
           : ''
   void window.api.notifications
     .dispatch({
-      source: 'agent-task-complete',
+      // Chat has its own switch and its own focus rule: the window is the inbox.
+      source: item.kind === 'chat' ? 'megamind-chat' : 'agent-task-complete',
       notificationId: `megamind:${item.kind}:${item.id}:${item.status ?? ''}`,
       worktreeLabel: `megamind:${item.id}`,
       megamind: { title, body, route: notificationRoute(item) }

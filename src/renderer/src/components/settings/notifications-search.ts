@@ -80,6 +80,22 @@ export const getNotificationsPaneSearchEntries = createLocalizedCatalog(() => [
     ]
   },
   {
+    title: translate('arca.megamind.notifyChat', 'Megamind Chat'),
+    description: translate(
+      'arca.megamind.notifyChatDescription',
+      'A partner sends you a direct message or mentions your handle.'
+    ),
+    keywords: [
+      ...translateSearchKeyword(
+        'auto.components.settings.notifications.search.ca8faa40d7',
+        'notifications'
+      ),
+      ...translateSearchKeyword('arca.megamind.searchKeywordChat', 'chat'),
+      ...translateSearchKeyword('arca.megamind.searchKeywordMegamind', 'megamind'),
+      ...translateSearchKeyword('arca.megamind.searchKeywordMention', 'mention')
+    ]
+  },
+  {
     title: translate(
       'auto.components.settings.notifications.search.96562a72c6',
       'Suppress While Focused'

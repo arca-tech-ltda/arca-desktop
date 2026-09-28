@@ -121,6 +121,7 @@ describe('onboarding flow persistence', () => {
       enabled: false,
       agentTaskComplete: false,
       terminalBell: false,
+      megamindChat: false,
       suppressWhenFocused: false,
       customSoundId: 'two-tone',
       customSoundPath: null,
@@ -131,6 +132,8 @@ describe('onboarding flow persistence', () => {
       enabled: true,
       agentTaskComplete: true,
       terminalBell: true,
+      // Onboarding turns on the terminal lanes; the chat switch keeps whatever it had.
+      megamindChat: false,
       suppressWhenFocused: false,
       customSoundId: 'two-tone',
       customSoundPath: null,

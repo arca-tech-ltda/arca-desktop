@@ -16,6 +16,11 @@ function SessionRow({ session }: { session: MegamindMemberSession }): React.JSX.
       <div className="flex items-baseline gap-1.5">
         <span className="truncate text-[11px] font-medium">{session.project || '—'}</span>
         <span className="truncate text-[11px] text-muted-foreground">{session.harness}</span>
+        {session.status === 'idle' && (
+          <span className="shrink-0 text-[11px] text-muted-foreground">
+            {translate('arca.megamind.sessionIdle', 'idle')}
+          </span>
+        )}
         <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
           {formatUiRelativeTimeFromDate(session.lastSeen.replace(' ', 'T'), '')}
         </span>

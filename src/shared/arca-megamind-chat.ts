@@ -49,6 +49,9 @@ export type MegamindChatState = {
   messages: MegamindChatMessage[]
 }
 
+/** Contract 2.3: `idle` is a session that is open but not working, and still wakeable. */
+export type MegamindSessionStatus = 'active' | 'idle' | 'recent'
+
 export type MegamindMemberSession = {
   sessionId: string
   label: string
@@ -56,6 +59,7 @@ export type MegamindMemberSession = {
   harness: string
   note: string
   lastSeen: string
+  status: MegamindSessionStatus
 }
 
 export type MegamindMember = {

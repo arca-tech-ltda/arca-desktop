@@ -1,5 +1,5 @@
 import type { GlobalSettings } from './global-settings-types'
-import type { NotificationSettings } from './notification-settings-types'
+import { getDefaultNotificationSettings } from './notification-settings-defaults'
 import type { OnboardingChecklistState, OnboardingState } from './onboarding-state-types'
 import type { RepoHookSettings } from './orca-yaml-hook-types'
 import type { PersistedState } from './persisted-state-types'
@@ -117,18 +117,6 @@ export const REPO_COLORS = [
 ] as const
 
 export const DEFAULT_REPO_BADGE_COLOR = REPO_COLORS[0]
-
-export function getDefaultNotificationSettings(): NotificationSettings {
-  return {
-    enabled: true,
-    agentTaskComplete: true,
-    terminalBell: false,
-    suppressWhenFocused: true,
-    customSoundId: 'system',
-    customSoundPath: null,
-    customSoundVolume: 100
-  }
-}
 
 export function getDefaultOnboardingState(): OnboardingState {
   return {

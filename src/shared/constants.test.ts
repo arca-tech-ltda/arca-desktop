@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_TERMINAL_INACTIVE_PANE_OPACITY,
-  getDefaultNotificationSettings,
   getDefaultPrimarySelectionMiddleClickPaste,
   getDefaultTerminalRightClickToPaste,
   getDefaultSettings
 } from './constants'
+import { getDefaultNotificationSettings } from './notification-settings-defaults'
 
 describe('getDefaultSettings', () => {
   it('uses platform-consistent separators for the default workspace directory', () => {

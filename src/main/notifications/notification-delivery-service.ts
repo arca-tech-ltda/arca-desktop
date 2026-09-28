@@ -73,7 +73,7 @@ export function createNotificationDeliveryService(
     dispatch: (request) => {
       // Why: light the tray attention dot before the cooldown/focus/enabled gates so they
       // can't hold it back (clears on window show/restore; see index.ts).
-      if (request.source === 'agent-task-complete' || request.source === 'terminal-bell') {
+      if (request.source !== 'test') {
         if (!deps.isWindowVisible(deps.findActiveWindow())) {
           deps.setTrayAttention(true)
         }
@@ -83,7 +83,8 @@ export function createNotificationDeliveryService(
       const desktopAllowed =
         settings.enabled &&
         (request.source !== 'agent-task-complete' || settings.agentTaskComplete) &&
-        (request.source !== 'terminal-bell' || settings.terminalBell)
+        (request.source !== 'terminal-bell' || settings.terminalBell) &&
+        (request.source !== 'megamind-chat' || settings.megamindChat)
 
       const notificationOptions = buildNotificationOptions(request)
 
@@ -104,7 +105,9 @@ export function createNotificationDeliveryService(
           deps.dispatchMobileNotification({
             type: 'notification',
             emittedAt: deps.now(),
-            source: request.source,
+            // The phone's source vocabulary is a wire contract an older build already
+            // decodes; chat keeps travelling under the source it always used there.
+            source: request.source === 'megamind-chat' ? 'agent-task-complete' : request.source,
             ...(!desktopAllowed ? { desktopAllowed: false } : {}),
             title: notificationOptions.title,
             body: notificationOptions.body,
@@ -123,9 +126,12 @@ export function createNotificationDeliveryService(
       }
 
       const browserWindow = deps.findActiveWindow()
+      // A chat message is addressed to the person, not to a worktree: the inbox is the window
+      // itself, so having it in front is the whole reason not to interrupt.
+      const focusSubject = request.source === 'megamind-chat' || request.isActiveWorktree
       if (
         settings.suppressWhenFocused &&
-        request.isActiveWorktree &&
+        focusSubject &&
         browserWindow &&
         browserWindow.isFocused()
       ) {

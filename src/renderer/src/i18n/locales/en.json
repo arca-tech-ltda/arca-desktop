@@ -76,6 +76,12 @@
       "presenceDegraded": "This Mainframe predates per-person presence; app and agent are told apart by session.",
       "appPresence": "app",
       "agentPresence": "agent",
+      "sessionIdle": "idle",
+      "notifyChat": "Megamind Chat",
+      "notifyChatDescription": "A partner sends you a direct message or mentions your handle.",
+      "searchKeywordChat": "chat",
+      "searchKeywordMegamind": "megamind",
+      "searchKeywordMention": "mention",
       "message": "Message",
       "mentionAgentAction": "Mention agent"
     },

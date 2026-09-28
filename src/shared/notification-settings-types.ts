@@ -5,6 +5,8 @@ export type NotificationSettings = {
   enabled: boolean
   agentTaskComplete: boolean
   terminalBell: boolean
+  /** Megamind chat messages addressed to this partner (a DM or an @mention). */
+  megamindChat: boolean
   suppressWhenFocused: boolean
   customSoundId:
     | 'system'
@@ -22,7 +24,11 @@ export type NotificationSettings = {
   customSoundVolume: number
 }
 
-export type NotificationEventSource = 'agent-task-complete' | 'terminal-bell' | 'test'
+export type NotificationEventSource =
+  | 'agent-task-complete'
+  | 'terminal-bell'
+  | 'megamind-chat'
+  | 'test'
 
 export type NotificationDispatchRequest = {
   megamind?: { title: string; body: string; route?: MegamindPanelRoute }

@@ -213,3 +213,20 @@ it('runs a queued refresh when the channel changes while one is in flight', asyn
   expect(harness.client.recent.mock.calls.length).toBe(polls + 2)
   expect(harness.client.history).toHaveBeenLastCalledWith(DM)
 })
+
+it('does not notify again about a message a previous run already alerted on', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  const dm = message({ id: 'new222222222222', channel: DM })
+  harness.client.recent.mockResolvedValue({ ok: true, value: [dm] })
+  await harness.service.refresh()
+  expect(harness.alerts).toEqual([{ handle: 'enzo', alert: 'dm' }])
+
+  // A restart: a fresh service, and the server still serves the same tail of the channel.
+  const restarted = setup()
+  restarted.client.recent.mockResolvedValue({ ok: true, value: [dm] })
+  restarted.service.start()
+  await vi.waitFor(() => expect(restarted.states.at(-1)?.availability).toBe('ready'))
+  await restarted.service.refresh()
+  expect(restarted.alerts).toEqual([])
+})

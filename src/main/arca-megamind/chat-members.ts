@@ -1,7 +1,8 @@
 import type {
   MegamindMember,
   MegamindMembers,
-  MegamindMemberSession
+  MegamindMemberSession,
+  MegamindSessionStatus
 } from '../../shared/arca-megamind-chat'
 import type { MegamindRecord } from '../../shared/arca-megamind'
 import { object } from './credentials'
@@ -9,6 +10,8 @@ import { records } from './gateway'
 
 /** The presence window the server uses for "active" (contract §2.3). */
 const ACTIVE_MS = 120_000
+/** The window a session that declared itself idle stays wakeable. */
+const IDLE_MS = 600_000
 const DESKTOP_NOTE = 'Desktop inbox; no agent execution'
 
 /** The ARCA app announces presence, not an agent: `harness: "desktop"`, or the pre-5.1 shape. */
@@ -22,23 +25,41 @@ function text(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
-function toSession(value: MegamindRecord): MegamindMemberSession {
+/** A server older than the idle field says nothing, so the age decides, as it always did. */
+function toStatus(value: MegamindRecord, lastSeen: string, now: number): MegamindSessionStatus {
+  const status = text(value.status)
+  if (status === 'active' || status === 'idle' || status === 'recent') {
+    return status
+  }
+  const age = now - Date.parse(lastSeen)
+  if (!Number.isFinite(age)) {
+    return 'recent'
+  }
+  if (value.idle === true) {
+    return age <= IDLE_MS ? 'idle' : 'recent'
+  }
+  return age <= ACTIVE_MS ? 'active' : 'recent'
+}
+
+function toSession(value: MegamindRecord, now: number): MegamindMemberSession {
+  const lastSeen = text(value.last_seen)
   return {
     sessionId: text(value.session_id),
     label: text(value.label),
     project: text(value.project) || text(value.project_id),
     harness: text(value.harness),
     note: text(value.note),
-    lastSeen: text(value.last_seen)
+    lastSeen,
+    status: toStatus(value, lastSeen, now)
   }
 }
 
-function isActive(session: MegamindMemberSession, now: number): boolean {
-  const seen = Date.parse(session.lastSeen)
-  return Number.isFinite(seen) && now - seen <= ACTIVE_MS
+/** Wakeable: working, or idle at the keyboard. The server counts both as `online`. */
+function isReachable(session: MegamindMemberSession): boolean {
+  return session.status !== 'recent'
 }
 
-function toMember(value: MegamindRecord): MegamindMember | null {
+function toMember(value: MegamindRecord, now: number): MegamindMember | null {
   const handle = text(value.handle)
   if (!handle) {
     return null
@@ -48,7 +69,7 @@ function toMember(value: MegamindRecord): MegamindMember | null {
     name: text(value.name) || handle,
     online: value.online === true,
     appOnline: value.app_online === true,
-    sessions: records({ items: value.sessions }).map(toSession)
+    sessions: records({ items: value.sessions }).map((session) => toSession(session, now))
   }
 }
 
@@ -63,7 +84,10 @@ export async function fetchMegamindMembers(
 ): Promise<MegamindMembers> {
   try {
     const items = records(await tool('chat_members', {}))
-    return { items: items.map(toMember).filter((item) => item !== null), degraded: false }
+    return {
+      items: items.map((item) => toMember(item, now)).filter((item) => item !== null),
+      degraded: false
+    }
   } catch {
     return { items: membersFromAgents(records(await tool('list_agents', {})), now), degraded: true }
   }
@@ -79,7 +103,7 @@ function membersFromAgents(agents: MegamindRecord[], now: number): MegamindMembe
     if (!handle) {
       continue
     }
-    const session = toSession(agent)
+    const session = toSession(agent, now)
     const member = members.get(handle) ?? {
       handle,
       name: handle,
@@ -88,12 +112,10 @@ function membersFromAgents(agents: MegamindRecord[], now: number): MegamindMembe
       sessions: []
     }
     member.sessions.push(session)
-    if (isActive(session, now)) {
-      if (isDesktopSession(session)) {
-        member.appOnline = true
-      } else {
-        member.online = true
-      }
+    if (isDesktopSession(session)) {
+      member.appOnline = member.appOnline || session.status === 'active'
+    } else {
+      member.online = member.online || isReachable(session)
     }
     members.set(handle, member)
   }

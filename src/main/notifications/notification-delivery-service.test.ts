@@ -12,6 +12,7 @@ function makeSettings(overrides: Partial<NotificationSettings> = {}): Notificati
     enabled: true,
     agentTaskComplete: true,
     terminalBell: true,
+    megamindChat: true,
     suppressWhenFocused: false,
     customSoundId: 'system',
     customSoundPath: null,
@@ -130,6 +131,43 @@ describe('createNotificationDeliveryService', () => {
 
     expect(result).toEqual({ delivered: false, reason: 'suppressed-focus' })
     expect(harness.dispatchMobileNotification).toHaveBeenCalledTimes(1)
+  })
+
+  it('gates Megamind chat on its own switch and travels to mobile under the old source', () => {
+    const harness = makeHarness(makeSettings({ megamindChat: false }))
+    const request = makeRequest({
+      source: 'megamind-chat',
+      worktreeId: undefined,
+      worktreeLabel: 'megamind:abcdefghijklmno'
+    })
+    expect(createNotificationDeliveryService(harness.deps).dispatch(request)).toEqual({
+      delivered: false,
+      reason: 'source-disabled'
+    })
+    expect(harness.dispatchMobileNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'agent-task-complete' })
+    )
+  })
+
+  it('does not interrupt a focused window with a chat message it can already see', () => {
+    const harness = makeHarness(makeSettings({ suppressWhenFocused: true }))
+    const focusedWindow = makeFocusedWindowStub()
+    harness.deps.findActiveWindow = () => focusedWindow
+    const request = makeRequest({
+      source: 'megamind-chat',
+      worktreeId: undefined,
+      worktreeLabel: 'megamind:abcdefghijklmno'
+    })
+    // No worktree is involved: the chat is addressed to the person, so focus alone decides.
+    expect(createNotificationDeliveryService(harness.deps).dispatch(request)).toEqual({
+      delivered: false,
+      reason: 'suppressed-focus'
+    })
+
+    const unfocused = makeHarness(makeSettings({ suppressWhenFocused: true }))
+    expect(createNotificationDeliveryService(unfocused.deps).dispatch(request)).toEqual({
+      delivered: true
+    })
   })
 
   it('dedupes desktop bursts per workspace but still reports the first delivery', () => {
