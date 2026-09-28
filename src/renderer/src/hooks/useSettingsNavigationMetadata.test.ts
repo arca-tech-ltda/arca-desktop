@@ -40,11 +40,10 @@ describe('settings navigation metadata', () => {
   })
 
   it('puts AI capability panes at the top on desktop', () => {
-    expect(ids().slice(0, 7)).toEqual([
+    expect(ids().slice(0, 6)).toEqual([
       'agents',
       'accounts',
       'voice',
-      'orca-account',
       'setup-guide',
       'general',
       'integrations'
@@ -72,7 +71,7 @@ describe('settings navigation metadata', () => {
     expect(ids({ isWebClient: true, isLinearConnected: true })).toContain('linear')
   })
 
-  it('omits the upstream Mobile settings page', () => {
+  it('omits the upstream Mobile and ARCA Account settings pages', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -81,6 +80,7 @@ describe('settings navigation metadata', () => {
     })
 
     expect(sections.find((section) => section.id === 'mobile')).toBeUndefined()
+    expect(sections.find((section) => section.id === 'orca-account')).toBeUndefined()
   })
 
   it('places Automations first under Workflows', () => {
@@ -98,20 +98,6 @@ describe('settings navigation metadata', () => {
     expect(automations?.group).toBe('workflows')
     expect(automations?.searchEntries[0]?.title).toBe('Show Automations Button')
     expect(workflowIds[0]).toBe('automations')
-  })
-
-  it('places the ARCA account in Set Up on desktop only', () => {
-    const desktopSections = buildSettingsNavigationMetadata({
-      isMac: false,
-      isWindows: false,
-      isWebClient: false,
-      repos: [repo]
-    })
-    const account = desktopSections.find((section) => section.id === 'orca-account')
-
-    expect(account?.group).toBe('setup')
-    expect(account?.searchEntries[0]?.title).toBe('ARCA account')
-    expect(ids({ isWebClient: true })).not.toContain('orca-account')
   })
 
   it('puts web-safe AI capability panes at the top while hiding desktop-only panes', () => {
