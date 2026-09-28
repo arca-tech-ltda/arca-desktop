@@ -44,6 +44,10 @@ export function useWorktreeCardFoundation({
   const agentActivityDisplayMode =
     useAppStore((s) => s.agentActivityDisplayMode) ?? DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE
   const projectGroups = useAppStore((s) => s.projectGroups)
+  // Why: "primary" only distinguishes the original checkout from siblings; alone it says nothing.
+  const hasSiblingWorktrees = useAppStore(
+    (s) => (s.worktreesByRepo?.[worktree.repoId]?.length ?? 0) > 1
+  )
   const newCardStyle = settings?.experimentalNewWorktreeCardStyle === true
   const compactCards = !newCardStyle && settings?.compactWorktreeCards === true
   const handleEditIssue = useCallback(
@@ -217,6 +221,7 @@ export function useWorktreeCardFoundation({
     cardProps,
     agentActivityDisplayMode,
     projectGroups,
+    hasSiblingWorktrees,
     newCardStyle,
     compactCards,
     handleEditIssue,

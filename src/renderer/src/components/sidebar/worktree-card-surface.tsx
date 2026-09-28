@@ -54,14 +54,15 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
         'rounded-lg',
         // Why: the live data attribute updates before React state during navigation,
         // so it must own the complete active style without stale utility classes.
+        // Why: selection is the only state the card surface paints. A border would
+        // read as "this card is different" to users who never learn which state it meant.
         isLineageDropTarget
           ? 'border border-worktree-sidebar-foreground/40 bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground ring-1 ring-inset ring-worktree-sidebar-ring/60'
           : isActiveSurface
             ? 'border border-transparent'
             : isMultiSelected
-              ? 'border border-worktree-sidebar-ring/35 bg-worktree-sidebar-accent/70 ring-1 ring-worktree-sidebar-ring/30'
+              ? 'border border-transparent bg-worktree-sidebar-accent/70'
               : 'border border-transparent worktree-sidebar-card-hover',
-        isActiveSurface && isMultiSelected && 'ring-1 ring-worktree-sidebar-ring/35',
         revealHighlight && [
           'scroll-to-current-workspace-reveal-highlight',
           revealHighlightTone === 'ai' && 'scroll-to-current-workspace-reveal-highlight--ai'

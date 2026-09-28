@@ -178,6 +178,8 @@ export function renderWorktreeSectionHeaderRow(args: {
   const showHeaderCollapseAffordance =
     row.count > 0 &&
     (isRepoHeader || isProjectGroupHeader || headerWorkspaceStatus !== null || isPinnedHeader)
+  // Why: a project group (or pinned/status lane) contains projects; a repo header is one.
+  const isGroupTierHeader = !isRepoHeader
   return (
     <div
       key={vItem.key}
@@ -332,7 +334,16 @@ export function renderWorktreeSectionHeaderRow(args: {
 
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-1.5">
-              <div className="min-w-0 truncate text-[13px] font-semibold leading-none">
+              {/* Why: tier reads by weight, not size — a group is a label over its
+                  projects, a project header names the repo, a card title is body text. */}
+              <div
+                className={cn(
+                  'min-w-0 truncate leading-none',
+                  isGroupTierHeader
+                    ? 'text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground'
+                    : 'text-[13px] font-semibold'
+                )}
+              >
                 {row.label}
               </div>
               {row.repo && !row.repo.connectionId && <ArcaSyncBadge repo={row.repo} />}

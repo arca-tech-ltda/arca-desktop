@@ -22,6 +22,7 @@ let settings: Partial<GlobalSettings> | null = null
 let projectGroups: unknown[] = []
 let workspaceDeleteModifierPressed = false
 let gitConflictOperationByWorktree: Record<string, GitConflictOperation> = {}
+let worktreesByRepo: Record<string, Partial<Worktree>[]> = {}
 let WorktreeCard: typeof WorktreeCardComponent
 
 vi.mock('@/store', () => ({
@@ -43,7 +44,8 @@ vi.mock('@/store', () => ({
       ptyIdsByTabId,
       tabsByWorktree,
       updateWorktreeMeta,
-      worktreeCardProperties
+      worktreeCardProperties,
+      worktreesByRepo
     })
 }))
 
@@ -146,6 +148,7 @@ describe('WorktreeCard quick actions', () => {
     projectGroups = []
     workspaceDeleteModifierPressed = false
     gitConflictOperationByWorktree = {}
+    worktreesByRepo = {}
   })
 
   it('marks the unread toggle as a workspace-board-preserving action', () => {
@@ -301,12 +304,12 @@ describe('WorktreeCard quick actions', () => {
     expect(markup).not.toContain('rename pending')
   })
 
-  it('renders the migrated branch metadata row when branch is enabled', () => {
+  it('renders the branch metadata row when the branch differs from the title', () => {
     worktreeCardProperties = ['branch']
 
     const markup = renderToStaticMarkup(
       <WorktreeCard
-        worktree={makeWorktree({ displayName: 'quick-action', branch: 'quick-action' })}
+        worktree={makeWorktree({ displayName: 'Custom title', branch: 'quick-action' })}
         repo={makeRepo()}
         isActive={false}
         hideRepoBadge
@@ -378,8 +381,41 @@ describe('WorktreeCard quick actions', () => {
     expect(markup).not.toContain('text-[11px] text-muted-foreground truncate leading-none')
   })
 
-  it('uses the left status lane and primary badge when compact cards are disabled', () => {
+  it('omits the branch metadata row when it would repeat the card title', () => {
+    worktreeCardProperties = ['branch']
+
+    const markup = renderToStaticMarkup(
+      <WorktreeCard
+        worktree={makeWorktree({ displayName: 'quick-action', branch: 'quick-action' })}
+        repo={makeRepo()}
+        isActive={false}
+        hideRepoBadge
+      />
+    )
+
+    expect(markup.match(/quick-action/g)).toHaveLength(1)
+    expect(markup).not.toContain('data-worktree-card-meta-row=""')
+  })
+
+  it('omits the branch metadata row when it repeats the title in compact mode', () => {
+    worktreeCardProperties = ['branch']
+    settings = { compactWorktreeCards: true }
+
+    const markup = renderToStaticMarkup(
+      <WorktreeCard
+        worktree={makeWorktree({ displayName: 'quick-action', branch: 'quick-action' })}
+        repo={makeRepo()}
+        isActive={false}
+        hideRepoBadge
+      />
+    )
+
+    expect(markup.match(/quick-action/g)).toHaveLength(1)
+  })
+
+  it('uses the left status lane and quiet primary caption when compact cards are disabled', () => {
     worktreeCardProperties = ['status']
+    worktreesByRepo = { 'repo-1': [{ id: 'a' }, { id: 'b' }] }
 
     const markup = renderToStaticMarkup(
       <WorktreeCard
@@ -394,13 +430,38 @@ describe('WorktreeCard quick actions', () => {
       />
     )
 
-    expect(markup).toContain('primary')
+    expect(markup).toContain('>primary</span>')
+    // Why: the caption replaced an outlined Badge that competed with the workspace name.
+    expect(markup).not.toContain('border-foreground/20')
     expect(markup).not.toContain('aria-label="Primary worktree"')
-    expect(markup).toContain('data-worktree-card-meta-row=""')
+    // Why: branch equals the title here, so nothing is left to fill a metadata row.
+    expect(markup).not.toContain('data-worktree-card-meta-row=""')
+  })
+
+  it('omits the primary marker when the project has a single worktree', () => {
+    worktreeCardProperties = ['status']
+    worktreesByRepo = { 'repo-1': [{ id: 'a' }] }
+
+    const markup = renderToStaticMarkup(
+      <WorktreeCard
+        worktree={makeWorktree({
+          displayName: 'main',
+          branch: 'main',
+          isMainWorktree: true
+        })}
+        repo={makeRepo()}
+        isActive={false}
+        hideRepoBadge
+      />
+    )
+
+    expect(markup).not.toContain('primary')
+    expect(markup).not.toContain('aria-label="Primary worktree"')
   })
 
   it('keeps unread in the status lane and moves primary into the title row when compact cards are enabled', () => {
     worktreeCardProperties = ['status']
+    worktreesByRepo = { 'repo-1': [{ id: 'a' }, { id: 'b' }] }
     settings = { compactWorktreeCards: true }
 
     const markup = renderToStaticMarkup(
