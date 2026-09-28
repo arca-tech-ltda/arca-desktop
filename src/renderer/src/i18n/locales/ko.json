@@ -585,17 +585,6 @@
           }
         }
       },
-      "orchestration": {
-        "usage": {
-          "examples": {
-            "f91fe27f2a": "큰 변경 사항을 더 작은 PR로 분할",
-            "9e37a5b1b3": "독립적인 작업을 병렬로 실행",
-            "bddc4c09b8": "단계별 워크플로 실행",
-            "ab0e9803b7": "다른 작업 트리에 넘겨주기",
-            "5e0d489fe1": "활성 작업 전달"
-          }
-        }
-      },
       "pr": {
         "comment": {
           "audience": {
@@ -905,10 +894,6 @@
         "5f32ac08f3": "핵심 ARCA 워크플로에 대한 온보딩 체크리스트를 완료하세요.",
         "8ac3de82f5": "온디바이스 모델을 사용한 로컬 음성-텍스트 받아쓰기.",
         "6a50cdcd7c": "음성",
-        "0059bd17f3": "agents가 컴퓨터의 모든 앱을 제어할 수 있도록 하세요.",
-        "b35e92364b": "컴퓨터 사용",
-        "cd50cec5d7": "ARCA를 통해 여러 코딩 agents를 조정합니다.",
-        "58a868e8e4": "오케스트레이션",
         "7c79d3b7bf": "선택 사항",
         "b1c2f8b0ac": "Claude, Codex, Gemini, OpenCode Go, MiniMax, Grok의 선택적 계정 전환 및 사용량 설정.",
         "f70ac54d38": "AI 제공자 계정",
@@ -5885,11 +5870,6 @@
           "b4e9d3f2a1c5": "{{value1}}에서 {{value0}}개의 쿠키를 {{value2}}(으)로 가져왔습니다.",
           "c5a273a809": "{{value0}}에서"
         },
-        "BrowserUseComputerUseNotice": {
-          "15b5e680ba": "컴퓨터 사용 열기",
-          "79209b37b9": "쿠키 가져오기가 적합하지 않은 경우 컴퓨터 사용은 로컬 앱을 제어할 수 있으며 해당되는 경우 기존 로그인 브라우저 세션을 사용할 수 있습니다. Computer Use 스킬을 설치하십시오. macOS에도 개인정보 보호 권한이 필요합니다.",
-          "333984cf90": "기존 브라우저 세션 사용"
-        },
         "BrowserUseEnableSwitch": {
           "aea3f45349": "Agent 브라우저 사용 활성화"
         },
@@ -6035,24 +6015,10 @@
           "25350d670f": "custom"
         },
         "ComputerUsePane": {
-          "1735461723": "agents가 로컬 데스크톱 앱을 검사하고 작동할 수 있습니다.",
-          "93255aaf18": "Computer Use 스킬",
-          "45f8e22c2e": "열기",
-          "d95d1cfab8": "새로고침",
-          "0c29da5805": "준비됨",
-          "3383ea1aab": "컴퓨터 사용 권한을 재설정할 수 없습니다.",
-          "f189f448a3": "컴퓨터 사용 액세스 재설정",
-          "5c45349665": "컴퓨터 사용 권한을 열 수 없습니다.",
-          "7801ac08ec": "컴퓨터 사용 권한은 macOS에서만 필요합니다.",
-          "740766c291": "컴퓨터 사용 설정이 이미 완료되었습니다.",
-          "697005758f": "macOS 개인정보 보호 및 보안 오픈",
-          "2168fa5ab0": "컴퓨터 사용 권한을 로드할 수 없습니다.",
           "0c9a33f468": "agents가 시각적 상태를 검사할 수 있도록 앱 창을 캡처합니다.",
           "07bbe4c4cb": "스크린샷",
           "4d03dec2d0": "앱 인터페이스 트리를 읽고 요청된 작업을 수행합니다.",
           "6b5a2cd3a5": "접근성",
-          "6b17602073": "액세스 재설정",
-          "506f2acf7a": "액세스 재설정 중...",
           "4b65070096": "darwin"
         },
         "DeveloperPermissionsPane": {
@@ -6628,33 +6594,9 @@
           "3743ed080c": "명령 설정",
           "f79084947b": "새로운 앱"
         },
-        "OrchestrationPane": {
-          "52e0634e2c": "핸드오프, 작업 트리 핸드오버, 순차 또는 병렬 하위 agents에 대한 오케스트레이션을 사용하도록 코디네이터 agents에 요청하세요.",
-          "ae79504732": "사용방법",
-          "7bc082f4de": "설치 명령 복사",
-          "832f1f3ee6": "자신의 terminal을 선호하시나요?",
-          "9bedd2a6e5": "agents가 ARCA를 통해 컨텍스트를 넘기고 작업을 조정할 수 있습니다.",
-          "07641b9768": "오케스트레이션 스킬",
-          "2aacdb0517": "핸드오프, 작업 트리 핸드오버, 하위 agents 작업 전반에 걸쳐 코딩 agents를 조정합니다.",
-          "191ac34567": "Agent 오케스트레이션"
-        },
         "OrchestrationSetupCard": {
           "e7d2a5146c": "agents가 ARCA를 통해 컨텍스트를 넘기고 작업을 조정할 수 있습니다.",
           "2777ff0fdc": "오케스트레이션 스킬"
-        },
-        "OrchestrationSkillAgentCoverage": {
-          "6dec5ce2d2": "Agent 적용 범위",
-          "ffe13e36fb": "누락",
-          "1e8f8d8fae": "준비됨"
-        },
-        "OrchestrationSkillPromptDialog": {
-          "f08d45293d": "명령 복사",
-          "35550f3b3b": "완료",
-          "1bdce1911e": "오케스트레이션 스킬 설치 명령 복사",
-          "b99f375eb2": "agents에 대한 오케스트레이션 스킬을 설치하려면 terminal에서 이 명령을 실행하세요.",
-          "2914abcfa2": "오케스트레이션 스킬 설치",
-          "d3dc559225": "설치 명령을 복사하지 못했습니다.",
-          "239bf9132b": "설치 명령을 복사했습니다."
         },
         "PrivacyDiagnosticBundleControls": {
           "dc8404a930": "진단 파일 만들기",
@@ -7167,10 +7109,6 @@
           "6d119427ef": "온보딩 체크리스트",
           "eb1176a14e": "온디바이스 모델을 사용한 로컬 음성-텍스트 받아쓰기.",
           "5063bb47a5": "음성",
-          "7118953f14": "agents가 컴퓨터의 모든 앱을 제어할 수 있도록 하세요.",
-          "c9841721cb": "컴퓨터 사용",
-          "475980f53d": "ARCA를 통해 여러 코딩 agents를 조정합니다.",
-          "00c3a7950d": "오케스트레이션",
           "21f09426ea": "선택 사항. ARCA는 기존 공급자 로그인과 함께 작동합니다. ARCA가 계정 간 전환을 돕도록 원하는 경우에만 계정을 추가하세요.",
           "ad6c529693": "AI 제공업체 계정",
           "ec1ba547f7": "AI agents를 관리하고, 기본값을 설정하고, 명령을 사용자 정의하세요.",
@@ -8228,20 +8166,6 @@
             }
           }
         },
-        "computer": {
-          "use": {
-            "search": {
-              "6e88da3508": "스킬",
-              "798be54d7e": "오토메이션",
-              "e27f8bafbf": "스크린샷",
-              "26c1290d83": "화면 녹화",
-              "82f01c2d2c": "접근성",
-              "fefb452f5b": "컴퓨터 사용",
-              "9210db582b": "요청 시 agents가 스크린샷을 검사하고 로컬 앱을 작동할 수 있도록 허용합니다.",
-              "442bec10fe": "컴퓨터 사용"
-            }
-          }
-        },
         "developer": {
           "permissions": {
             "search": {
@@ -8759,27 +8683,6 @@
             "51ae2183e1": "데스크탑",
             "0534c76311": "ARCA 데스크톱 알림용 마스터 스위치입니다.",
             "4a210b2f72": "알림 활성화"
-          }
-        },
-        "orchestration": {
-          "search": {
-            "f5d39af41e": "하위 agents",
-            "c766a01978": "핸드오프",
-            "08c65b12a2": "예시",
-            "f278fd04db": "codex",
-            "32c5098e7b": "claude",
-            "21c28ccdf7": "코디네이터",
-            "741dfc03fa": "워커",
-            "ca54c69806": "DAG",
-            "7ad948b714": "작업",
-            "eee028ae14": "디스패치",
-            "9a5ebdca31": "메시징",
-            "91fc8ab7e5": "코디네이션",
-            "13ba5c6cbd": "에이전트",
-            "d86705ba77": "멀티 agent",
-            "a7f76b4ca7": "오케스트레이션",
-            "e05ff36753": "메시징, 작업 DAG, 디스패치 및 결정 게이트를 통해 여러 코딩 agents를 조정합니다.",
-            "c34045764e": "Agent 오케스트레이션"
           }
         },
         "privacy": {
@@ -9544,17 +9447,6 @@
               }
             }
           }
-        },
-        "computerUseSummary": {
-          "permissionsRequired_one": "agents가 앱 창을 조작하려면 먼저 1 권한이 필요합니다.",
-          "permissionsRequired_other": "agents가 앱 창을 조작하려면 먼저 {{value0}} 권한이 필요합니다.",
-          "checkingTitle": "Computer Use 액세스 확인 중입니다.",
-          "checkingDescription": "ARCA가 Computer Use 도우미의 macOS 개인정보 보호 권한을 확인하고 있습니다.",
-          "unavailableTitle": "Computer Use를 사용할 수 없습니다.",
-          "unavailableDescription": "{{value0}} 때문에 Computer Use 권한을 사용할 수 없습니다.",
-          "readyTitle": "Computer Use를 사용할 준비가 되었습니다.",
-          "readyDescription": "요청하면 Agents가 앱 창을 검사하고 조작할 수 있습니다.",
-          "permissionsTitle": "로컬 앱을 사용하려면 설정을 완료하세요."
         },
         "computerUseSkillRuntime": {
           "thisDevice": "이 기기"

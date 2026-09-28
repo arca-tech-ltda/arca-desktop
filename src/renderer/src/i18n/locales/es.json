@@ -582,17 +582,6 @@
           }
         }
       },
-      "orchestration": {
-        "usage": {
-          "examples": {
-            "f91fe27f2a": "Dividir un cambio grande en PRs más pequeños",
-            "9e37a5b1b3": "Ejecutar trabajo independiente en paralelo",
-            "bddc4c09b8": "Ejecutar un flujo de trabajo por fases",
-            "ab0e9803b7": "Entregar a otro worktree",
-            "5e0d489fe1": "Entregar una tarea activa"
-          }
-        }
-      },
       "pr": {
         "comment": {
           "audience": {
@@ -902,10 +891,6 @@
         "5f32ac08f3": "Completa la lista de configuración inicial para los flujos de trabajo principales de ARCA.",
         "8ac3de82f5": "Dictado local de voz a texto con modelos en el dispositivo.",
         "6a50cdcd7c": "Voz",
-        "0059bd17f3": "Permite que los agentes controlen cualquier app en tu computadora.",
-        "b35e92364b": "Computer Use",
-        "cd50cec5d7": "Coordina múltiples coding agents a través de ARCA.",
-        "58a868e8e4": "Orquestación",
         "7c79d3b7bf": "Opcional",
         "b1c2f8b0ac": "Configuración opcional de cuentas y uso para Claude, Codex, Gemini, OpenCode Go, MiniMax y Grok.",
         "f70ac54d38": "Cuentas de proveedores de IA",
@@ -5895,11 +5880,6 @@
           "b4e9d3f2a1c5": "Se importaron {{value0}} cookies de {{value1}} a {{value2}}.",
           "c5a273a809": "Desde {{value0}}"
         },
-        "BrowserUseComputerUseNotice": {
-          "15b5e680ba": "Abrir Computer Use",
-          "79209b37b9": "Si importar cookies no encaja, Computer Use puede controlar apps locales y usar sesiones de navegador existentes donde aplique. Instala el skill Computer Use; macOS también requiere permisos de privacidad.",
-          "333984cf90": "Usar una sesión de navegador existente"
-        },
         "BrowserUseEnableSwitch": {
           "aea3f45349": "Activar Agent Browser Use"
         },
@@ -6045,24 +6025,10 @@
           "25350d670f": "personalizado"
         },
         "ComputerUsePane": {
-          "1735461723": "Permite a los agents inspeccionar y operar apps de escritorio locales.",
-          "93255aaf18": "Skill Computer Use",
-          "45f8e22c2e": "Abrir",
-          "d95d1cfab8": "Actualizar",
-          "0c29da5805": "Listo",
-          "3383ea1aab": "No se pudieron restablecer los permisos de Computer Use",
-          "f189f448a3": "Restablecer acceso de Computer Use",
-          "5c45349665": "No se pudieron abrir los permisos de Computer Use",
-          "7801ac08ec": "Los permisos de Computer Use solo se requieren en macOS",
-          "740766c291": "La configuración de Computer Use ya está completa",
-          "697005758f": "Se abrió Privacidad y seguridad de macOS",
-          "2168fa5ab0": "No se pudieron cargar los permisos de Computer Use",
           "0c9a33f468": "Captura ventanas de apps para que los agents puedan inspeccionar el estado visual.",
           "07bbe4c4cb": "Capturas de pantalla",
           "4d03dec2d0": "Lee árboles de interfaz de apps y realiza las acciones solicitadas.",
           "6b5a2cd3a5": "Accesibilidad",
-          "6b17602073": "Restablecer acceso",
-          "506f2acf7a": "Restableciendo acceso...",
           "4b65070096": "darwin"
         },
         "DeveloperPermissionsPane": {
@@ -6638,33 +6604,9 @@
           "3743ed080c": "Establecer comando",
           "f79084947b": "Nueva aplicación"
         },
-        "OrchestrationPane": {
-          "52e0634e2c": "Pídele a un agente coordinador que use la orquestación para handoffs, handoffs de worktree y agentes secundarios secuenciales o paralelos.",
-          "ae79504732": "Cómo usarlo",
-          "7bc082f4de": "Copiar comando de instalación",
-          "832f1f3ee6": "¿Prefieres tu propia terminal?",
-          "9bedd2a6e5": "Permite a los agentes transferir contexto y coordinar el trabajo a través de ARCA.",
-          "07641b9768": "Skill de orquestación",
-          "2aacdb0517": "Coordina agentes de programación en handoffs, handoffs de worktree y trabajo de agentes secundarios.",
-          "191ac34567": "Orquestación de agentes"
-        },
         "OrchestrationSetupCard": {
           "e7d2a5146c": "Permite a los agentes transferir contexto y coordinar el trabajo a través de ARCA.",
           "2777ff0fdc": "Skill de orquestación"
-        },
-        "OrchestrationSkillAgentCoverage": {
-          "6dec5ce2d2": "Cobertura de agentes",
-          "ffe13e36fb": "Falta",
-          "1e8f8d8fae": "Listo"
-        },
-        "OrchestrationSkillPromptDialog": {
-          "f08d45293d": "Copiar comando",
-          "35550f3b3b": "Hecho",
-          "1bdce1911e": "Copiar comando de instalación del skill de orquestación",
-          "b99f375eb2": "Ejecuta este comando en una terminal para instalar el skill de orquestación para tus agentes.",
-          "2914abcfa2": "Instalar skill de orquestación",
-          "d3dc559225": "No se pudo copiar el comando de instalación.",
-          "239bf9132b": "Comando de instalación copiado."
         },
         "PrivacyDiagnosticBundleControls": {
           "dc8404a930": "Crear archivo de diagnóstico",
@@ -7177,10 +7119,6 @@
           "6d119427ef": "Lista de verificación de incorporación",
           "eb1176a14e": "Dictado local de voz a texto con modelos en el dispositivo.",
           "5063bb47a5": "Voz",
-          "7118953f14": "Permite que los agentes controlen cualquier app en tu computadora.",
-          "c9841721cb": "Computer Use",
-          "475980f53d": "Coordina varios agentes de codificación a través de ARCA.",
-          "00c3a7950d": "Orquestación",
           "21f09426ea": "Opcional. ARCA funciona con tus inicios de sesión de proveedores existentes; agrega cuentas solo si quieres que ARCA te ayude a cambiar entre ellas.",
           "ad6c529693": "Cuentas de proveedores de IA",
           "ec1ba547f7": "Administra agentes de IA, define uno predeterminado y personaliza comandos.",
@@ -8238,20 +8176,6 @@
             }
           }
         },
-        "computer": {
-          "use": {
-            "search": {
-              "6e88da3508": "skill",
-              "798be54d7e": "automatización",
-              "e27f8bafbf": "captura de pantalla",
-              "26c1290d83": "grabación de pantalla",
-              "82f01c2d2c": "accesibilidad",
-              "fefb452f5b": "uso de la computadora",
-              "9210db582b": "Permite que los agentes inspeccionen capturas de pantalla y controlen aplicaciones locales cuando lo pidas.",
-              "442bec10fe": "Uso de la computadora"
-            }
-          }
-        },
         "developer": {
           "permissions": {
             "search": {
@@ -8769,27 +8693,6 @@
             "51ae2183e1": "escritorio",
             "0534c76311": "Interruptor maestro para notificaciones de escritorio de ARCA.",
             "4a210b2f72": "Habilitar notificaciones"
-          }
-        },
-        "orchestration": {
-          "search": {
-            "f5d39af41e": "agentes secundarios",
-            "c766a01978": "handoff",
-            "08c65b12a2": "ejemplos",
-            "f278fd04db": "codex",
-            "32c5098e7b": "claude",
-            "21c28ccdf7": "coordinador",
-            "741dfc03fa": "worker",
-            "ca54c69806": "DAG",
-            "7ad948b714": "tarea",
-            "eee028ae14": "dispatch",
-            "9a5ebdca31": "mensajería",
-            "91fc8ab7e5": "coordinación",
-            "13ba5c6cbd": "agentes",
-            "d86705ba77": "multi-agent",
-            "a7f76b4ca7": "orquestación",
-            "e05ff36753": "Coordina varios agentes de codificación mediante mensajería, DAG de tareas, dispatch y controles de decisión.",
-            "c34045764e": "Orquestación de agentes"
           }
         },
         "privacy": {
@@ -9539,17 +9442,6 @@
               }
             }
           }
-        },
-        "computerUseSummary": {
-          "permissionsRequired_one": "Se requiere 1 permiso antes de que los agentes puedan operar ventanas de apps.",
-          "permissionsRequired_other": "Se requieren {{value0}} permisos antes de que los agentes puedan operar ventanas de apps.",
-          "checkingTitle": "Comprobando el acceso a Computer Use.",
-          "checkingDescription": "ARCA está comprobando los permisos de privacidad de macOS para el helper de Computer Use.",
-          "unavailableTitle": "Computer Use no está disponible.",
-          "unavailableDescription": "Los permisos de Computer Use no están disponibles porque {{value0}}.",
-          "readyTitle": "Computer Use está listo.",
-          "readyDescription": "Los agentes pueden inspeccionar y operar ventanas de apps cuando se lo pidas.",
-          "permissionsTitle": "Completa la configuración para usar apps locales."
         },
         "computerUseSkillRuntime": {
           "thisDevice": "Este dispositivo"

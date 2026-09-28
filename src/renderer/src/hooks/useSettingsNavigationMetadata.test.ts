@@ -1,17 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { buildSettingsNavigationMetadata } from './useSettingsNavigationMetadata'
 import type { Repo } from '../../../shared/repo-types'
-import type * as ArcaProduct from '../../../shared/arca-product'
-
-const arcaProduct = vi.hoisted(() => ({ ARCA_ORCA_AGENT_SKILLS_HIDDEN: false }))
-vi.mock('../../../shared/arca-product', async (importOriginal) => ({
-  ...(await importOriginal<typeof ArcaProduct>()),
-  get ARCA_ORCA_AGENT_SKILLS_HIDDEN() {
-    return arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN
-  }
-}))
 
 const repo = {
   id: 'repo-1',
@@ -41,23 +32,17 @@ function ids(
 }
 
 describe('settings navigation metadata', () => {
-  beforeEach(() => {
-    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = false
-  })
-
-  it('drops the Orchestration pane when Orca agent skills are hidden', () => {
-    arcaProduct.ARCA_ORCA_AGENT_SKILLS_HIDDEN = true
+  it('omits the upstream Orchestration and Computer Use panes', () => {
     expect(ids()).not.toContain('orchestration')
+    expect(ids()).not.toContain('computer-use')
     expect(ids({ isWebClient: true })).not.toContain('orchestration')
     expect(ids({ isLinearConnected: true })).toContain('linear')
   })
 
   it('puts AI capability panes at the top on desktop', () => {
-    expect(ids().slice(0, 9)).toEqual([
+    expect(ids().slice(0, 7)).toEqual([
       'agents',
       'accounts',
-      'orchestration',
-      'computer-use',
       'voice',
       'orca-account',
       'setup-guide',
@@ -66,28 +51,12 @@ describe('settings navigation metadata', () => {
     ])
   })
 
-  it('owns nested worker depth under Orchestration on desktop', () => {
-    const sections = buildSettingsNavigationMetadata({
-      isMac: false,
-      isWindows: false,
-      isWebClient: false,
-      repos: [repo]
-    })
-    const agents = sections.find((section) => section.id === 'agents')
-    const orchestration = sections.find((section) => section.id === 'orchestration')
-
-    expect(agents?.searchEntries.map((entry) => entry.title)).not.toContain('Nested worker depth')
-    expect(orchestration?.searchEntries.map((entry) => entry.title)).toContain(
-      'Nested worker depth'
-    )
-  })
-
-  it('adds the Linear capability section right after Orchestration only when connected', () => {
+  it('adds the Linear capability section right after the accounts pane only when connected', () => {
     expect(ids()).not.toContain('linear')
 
     const connectedIds = ids({ isLinearConnected: true })
     expect(connectedIds).toContain('linear')
-    expect(connectedIds.indexOf('linear')).toBe(connectedIds.indexOf('orchestration') + 1)
+    expect(connectedIds.indexOf('linear')).toBe(connectedIds.indexOf('accounts') + 1)
 
     const linearSection = buildSettingsNavigationMetadata({
       isMac: false,
@@ -155,10 +124,9 @@ describe('settings navigation metadata', () => {
   })
 
   it('puts web-safe AI capability panes at the top while hiding desktop-only panes', () => {
-    expect(ids({ isWebClient: true }).slice(0, 6)).toEqual([
+    expect(ids({ isWebClient: true }).slice(0, 5)).toEqual([
       'agents',
       'accounts',
-      'orchestration',
       'setup-guide',
       'general',
       'integrations'
@@ -194,10 +162,6 @@ describe('settings navigation metadata', () => {
     )
     const agents = webSections.find((section) => section.id === 'agents')
     expect(agents?.searchEntries.map((entry) => entry.title)).not.toContain('Nested worker depth')
-    const orchestration = webSections.find((section) => section.id === 'orchestration')
-    expect(orchestration?.searchEntries.map((entry) => entry.title)).not.toContain(
-      'Nested worker depth'
-    )
   })
 
   it('keeps the Browser shortcut searchable for a capable web runtime', () => {
@@ -225,7 +189,6 @@ describe('settings navigation metadata', () => {
       repos: [repo]
     })
 
-    expect(sections.find((section) => section.id === 'computer-use')?.badge).toBeUndefined()
     expect(sections.find((section) => section.id === 'voice')?.badge).toBeUndefined()
   })
 

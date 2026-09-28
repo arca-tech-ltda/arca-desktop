@@ -2,14 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { applyDocumentTheme } from '@/lib/document-theme'
 import { useSettingsNavigationMetadata } from '@/hooks/useSettingsNavigationMetadata'
 import type { SettingsNavInstallStatus } from '@/lib/settings-navigation-types'
-import {
-  COMPUTER_USE_SKILL_NAME,
-  ORCHESTRATION_SKILL_NAME
-} from '@/lib/agent-feature-install-commands'
-import {
-  getAgentSkillNavInstallStatus,
-  getLinearAgentSkillNavInstallStatus
-} from '@/lib/agent-skill-nav-install-status'
+import { getLinearAgentSkillNavInstallStatus } from '@/lib/agent-skill-nav-install-status'
 import { getProjectHostSetupProjectionFromState } from '../../store/selectors'
 import { getSettingsSectionSearchEntries, rankSettingsSearchItems } from './settings-search'
 import { deriveNeededSectionIds } from './settings-load-performance'
@@ -42,30 +35,16 @@ export function useSettingsNavigationModel(
 
   const displayedGitUsername = model.repos[0]?.gitUsername ?? ''
   const baseNavSections = useSettingsNavigationMetadata()
-  const { installed: orchestrationSkillInstalled, loading: orchestrationSkillLoading } =
-    model.orchestrationSkill
   const {
     installed: linearSkillInstalled,
     loading: linearSkillLoading,
     skills: linearSkills
   } = model.linearSkill
-  const { installed: computerUseSkillInstalled, loading: computerUseSkillLoading } =
-    model.computerUseSkill
   const capabilityInstallStatusBySectionId = useMemo(() => {
     const applicableFreshnessInventory = model.skillFreshnessApplies
       ? model.skillFreshnessInventory
       : null
-    const next = new Map<string, SettingsNavInstallStatus>([
-      [
-        'orchestration',
-        getAgentSkillNavInstallStatus({
-          name: ORCHESTRATION_SKILL_NAME,
-          installed: orchestrationSkillInstalled,
-          loading: orchestrationSkillLoading,
-          inventory: applicableFreshnessInventory
-        })
-      ]
-    ])
+    const next = new Map<string, SettingsNavInstallStatus>()
     if (model.linearConnected) {
       next.set(
         'linear',
@@ -78,15 +57,6 @@ export function useSettingsNavigationModel(
       )
     }
     if (model.showDesktopOnlySettings) {
-      next.set(
-        'computer-use',
-        getAgentSkillNavInstallStatus({
-          name: COMPUTER_USE_SKILL_NAME,
-          installed: computerUseSkillInstalled,
-          loading: computerUseSkillLoading,
-          inventory: applicableFreshnessInventory
-        })
-      )
       if (model.settings) {
         next.set(
           'voice',
@@ -100,8 +70,6 @@ export function useSettingsNavigationModel(
     }
     return next
   }, [
-    computerUseSkillInstalled,
-    computerUseSkillLoading,
     linearSkillInstalled,
     linearSkillLoading,
     linearSkills,
@@ -111,9 +79,7 @@ export function useSettingsNavigationModel(
     model.showDesktopOnlySettings,
     model.skillFreshnessApplies,
     model.skillFreshnessInventory,
-    model.voiceModelStatesLoading,
-    orchestrationSkillInstalled,
-    orchestrationSkillLoading
+    model.voiceModelStatesLoading
   ])
   const navSections = useMemo(
     () =>

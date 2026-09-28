@@ -659,22 +659,6 @@
           }
         }
       },
-      "orchestration": {
-        "usage": {
-          "examples": {
-            "f91fe27f2a": "Scinder un changement volumineux en pull requests plus petites",
-            "9e37a5b1b3": "Exécuter des travaux indépendants en parallèle",
-            "bddc4c09b8": "Exécuter un workflow par phases",
-            "ab0e9803b7": "Transférer vers un autre worktree",
-            "5e0d489fe1": "Transférer une tâche active",
-            "handoffSummary": "Confier la responsabilité à un autre agent avec suffisamment de contexte pour continuer.",
-            "worktreeHandoffSummary": "Déplacer le travail vers un agent qui tourne déjà dans une autre branche.",
-            "childSequenceSummary": "Enchaîner des agents enfants les uns après les autres lorsque chaque phase dépend de la précédente.",
-            "childParallelSummary": "Répartir entre agents enfants des tâches d'investigation ou d'implémentation qui ne se chevauchent pas.",
-            "prSplitSummary": "Donner à chaque agent enfant son propre worktree pour que l'implémentation en parallèle reste relisible."
-          }
-        }
-      },
       "pr": {
         "comment": {
           "audience": {
@@ -999,10 +983,6 @@
         "5f32ac08f3": "Terminez la checklist d'intégration pour les workflows essentiels d'ARCA.",
         "8ac3de82f5": "Dictée vocale locale avec modèles embarqués sur l'appareil.",
         "6a50cdcd7c": "Voix",
-        "0059bd17f3": "Permettez aux agents de contrôler n'importe quelle app de votre ordinateur.",
-        "b35e92364b": "Computer Use",
-        "cd50cec5d7": "Coordonnez plusieurs agents de codage via ARCA.",
-        "58a868e8e4": "Orchestration",
         "7c79d3b7bf": "Facultatif",
         "b1c2f8b0ac": "Configuration facultative de changement de compte et d'utilisation pour Claude, Codex, Gemini, OpenCode Go, MiniMax et Grok.",
         "f70ac54d38": "Comptes de fournisseurs d'IA",
@@ -6610,11 +6590,6 @@
           "c5a273a809": "Depuis {{value0}}",
           "b5c0479e21": "User agent non modifié"
         },
-        "BrowserUseComputerUseNotice": {
-          "15b5e680ba": "Ouvrir Computer Use",
-          "79209b37b9": "Si l'import de cookies ne convient pas, Computer Use peut contrôler des apps locales et, le cas échéant, réutiliser des sessions de navigateur déjà connectées. Installez la skill Computer Use ; macOS exige aussi des autorisations de confidentialité.",
-          "333984cf90": "Utiliser une session de navigateur existante"
-        },
         "BrowserUseEnableSwitch": {
           "aea3f45349": "Activer Agent Browser Use"
         },
@@ -6760,28 +6735,11 @@
           "25350d670f": "custom"
         },
         "ComputerUsePane": {
-          "1735461723": "Permet aux agents d'inspecter et de piloter des applications de bureau locales.",
-          "93255aaf18": "Compétence Computer Use",
-          "45f8e22c2e": "Ouvert",
-          "d95d1cfab8": "Actualiser",
-          "0c29da5805": "Prêt",
-          "3383ea1aab": "Impossible de réinitialiser les autorisations Computer Use",
-          "f189f448a3": "Réinitialiser l'accès Computer Use",
-          "5c45349665": "Impossible d'ouvrir les autorisations Computer Use",
-          "7801ac08ec": "Les autorisations Computer Use ne sont requises que sur macOS",
-          "740766c291": "La configuration de Computer Use est déjà terminée",
-          "697005758f": "Panneau Confidentialité et sécurité de macOS ouvert",
-          "2168fa5ab0": "Impossible de charger les autorisations Computer Use",
           "0c9a33f468": "Capture les fenêtres des applications pour que les agents puissent inspecter leur état visuel.",
           "07bbe4c4cb": "Captures d'écran",
           "4d03dec2d0": "Lit les arborescences d'interface des applications et effectue les actions demandées.",
           "6b5a2cd3a5": "Accessibilité",
-          "6b17602073": "Réinitialiser l'accès",
-          "506f2acf7a": "Réinitialisation de l'accès...",
-          "4b65070096": "darwin",
-          "statusGranted": "Accordée",
-          "statusUnsupported": "macOS uniquement",
-          "statusNotEnabled": "Non activé"
+          "4b65070096": "darwin"
         },
         "DeveloperPermissionsPane": {
           "4c17304beb": "Actualiser",
@@ -7423,39 +7381,9 @@
           "3743ed080c": "Définir la commande",
           "f79084947b": "Nouvelle app"
         },
-        "OrchestrationPane": {
-          "52e0634e2c": "Demandez à un agent coordinateur d'utiliser l'orchestration pour les passations, les transferts de worktree et les agents enfants séquentiels ou parallèles.",
-          "ae79504732": "Comment l'utiliser",
-          "7bc082f4de": "Copier la commande d'installation",
-          "832f1f3ee6": "Vous préférez votre propre terminal ?",
-          "9bedd2a6e5": "Permet aux agents de transmettre le contexte et de coordonner le travail via ARCA.",
-          "07641b9768": "Skill d'orchestration",
-          "2aacdb0517": "Coordonnez les agents de codage entre passations, transferts de worktree et travaux d'agents enfants.",
-          "191ac34567": "Orchestration d'agents"
-        },
         "OrchestrationSetupCard": {
           "e7d2a5146c": "Permet aux agents de transmettre le contexte et de coordonner le travail via ARCA.",
           "2777ff0fdc": "Skill d'orchestration"
-        },
-        "OrchestrationSkillAgentCoverage": {
-          "6dec5ce2d2": "Couverture des agents",
-          "ffe13e36fb": "Manquant",
-          "1e8f8d8fae": "Prêt",
-          "checking": "Vérification des agents installés et des chemins des skills…",
-          "noAgents": "Aucune CLI d'agent détectée sur le PATH. Installez des agents dans Paramètres → Agents, puis relancez la vérification.",
-          "fullCoverage_one": "L'unique agent détecté possède le skill.",
-          "fullCoverage_other": "Tous les {{value0}} agents détectés possèdent le skill.",
-          "noCoverage": "Installez le skill ci-dessus, puis relancez la vérification.",
-          "partialCoverage": "{{value0}} des {{value1}} agents détectés possèdent le skill."
-        },
-        "OrchestrationSkillPromptDialog": {
-          "f08d45293d": "Copier la commande",
-          "35550f3b3b": "Terminé",
-          "1bdce1911e": "Copier la commande d'installation du skill d'orchestration",
-          "b99f375eb2": "Exécutez cette commande dans un terminal pour installer le skill d'orchestration pour vos agents.",
-          "2914abcfa2": "Installer le skill d'orchestration",
-          "d3dc559225": "Échec de la copie de la commande d'installation.",
-          "239bf9132b": "Commande d'installation copiée."
         },
         "PrivacyDiagnosticBundleControls": {
           "dc8404a930": "Créer le fichier de diagnostic",
@@ -7982,10 +7910,6 @@
           "6d119427ef": "Checklist d'intégration",
           "eb1176a14e": "Dictée vocale locale avec modèles embarqués sur l'appareil.",
           "5063bb47a5": "Voix",
-          "7118953f14": "Permettez aux agents de contrôler n'importe quelle app de votre ordinateur.",
-          "c9841721cb": "Computer Use",
-          "475980f53d": "Coordonnez plusieurs agents de codage via ARCA.",
-          "00c3a7950d": "Orchestration",
           "21f09426ea": "Facultatif. ARCA fonctionne avec vos connexions de fournisseurs existantes ; ajoutez des comptes uniquement si vous voulez qu'ARCA aide à basculer entre eux.",
           "ad6c529693": "Comptes de fournisseurs d'IA",
           "ec1ba547f7": "Gérez les agents IA, définissez-en un par défaut et personnalisez les commandes.",
@@ -9055,20 +8979,6 @@
             }
           }
         },
-        "computer": {
-          "use": {
-            "search": {
-              "6e88da3508": "skill",
-              "798be54d7e": "automatisation",
-              "e27f8bafbf": "capture d'écran",
-              "26c1290d83": "enregistrement d'écran",
-              "82f01c2d2c": "accessibilité",
-              "fefb452f5b": "computer use",
-              "9210db582b": "Autoriser les agents à analyser des captures d'écran et à piloter des applications locales à votre demande.",
-              "442bec10fe": "Computer Use"
-            }
-          }
-        },
         "developer": {
           "permissions": {
             "search": {
@@ -9589,27 +9499,6 @@
             "51ae2183e1": "bureau",
             "0534c76311": "Interrupteur principal des notifications de bureau d'ARCA.",
             "4a210b2f72": "Activer les notifications"
-          }
-        },
-        "orchestration": {
-          "search": {
-            "f5d39af41e": "agents enfants",
-            "c766a01978": "handoff",
-            "08c65b12a2": "exemples",
-            "f278fd04db": "codex",
-            "32c5098e7b": "claude",
-            "21c28ccdf7": "coordinateur",
-            "741dfc03fa": "worker",
-            "ca54c69806": "DAG",
-            "7ad948b714": "tâche",
-            "eee028ae14": "dispatch",
-            "9a5ebdca31": "messagerie",
-            "91fc8ab7e5": "coordination",
-            "13ba5c6cbd": "agents",
-            "d86705ba77": "multi-agents",
-            "a7f76b4ca7": "orchestration",
-            "e05ff36753": "Coordonnez plusieurs agents de codage via messagerie, DAG de tâches, dispatch et points de décision.",
-            "c34045764e": "Orchestration d'agents"
           }
         },
         "privacy": {
@@ -10326,17 +10215,6 @@
         },
         "computerUseSkillRuntime": {
           "thisDevice": "Cet appareil"
-        },
-        "computerUseSummary": {
-          "checkingTitle": "Vérification de l'accès Computer Use.",
-          "checkingDescription": "ARCA vérifie les autorisations de confidentialité macOS pour l'assistant Computer Use.",
-          "unavailableTitle": "Computer Use est indisponible.",
-          "unavailableDescription": "Les autorisations Computer Use sont indisponibles car {{value0}}.",
-          "readyTitle": "Computer Use est prêt.",
-          "readyDescription": "Les agents peuvent inspecter et manipuler des fenêtres d'applications à votre demande.",
-          "permissionsTitle": "Terminez la configuration pour utiliser les applications locales.",
-          "permissionsRequired_one": "1 autorisation requise avant que les agents puissent manipuler des fenêtres d'applications.",
-          "permissionsRequired_other": "{{value0}} autorisations requises avant que les agents puissent manipuler des fenêtres d'applications."
         },
         "providerAccountScope": {
           "remoteServer": "Serveur distant : {{value0}}",

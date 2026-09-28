@@ -8,20 +8,12 @@ const componentsRoot = path.join(repoRoot, 'src/renderer/src/components')
 
 const updateCapableCallers = new Map<string, readonly string[]>([
   [
-    'src/renderer/src/components/settings/OrchestrationPane.tsx',
-    ['ORCHESTRATION_SKILL_UPDATE_COMMAND', 'installedCommand={orchestrationUpdateCommand}']
-  ],
-  [
     'src/renderer/src/components/settings/OrchestrationSetupCard.tsx',
     ['ORCHESTRATION_SKILL_UPDATE_COMMAND', 'installedCommand={updateCommand}']
   ],
   [
     'src/renderer/src/components/floating-terminal/FloatingTerminalOrchestrationDialog.tsx',
     ['ORCHESTRATION_SKILL_UPDATE_COMMAND', 'installedCommand={updateCommand}']
-  ],
-  [
-    'src/renderer/src/components/settings/ComputerUseSkillSetupPanel.tsx',
-    ['COMPUTER_USE_SKILL_UPDATE_COMMAND', 'installedCommand={updateCommand}']
   ],
   [
     // Shared hook owns update-target resolution for Linear settings + Task Sources.
@@ -154,14 +146,6 @@ describe('AgentSkillSetupPanel installed-command call sites', () => {
         expect(source, `${relativePath} should include ${snippet}`).toContain(snippet)
       }
     }
-  })
-
-  it('keeps orchestration installed updates on the primary panel only', () => {
-    const source = readRepoFile('src/renderer/src/components/settings/OrchestrationPane.tsx')
-
-    expect(source).toContain('installedCommand={orchestrationUpdateCommand}')
-    expect(source).not.toContain('Copy update command')
-    expect(source).not.toContain('copyUpdateCommand')
   })
 
   it('routes the combined feature-tip install through runtime command setup', () => {
