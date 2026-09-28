@@ -17,6 +17,8 @@ export type MegamindChatChannel = {
   handle: string
   name: string
   lastMessageAt: string
+  /** Preview of the newest message, empty on a Mainframe that does not send one. */
+  lastMessageBody: string
   unread: number
 }
 
@@ -60,6 +62,13 @@ export type MegamindMemberSession = {
   note: string
   lastSeen: string
   status: MegamindSessionStatus
+}
+
+/** Short name of a session — the project and what runs it. The full label is the hover title. */
+export function megamindSessionName(
+  session: Pick<MegamindMemberSession, 'project' | 'harness' | 'label'>
+): string {
+  return [session.project, session.harness].filter(Boolean).join(' · ') || session.label
 }
 
 export type MegamindMember = {

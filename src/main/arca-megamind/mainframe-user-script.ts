@@ -20,8 +20,10 @@ const PROJECTIONS: Record<MainframeUserProjection, string> = {
     'Array.isArray(data.woken) ? data.woken.map(item => typeof item === "string" ? {handle: item, woken: true} : {handle: typeof item?.handle === "string" ? item.handle : "", woken: item?.woken !== false && item?.awake !== false}) : []',
   approvals:
     'Array.isArray(data.items) ? data.items.map(item => ({id: item.id, summary: item.summary, relevant: item.owner === uid})) : []',
+  // The preview is optional: a Mainframe that sends no last message leaves the row subtitle to
+  // the panel, which falls back to what it knows about the person.
   chatChannels:
-    'Array.isArray(data.items) ? data.items.map(item => ({channel: item.channel, kind: item.kind, handle: item.handle, name: item.name, lastMessageAt: item.last_message_at})) : []',
+    'Array.isArray(data.items) ? data.items.map(item => ({channel: item.channel, kind: item.kind, handle: item.handle, name: item.name, lastMessageAt: item.last_message_at, lastMessageBody: typeof item.last_message_body === "string" ? item.last_message_body : (item.last_message && typeof item.last_message.body === "string" ? item.last_message.body : "")})) : []',
   chatMessages:
     'Array.isArray(data.items) ? data.items.map(item => ({id: item.id, channel: item.channel, authorKind: item.author_kind, authorName: item.author_name, authorLabel: item.author_label, body: item.body, mentions: Array.isArray(item.mentions) ? item.mentions : [], createdAt: item.created, mine: item.author === uid})) : []'
 }

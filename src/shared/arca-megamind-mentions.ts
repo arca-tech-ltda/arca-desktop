@@ -4,6 +4,12 @@
  * composer, the highlighter and the notification filter agree on what counts as a mention.
  */
 
+import {
+  megamindSessionName,
+  type MegamindMemberSession,
+  type MegamindSessionStatus
+} from './arca-megamind-chat'
+
 const HANDLE = '[a-z][a-z0-9-]{1,31}'
 /** A mention starts at a word boundary: `me@handle` and `a-@handle` are not mentions. */
 const MENTION_IN_BODY = new RegExp(`(^|[^\\p{L}\\p{N}_@-])@(${HANDLE})`, 'giu')
@@ -112,25 +118,60 @@ export function applyMentionCompletion(
   }
 }
 
-export type MentionCandidate = { handle: string; name: string; agent: boolean }
+/** The session a candidate points at, when the suggestion came from someone's session list. */
+export type MentionCandidateSession = {
+  id: string
+  name: string
+  status: MegamindSessionStatus
+}
+
+export type MentionCandidate = {
+  /** Text written into the body. */
+  handle: string
+  name: string
+  agent: boolean
+  session?: MentionCandidateSession
+}
+
+type MentionMember = {
+  handle: string
+  name: string
+  sessions?: readonly MegamindMemberSession[]
+}
 
 /**
- * Person and agent mentions for each member, filtered by the typed prefix. The person comes first
- * so a plain `@handle` stays the cheapest completion.
+ * Person, agent and session mentions for each member, filtered by the typed prefix. The person
+ * comes first so a plain `@handle` stays the cheapest completion. A session suggestion writes the
+ * owner's agent handle: addressing one session by name is a server capability the Mainframe does
+ * not have yet, and `@handle-pi` is what wakes the agent behind it today.
  */
 export function mentionCandidates(
-  members: readonly { handle: string; name: string }[],
+  members: readonly MentionMember[],
   query: string,
   limit = 8
 ): MentionCandidate[] {
   const needle = query.toLowerCase()
   const candidates: MentionCandidate[] = []
   for (const member of members) {
-    for (const agent of [false, true]) {
-      const handle = agent ? `${member.handle}${AGENT_MENTION_SUFFIX}` : member.handle
-      if (handle.startsWith(needle)) {
-        candidates.push({ handle, name: member.name, agent })
-      }
+    const agentHandle = `${member.handle}${AGENT_MENTION_SUFFIX}`
+    if (member.handle.startsWith(needle)) {
+      candidates.push({ handle: member.handle, name: member.name, agent: false })
+    }
+    if (!agentHandle.startsWith(needle)) {
+      continue
+    }
+    candidates.push({ handle: agentHandle, name: member.name, agent: true })
+    for (const session of member.sessions ?? []) {
+      candidates.push({
+        handle: agentHandle,
+        name: member.name,
+        agent: true,
+        session: {
+          id: session.sessionId,
+          name: megamindSessionName(session),
+          status: session.status
+        }
+      })
     }
   }
   return candidates.slice(0, limit)

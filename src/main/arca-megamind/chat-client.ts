@@ -56,6 +56,8 @@ function toChannel(value: unknown): MegamindChatChannel | null {
     handle: dm ? handle : '',
     name: typeof value.name === 'string' && value.name ? value.name : handle || 'ARCA',
     lastMessageAt: typeof value.lastMessageAt === 'string' ? value.lastMessageAt : '',
+    lastMessageBody:
+      typeof value.lastMessageBody === 'string' ? value.lastMessageBody.slice(0, 200) : '',
     unread: 0
   }
 }

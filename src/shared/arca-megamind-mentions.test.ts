@@ -62,4 +62,32 @@ describe('composer autocomplete', () => {
     ])
     expect(mentionCandidates(members, 'zzz')).toEqual([])
   })
+  it('offers each session under its owner, addressed to the agent that runs it', () => {
+    const members = [
+      {
+        handle: 'enzo',
+        name: 'Enzo',
+        sessions: [
+          {
+            sessionId: 'b1c2',
+            label: 'pi wgs-sistema@MEAN',
+            project: 'wgs-sistema',
+            harness: 'pi',
+            note: '',
+            lastSeen: '2026-01-01 12:00:00Z',
+            status: 'active' as const
+          }
+        ]
+      }
+    ]
+    expect(mentionCandidates(members, 'enzo-')).toEqual([
+      { handle: 'enzo-pi', name: 'Enzo', agent: true },
+      {
+        handle: 'enzo-pi',
+        name: 'Enzo',
+        agent: true,
+        session: { id: 'b1c2', name: 'wgs-sistema \u00b7 pi', status: 'active' }
+      }
+    ])
+  })
 })
