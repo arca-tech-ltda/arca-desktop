@@ -16,16 +16,13 @@ const mocks = vi.hoisted(() => ({
   openTaskPage: vi.fn(),
   openAutomationsPage: vi.fn(),
   openActivityPage: vi.fn(),
-  openMobilePage: vi.fn(),
   openArtifactsPage: vi.fn(),
   openModal: vi.fn(),
   updateSettings: vi.fn(),
   refreshPreflightStatus: vi.fn(),
   checkLinearConnection: vi.fn(),
-  hasPairedMobileDevice: false,
   agentBucketCounts: { attention: 0, working: 0, done: 0, idle: 0 },
   getAgentBucketCounts: vi.fn(),
-  dismissMobileOnboardingBadge: vi.fn(),
   setSetupGuideSidebarDismissed: vi.fn()
 }))
 
@@ -53,14 +50,6 @@ vi.mock('@/components/dashboard/useAgentBucketCounts', () => ({
 
 vi.mock('@/hooks/useShortcutLabel', () => ({
   useShortcutKeyComboDetails: () => [{ keys: ['⌘', 'J'], doubleTap: false }]
-}))
-
-vi.mock('./mobile-sidebar-onboarding-badge', () => ({
-  useMobileSidebarOnboardingBadge: () => ({
-    visible: false,
-    hasPairedDevice: mocks.hasPairedMobileDevice,
-    dismiss: mocks.dismissMobileOnboardingBadge
-  })
 }))
 
 vi.mock('../setup-guide/use-setup-guide-progress', () => ({
@@ -91,7 +80,6 @@ import SidebarNav, {
   getSetupGuideSidebarEntryReady,
   shouldShowAutomationsButton,
   shouldShowArtifactsButton,
-  shouldShowMobileButton,
   shouldShowSetupGuideEntry
 } from './SidebarNav'
 
@@ -131,7 +119,6 @@ function setSidebarState({
     openTaskPage: mocks.openTaskPage,
     openAutomationsPage: mocks.openAutomationsPage,
     openActivityPage: mocks.openActivityPage,
-    openMobilePage: mocks.openMobilePage,
     openArtifactsPage: mocks.openArtifactsPage,
     openModal: mocks.openModal,
     updateSettings: mocks.updateSettings,
@@ -213,7 +200,6 @@ describe('SidebarNav', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     await i18n.changeLanguage('en')
-    mocks.hasPairedMobileDevice = false
     mocks.agentBucketCounts = { attention: 0, working: 0, done: 0, idle: 0 }
     setSidebarState()
   })
@@ -265,12 +251,6 @@ describe('SidebarNav', () => {
     expect(idle?.querySelector('svg')).toBeNull()
   })
 
-  it('hides Mobile for both old and explicitly enabled settings', () => {
-    expect(shouldShowMobileButton(null)).toBe(false)
-    expect(shouldShowMobileButton({})).toBe(false)
-    expect(shouldShowMobileButton({ showMobileButton: true })).toBe(false)
-  })
-
   it('hides the Artifacts entry by default for older settings', () => {
     expect(shouldShowArtifactsButton(null)).toBe(false)
     expect(shouldShowArtifactsButton({})).toBe(false)
@@ -302,22 +282,16 @@ describe('SidebarNav', () => {
     expect(mocks.updateSettings).toHaveBeenCalledWith({ showArtifactsButton: false })
   })
 
-  it('hides the Mobile entry when the sidebar setting is off', () => {
-    expect(shouldShowMobileButton({ showMobileButton: false })).toBe(false)
-  })
-
   it('updates localized labels when the language changes after mount', async () => {
     const container = await renderSidebarNav()
 
     expect(queryButtonByText(container, 'Automations')).not.toBeNull()
-    expect(queryButtonByText(container, 'ARCA Mobile')).toBeNull()
 
     await act(async () => {
       await i18n.changeLanguage('zh')
     })
 
     expect(queryButtonByText(container, '自动化')).not.toBeNull()
-    expect(queryButtonByText(container, 'ARCA 手机端')).toBeNull()
   })
 
   it('updates labels when pseudo-localization is enabled after mount', async () => {
@@ -328,14 +302,6 @@ describe('SidebarNav', () => {
     })
 
     expect(queryButtonByText(container, '[Automations]')).not.toBeNull()
-    expect(queryButtonByText(container, '[ARCA Mobile]')).toBeNull()
-  })
-
-  it('keeps Mobile hidden even with a paired device', async () => {
-    mocks.hasPairedMobileDevice = true
-    const container = await renderSidebarNav()
-    expect(queryButtonByText(container, 'ARCA Mobile')).toBeNull()
-    expect(mocks.openMobilePage).not.toHaveBeenCalled()
   })
 
   it('shows the Automations entry by default for older settings', () => {

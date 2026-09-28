@@ -60,8 +60,8 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
     }) ?? (() => {})
   )
 
-  // Why: a phone stuck in a silent 4001 auth loop (lost device registry) reads as
-  // "phone won't connect" with no clue on either end; main throttles to once per session.
+  // Why: a client stuck in a silent 4001 auth loop (lost device registry) reads as
+  // "it won't connect" with no clue on either end; main throttles to once per session.
   unsubs.push(
     subscribeToUnpairedDeviceAuthNotification(window.api.mobile, () => {
       toast.warning(
@@ -72,16 +72,16 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
         {
           id: 'unpaired-device-auth-failure',
           description: translate(
-            'auto.hooks.useIpcEvents.11992d0337',
-            'If this was your phone or another ARCA client, re-pair it from Settings → Mobile.'
+            'auto.hooks.useIpcEvents.unpairedDeviceRepairHint',
+            'If this was an ARCA client, re-pair it from Settings → ARCA Servers.'
           ),
           // Why: main emits this recovery path once per session, so it must remain visible until acted on or dismissed.
           duration: Infinity,
           action: {
-            label: translate('auto.hooks.useIpcEvents.6573cfe955', 'Open Mobile Settings'),
+            label: translate('auto.hooks.useIpcEvents.openServerSettings', 'Open Server Settings'),
             onClick: () => {
               const store = useAppStore.getState()
-              store.openSettingsTarget({ pane: 'mobile', repoId: null })
+              store.openSettingsTarget({ pane: 'servers', repoId: null })
               store.openSettingsPage()
             }
           }

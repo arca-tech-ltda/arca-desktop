@@ -1749,13 +1749,6 @@
             }
           }
         },
-        "mobile": {
-          "settings": {
-            "search": {
-              "b730ff7049": "experimental"
-            }
-          }
-        },
         "providerAccountScope": {
           "localMac": "Local Mac"
         },
@@ -2787,6 +2780,9 @@
       "description": "This is where all your agents will show up at a glance. The board is coming soon.",
       "title": "Agent dashboard"
     }
+  },
+  "managedAccounts": {
+    "projectSectionKeyword": "agent account per project"
   },
   "runtimeRpc": {
     "startupFailure": {
