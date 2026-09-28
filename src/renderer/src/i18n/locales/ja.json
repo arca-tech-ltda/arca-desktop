@@ -400,16 +400,6 @@
         "orca": {
           "profiles": {
             "612f7f6861": "プロファイルの作成に失敗しました",
-            "319d7cf39b": "クラウドプロファイルが作成されました",
-            "d6e764e7db": "このプロファイルを再接続してください",
-            "f0c9e11a6d": "クラウドプロファイルの作成に失敗しました",
-            "8b8fa73174": "ARCA Cloud へのサインインが設定されていません",
-            "33290e88ed": "プロファイルの接続に失敗しました",
-            "9fcb07a796": "プロファイルが接続されました",
-            "2f6c78a039": "プロファイル認証の更新に失敗しました",
-            "a37b5e6d37": "プロファイルからサインアウトしました",
-            "83600521e7": "サインアウトに失敗しました",
-            "76deec8f58": "組織の切り替えに失敗しました",
             "7d4bc516ee": "プロファイルの切り替えに失敗しました",
             "f518e89aa5": "プロジェクトはそのプロファイルに既に存在します",
             "f03ae7f27b": "プロジェクトの転送に失敗しました"
@@ -9625,14 +9615,7 @@
           "behindBaseRefToastDescription": "インラインの設定リンクとフッター操作付きの永続プロンプト。",
           "notificationPlayground": "通知プレイグラウンド",
           "notificationPlaygroundDescription": "トーストレイアウト、復元操作、長文コピーの折り返しを確認するための開発専用トリガー。",
-          "devOnly": "開発専用",
-          "orcaCloud": "ARCA Cloud",
-          "orcaCloudDescription": "ファーストパーティクラウドサインインの開発者限定プレビュー。本番環境では非表示。開発環境では、ORCA_CLOUD_API_URLとORCA_CLOUD_CLIENT_IDを設定するとサイドバーのアカウント切替にも表示されます。",
-          "orcaCloudStatus": "状態",
-          "orcaCloudSignOut": "サインアウト",
-          "orcaCloudConnect": "プロファイルを接続",
-          "orcaCloudRefresh": "ステータスを更新",
-          "orcaCloudNotConfigured": "ORCA_CLOUD_API_URLとORCA_CLOUD_CLIENT_IDを設定して、この開発ビルドで ARCA Cloudのサインインをプレビューします。"
+          "devOnly": "開発専用"
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "ワークスペースでの使用"
@@ -14192,18 +14175,6 @@
       "nativeChat": {
         "contextMenu": {
           "copy": "コピー"
-        }
-      },
-      "orca": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "ARCA からログアウトしますか？",
-              "description": "このデバイスで ARCA からログアウトします。ローカルのプロジェクトとワークツリーには影響しません。",
-              "cancel": "キャンセル",
-              "action": "サインアウト"
-            }
-          }
         }
       },
       "linear-issue-attribute-filter-dropdowns": {

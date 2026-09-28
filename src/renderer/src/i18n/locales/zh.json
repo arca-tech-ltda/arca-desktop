@@ -403,16 +403,6 @@
         "orca": {
           "profiles": {
             "612f7f6861": "创建配置文件失败",
-            "319d7cf39b": "已创建云配置文件",
-            "d6e764e7db": "请重新连接此配置文件",
-            "f0c9e11a6d": "创建云配置文件失败",
-            "8b8fa73174": "未配置 ARCA Cloud 登录",
-            "33290e88ed": "连接配置文件失败",
-            "9fcb07a796": "配置文件已连接",
-            "2f6c78a039": "刷新配置文件身份验证失败",
-            "a37b5e6d37": "已退出配置文件",
-            "83600521e7": "退出登录失败",
-            "76deec8f58": "切换组织失败",
             "7d4bc516ee": "切换配置文件失败",
             "f518e89aa5": "该项目已存在于那个配置文件中",
             "f03ae7f27b": "转移项目失败"
@@ -9695,14 +9685,7 @@
           "behindBaseRefToastDescription": "带有内联设置链接和底部操作按钮的持久提示。",
           "notificationPlayground": "通知测试面板",
           "notificationPlaygroundDescription": "用于检查提示布局、恢复操作和长文案换行的开发触发器。",
-          "devOnly": "仅开发",
-          "orcaCloud": "ARCA Cloud",
-          "orcaCloudDescription": "仅限开发环境的第一方云登录预览。在生产环境中隐藏；在开发环境中，设置 ORCA_CLOUD_API_URL 和 ORCA_CLOUD_CLIENT_ID 后也会出现在侧边栏账户切换器中。",
-          "orcaCloudStatus": "状态",
-          "orcaCloudSignOut": "退出登录",
-          "orcaCloudConnect": "连接配置文件",
-          "orcaCloudRefresh": "刷新状态",
-          "orcaCloudNotConfigured": "设置 ORCA_CLOUD_API_URL 和 ORCA_CLOUD_CLIENT_ID 以在此开发版本中预览 ARCA Cloud 登录。"
+          "devOnly": "仅开发"
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "在工作区中使用"
@@ -14272,18 +14255,6 @@
       "nativeChat": {
         "contextMenu": {
           "copy": "复制"
-        }
-      },
-      "orca": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "退出 ARCA？",
-              "description": "你将在此设备上退出 ARCA。本地项目和工作树不会受到影响。",
-              "cancel": "取消",
-              "action": "退出登录"
-            }
-          }
         }
       },
       "linear-issue-attribute-filter-dropdowns": {

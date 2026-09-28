@@ -660,16 +660,6 @@
         "orca": {
           "profiles": {
             "612f7f6861": "Failed to create profile",
-            "319d7cf39b": "Cloud profile created",
-            "d6e764e7db": "Reconnect this profile",
-            "f0c9e11a6d": "Failed to create cloud profile",
-            "8b8fa73174": "ARCA Cloud sign-in is not configured",
-            "33290e88ed": "Failed to connect profile",
-            "9fcb07a796": "Profile connected",
-            "2f6c78a039": "Failed to refresh profile auth",
-            "a37b5e6d37": "Signed out of profile",
-            "83600521e7": "Failed to sign out",
-            "76deec8f58": "Failed to switch organization",
             "7d4bc516ee": "Failed to switch profile",
             "f518e89aa5": "Project already exists in that profile",
             "f03ae7f27b": "Failed to transfer project"
@@ -10984,13 +10974,6 @@
           "notificationPlayground": "Notification playground",
           "notificationPlaygroundDescription": "Dev-only triggers for checking toast layout, recovery actions, and long-copy wrapping.",
           "devOnly": "Dev only",
-          "orcaCloud": "ARCA Cloud",
-          "orcaCloudDescription": "Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID are set.",
-          "orcaCloudStatus": "Status",
-          "orcaCloudSignOut": "Sign out",
-          "orcaCloudConnect": "Connect profile",
-          "orcaCloudRefresh": "Refresh status",
-          "orcaCloudNotConfigured": "Set ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID to preview ARCA Cloud sign-in in this dev build.",
           "deleteAnywayClicked": "Delete Anyway clicked"
         },
         "EphemeralVmRecipeRow": {
@@ -11662,34 +11645,6 @@
           "connected": "Connected",
           "signInRequired": "Sign in is required to upload and manage artifacts.",
           "openArtifactsDescription": "View and delete links shared through your account."
-        },
-        "orcaAccount": {
-          "connected": "Connected",
-          "reconnectRequired": "Your session expired. Sign in again to use cloud features.",
-          "unavailable": "ARCA sign-in is unavailable in this build.",
-          "signedOut": "Sign in to extend ARCA with cloud features, including Artifacts and ARCA Relay.",
-          "checking": "Checking account status…",
-          "account": "ARCA account",
-          "signOut": "Sign out",
-          "signInAgain": "Sign in again",
-          "signIn": "Sign in to ARCA",
-          "title": "ARCA Account",
-          "description": "Share work instantly and reach your desktop from ARCA Mobile wherever you are.",
-          "searchDescription": "Sign in or out of the account used by Artifacts and ARCA Relay.",
-          "benefitsTitle": "Included with your account",
-          "artifactsTitle": "Artifact sharing",
-          "artifactsDescription": "Publish HTML and Markdown files, then manage every shared link from ARCA.",
-          "relayTitle": "ARCA Relay",
-          "relayDescription": "Connect ARCA Mobile to this desktop across cellular or any Wi-Fi.",
-          "skillsTitle": "Skill sharing",
-          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use.",
-          "keywordAccount": "account",
-          "keywordLogin": "login",
-          "keywordLogout": "logout",
-          "keywordSignIn": "sign in",
-          "keywordSignOut": "sign out",
-          "keywordRelay": "relay",
-          "keywordCloud": "cloud"
         },
         "automations": {
           "showButton": "Show Automations Button",
@@ -16410,18 +16365,6 @@
           "copy": "Copy"
         }
       },
-      "orca": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "Sign out of ARCA?",
-              "description": "Artifacts and ARCA Relay will be unavailable until you sign in again. Your local projects and worktrees won't be affected.",
-              "cancel": "Cancel",
-              "action": "Sign out"
-            }
-          }
-        }
-      },
       "linear-issue-attribute-filter-dropdowns": {
         "removeFilter": "Remove {{value0}} filter",
         "teamRequired": "Select a team to load status, assignees, and labels for this workspace.",
@@ -16580,20 +16523,6 @@
       "HostedReviewUnlinkMenuItem": {
         "label": "Unlink {{value0}} from workspace",
         "description": "ARCA will hide {{value0}} {{value1}} details for this workspace. The {{value0}} and branch on {{value2}} won’t be changed."
-      },
-      "UnexpectedSignoutCard": {
-        "9f2c1a4b7d": "You've been signed out",
-        "3e8f5c2a91": "Dismiss",
-        "7b4d9e1f2a": "Sign in again as {{value0}} to restore Artifact sharing, ARCA Relay, and skill sharing.",
-        "5a1c8d3e6f": "Sign in again to restore Artifact sharing, ARCA Relay, and skill sharing.",
-        "1f6b2c9d4e": "What you get back",
-        "8d2e4f7a1b": "Artifact sharing",
-        "2c9a5b6e8d": "Publish HTML and Markdown files and manage every shared link from ARCA.",
-        "6e3f1a9c5b": "ARCA Relay",
-        "4b7d2e8f1a": "Connect ARCA Mobile to this desktop across cellular or any Wi-Fi.",
-        "9a4c6b2d7e": "Skill sharing",
-        "3d8e5f1b9c": "Share skills behind an unlisted link and install them on any machine you use.",
-        "c5b3e8a17d": "Sign in to ARCA"
       },
       "priorities": {
         "title": "Priorities",

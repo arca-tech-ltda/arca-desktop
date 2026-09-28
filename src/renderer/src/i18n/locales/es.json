@@ -400,16 +400,6 @@
         "orca": {
           "profiles": {
             "612f7f6861": "Error al crear perfil",
-            "319d7cf39b": "Perfil en la nube creado",
-            "d6e764e7db": "Reconectar este perfil",
-            "f0c9e11a6d": "Error al crear perfil en la nube",
-            "8b8fa73174": "El inicio de sesión de ARCA Cloud no está configurado",
-            "33290e88ed": "Error al conectar perfil",
-            "9fcb07a796": "Perfil conectado",
-            "2f6c78a039": "Error al actualizar autenticación del perfil",
-            "a37b5e6d37": "Sesión cerrada del perfil",
-            "83600521e7": "Error al cerrar sesión",
-            "76deec8f58": "Error al cambiar organización",
             "7d4bc516ee": "Error al cambiar perfil",
             "f518e89aa5": "El proyecto ya existe en ese perfil",
             "f03ae7f27b": "Error al transferir proyecto"
@@ -9625,14 +9615,7 @@
           "behindBaseRefToastDescription": "Aviso persistente con un enlace a Ajustes y una acción en el pie.",
           "notificationPlayground": "Panel de prueba de notificaciones",
           "notificationPlaygroundDescription": "Disparadores solo para desarrollo para comprobar el diseño de toasts, acciones de recuperación y ajuste de texto largo.",
-          "devOnly": "Solo para desarrollo",
-          "orcaCloud": "ARCA Cloud",
-          "orcaCloudDescription": "Vista previa solo para desarrolladores del inicio de sesión de la nube propia. Oculto en producción; en desarrollo también aparece en el selector de cuentas de la barra lateral cuando se configuran ORCA_CLOUD_API_URL y ORCA_CLOUD_CLIENT_ID.",
-          "orcaCloudStatus": "Estado",
-          "orcaCloudSignOut": "Cerrar sesión",
-          "orcaCloudConnect": "Conectar perfil",
-          "orcaCloudRefresh": "Actualizar estado",
-          "orcaCloudNotConfigured": "Configura ORCA_CLOUD_API_URL y ORCA_CLOUD_CLIENT_ID para previsualizar el inicio de sesión de ARCA Cloud en esta versión de desarrollo."
+          "devOnly": "Solo para desarrollo"
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "Usar en el espacio de trabajo"
@@ -14192,18 +14175,6 @@
       "nativeChat": {
         "contextMenu": {
           "copy": "Copiar"
-        }
-      },
-      "orca": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "¿Cerrar sesión en ARCA?",
-              "description": "Se cerrará tu sesión de ARCA en este dispositivo. Tus proyectos y worktrees locales no se verán afectados.",
-              "cancel": "Cancelar",
-              "action": "Cerrar sesión"
-            }
-          }
         }
       },
       "linear-issue-attribute-filter-dropdowns": {

@@ -460,16 +460,6 @@
         "orca": {
           "profiles": {
             "612f7f6861": "Échec de la création du profil",
-            "319d7cf39b": "Profil cloud créé",
-            "d6e764e7db": "Reconnecter ce profil",
-            "f0c9e11a6d": "Échec de la création du profil cloud",
-            "8b8fa73174": "La connexion à ARCA Cloud n'est pas configurée",
-            "33290e88ed": "Échec de la connexion du profil",
-            "9fcb07a796": "Profil connecté",
-            "2f6c78a039": "Échec de l'actualisation de l'authentification du profil",
-            "a37b5e6d37": "Déconnecté du profil",
-            "83600521e7": "Échec de la déconnexion",
-            "76deec8f58": "Échec du changement d'organisation",
             "7d4bc516ee": "Échec du changement de profil",
             "f518e89aa5": "Le projet existe déjà dans ce profil",
             "f03ae7f27b": "Échec du transfert du projet"
@@ -10326,14 +10316,7 @@
           "behindBaseRefToastDescription": "Invite persistante avec un lien Paramètres intégré et une action en pied de page.",
           "notificationPlayground": "Terrain d'essai des notifications",
           "notificationPlaygroundDescription": "Déclencheurs réservés au développement pour vérifier la disposition des toasts, les actions de récupération et le retour à la ligne des textes longs.",
-          "devOnly": "Réservé au développement",
-          "orcaCloud": "ARCA Cloud",
-          "orcaCloudDescription": "Aperçu réservé au développement de la connexion au cloud officiel. Masqué en production ; en dev, il apparaît aussi dans le sélecteur de comptes de la barre latérale dès que ORCA_CLOUD_API_URL et ORCA_CLOUD_CLIENT_ID sont définis.",
-          "orcaCloudStatus": "Statut",
-          "orcaCloudSignOut": "Se déconnecter",
-          "orcaCloudConnect": "Connecter le profil",
-          "orcaCloudRefresh": "Actualiser le statut",
-          "orcaCloudNotConfigured": "Définissez ORCA_CLOUD_API_URL et ORCA_CLOUD_CLIENT_ID pour prévisualiser la connexion à ARCA Cloud dans ce build de développement."
+          "devOnly": "Réservé au développement"
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "Utiliser dans l'espace de travail"
@@ -10974,27 +10957,6 @@
           "connected": "Connecté",
           "signInRequired": "La connexion est requise pour téléverser et gérer les artifacts.",
           "openArtifactsDescription": "Consultez et supprimez les liens partagés via votre compte."
-        },
-        "orcaAccount": {
-          "connected": "Connecté",
-          "reconnectRequired": "Votre session a expiré. Reconnectez-vous pour utiliser les fonctions cloud.",
-          "unavailable": "La connexion ARCA n'est pas disponible dans ce build.",
-          "signedOut": "Connectez-vous pour étendre ARCA avec des fonctions cloud, dont Artifacts et ARCA Relay.",
-          "checking": "Vérification de l'état du compte…",
-          "account": "Compte ARCA",
-          "signOut": "Se déconnecter",
-          "signInAgain": "Se reconnecter",
-          "signIn": "Se connecter à ARCA",
-          "title": "Compte ARCA",
-          "description": "Partagez instantanément votre travail et accédez à votre poste depuis ARCA Mobile, où que vous soyez.",
-          "searchDescription": "Connectez-vous ou déconnectez-vous du compte utilisé par Artifacts et ARCA Relay.",
-          "benefitsTitle": "Inclus avec votre compte",
-          "artifactsTitle": "Partage d'artifacts",
-          "artifactsDescription": "Publiez des fichiers HTML et Markdown, puis gérez chaque lien partagé depuis ARCA.",
-          "relayTitle": "ARCA Relay",
-          "relayDescription": "Connectez ARCA Mobile à ce poste via réseau mobile ou n'importe quel Wi-Fi.",
-          "skillsTitle": "Partage de skills",
-          "skillsDescription": "Partagez une skill ou tout un ensemble derrière un lien non répertorié, et installez-les sur toutes les machines que vous utilisez."
         },
         "automations": {
           "showButton": "Afficher le bouton Automatisations",
@@ -15239,18 +15201,6 @@
       "nativeChat": {
         "contextMenu": {
           "copy": "Copier"
-        }
-      },
-      "orca": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "Se déconnecter d'ARCA ?",
-              "description": "Les artifacts et ARCA Relay seront indisponibles jusqu'à votre reconnexion. Vos projets et worktrees locaux ne seront pas affectés.",
-              "cancel": "Annuler",
-              "action": "Se déconnecter"
-            }
-          }
         }
       },
       "linear-issue-attribute-filter-dropdowns": {

@@ -66,11 +66,6 @@ const SshPassphraseDialog = lazy(() =>
 const UpdateCard = lazy(() =>
   import('../components/UpdateCard').then((module) => ({ default: module.UpdateCard }))
 )
-const UnexpectedSignoutCard = lazy(() =>
-  import('../components/UnexpectedSignoutCard').then((module) => ({
-    default: module.UnexpectedSignoutCard
-  }))
-)
 const RemoteServerUpdateDialog = lazy(
   () => import('../components/settings/RemoteServerUpdateDialog')
 )
@@ -300,11 +295,6 @@ export function AppRootSurfaces(props: {
             </OverlayBoundary>
           </Suspense>
         ) : null}
-        <Suspense fallback={null}>
-          <OverlayBoundary boundaryId="overlay.unexpected-signout" resetKey={activeView}>
-            <UnexpectedSignoutCard />
-          </OverlayBoundary>
-        </Suspense>
         <OverlayBoundary boundaryId="overlay.star-nag" resetKey={activeView}>
           {STAR_PROMPTS_ENABLED ? <StarNagCard /> : null}
         </OverlayBoundary>
