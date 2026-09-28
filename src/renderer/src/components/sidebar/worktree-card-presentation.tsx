@@ -4,6 +4,7 @@ import {
   getFlushWorktreeCardPaddingLeft,
   getNewCardStyleParentContentMarginLeft
 } from './worktree-list/rows/indentation'
+import { getDirectoryName } from './worktree-card-model'
 import {
   hasWorktreeCardDetails,
   WorktreeCardDetailsHover,
@@ -87,6 +88,12 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     !isFolder && branch.length > 0 && !newCardStyle && branch.trim() !== trimmedVisibleCardTitle
   const showIdentityInNewCard =
     identityEnabledInNewCard && (identityDisplay?.trim() ?? '') !== trimmedVisibleCardTitle
+  // Why: a folder workspace usually takes its title from the directory, so the legacy
+  // path row would just print the same word twice.
+  const showFolderDirectoryName =
+    folderMetaRowContent &&
+    !newCardStyle &&
+    getDirectoryName(worktree.path).trim() !== trimmedVisibleCardTitle
   // Why: rebases already surface in source control, so dense cards skip the persistent rebase chip.
   const showConflictOperationBadge =
     !!conflictOperation && conflictOperation !== 'unknown' && conflictOperation !== 'rebase'
@@ -102,7 +109,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const hasDetailedMetaRowContent = Boolean(
     (showRepoBadgeInMetaRow && repo) ||
     showHostContextBadge ||
-    folderMetaRowContent ||
+    showFolderDirectoryName ||
     showBranch ||
     showIdentityInNewCard ||
     showDetachedHeadInMetaRow ||
@@ -269,6 +276,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     showRepoBadgeInMetaRow,
     showHostContextBadge,
     showIdentityInNewCard,
+    showFolderDirectoryName,
     showDetachedHeadInMetaRow,
     showBranch,
     showConflictOperationBadge,

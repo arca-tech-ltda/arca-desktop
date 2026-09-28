@@ -215,6 +215,18 @@ describe('WorktreeCard quick actions', () => {
     expect(markup).toContain('data-worktree-card-meta-row=""')
   })
 
+  it('omits the folder directory row when it repeats the workspace title', () => {
+    const markup = renderToStaticMarkup(
+      <WorktreeCard
+        worktree={makeWorktree({ displayName: 'quick-action', branch: '' })}
+        repo={{ ...makeRepo(), kind: 'folder' }}
+        isActive={false}
+      />
+    )
+
+    expect(markup.match(/quick-action/g)).toHaveLength(1)
+  })
+
   it('renders synthetic folder workspace directory name in the detailed metadata row without a Folder badge', () => {
     const markup = renderToStaticMarkup(
       <WorktreeCard

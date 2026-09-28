@@ -24,8 +24,6 @@ export function WorktreeCardMetaRow({
     repo,
     hostContextLabel,
     identityDisplay,
-    isFolder,
-    newCardStyle,
     branch,
     detachedHeadDisplay,
     conflictOperation,
@@ -36,6 +34,7 @@ export function WorktreeCardMetaRow({
     showRepoBadgeInMetaRow,
     showHostContextBadge,
     showIdentityInNewCard,
+    showFolderDirectoryName,
     hasHoverDetails,
     showBranch,
     showDetachedHeadInMetaRow,
@@ -64,7 +63,7 @@ export function WorktreeCardMetaRow({
             className="text-[11px] text-muted-foreground leading-none"
             tooltipEnabled={!hasHoverDetails}
           />
-        ) : isFolder && !newCardStyle ? (
+        ) : showFolderDirectoryName ? (
           <span
             className="min-w-0 truncate font-mono text-[11px] leading-none text-muted-foreground"
             title={worktree.path}
