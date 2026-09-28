@@ -13,7 +13,6 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "openInBrowser": "ブラウザーで開く",
       "unsupportedTitle": "Megamind にはデスクトップアプリが必要です",
       "unsupportedDetail": "Megamind はデスクトップアプリから ARCA Mainframe にサインインします。ペアリングされた Web クライアントではできません。",
       "connectedAs": "接続中:",

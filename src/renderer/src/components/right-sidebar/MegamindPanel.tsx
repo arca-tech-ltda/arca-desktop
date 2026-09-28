@@ -1,62 +1,94 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
-import { ExternalLink } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { ExternalLink, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
 import { isWebClientLocation } from '@/lib/web-client-location'
+import { refreshMegamindApprovals } from '@/attention/megamind-approvals-store'
 import {
-  megamindApprovalsSnapshot,
-  refreshMegamindApprovals,
-  subscribeMegamindApprovals
-} from '@/attention/megamind-approvals-store'
-import {
+  consumeMegamindRequestedChannel,
   megamindPanelRoute,
-  setMegamindSubTab,
   subscribeMegamindPanelRoute
 } from '@/attention/megamind-panel-route'
-import type { MegamindSubTab } from '../../../../shared/arca-megamind'
-import { MegamindConnection } from './MegamindConnection'
-import { MegamindPrerequisites } from './MegamindPrerequisites'
-import { MegamindApprovalsTab } from './megamind/MegamindApprovalsTab'
-import { MegamindChatTab } from './megamind/MegamindChatTab'
-import { MegamindPresenceTab } from './megamind/MegamindPresenceTab'
+import { MegamindApprovalCards } from './megamind/MegamindApprovalCards'
+import { MegamindConversation } from './megamind/MegamindConversation'
+import { MegamindConversationList } from './megamind/MegamindConversationList'
+import { MegamindPeopleStrip } from './megamind/MegamindPeopleStrip'
+import { MegamindPresenceDot } from './megamind/MegamindPresenceDot'
+import { MegamindSetup } from './megamind/MegamindSetup'
 import { useMegamindChat, useMegamindMembers } from './megamind/use-megamind-chat'
+import { useMegamindConnection } from './megamind/use-megamind-connection'
 
-function isSubTab(value: string): value is MegamindSubTab {
-  return value === 'chat' || value === 'presence' || value === 'approvals'
-}
-
-function SubTabTrigger({
-  value,
-  label,
-  count
+function MegamindNotice({
+  message,
+  action
 }: {
-  value: MegamindSubTab
-  label: string
-  count: number
+  message: string
+  action?: { label: string; run: () => void }
 }): React.JSX.Element {
   return (
-    <TabsTrigger value={value}>
-      {label}
-      {count > 0 && <Badge variant="default">{count}</Badge>}
-    </TabsTrigger>
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
+      <p className="text-xs text-muted-foreground">{message}</p>
+      {action && (
+        <Button type="button" variant="outline" size="xs" onClick={action.run}>
+          {action.label}
+        </Button>
+      )}
+    </div>
   )
 }
 
+function HeaderButton({
+  label,
+  onClick,
+  children
+}: {
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}): React.JSX.Element {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="active:scale-[0.96]"
+          aria-label={label}
+          onClick={onClick}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** One screen: who is around, what is waiting on you, and the conversations. */
 export default function MegamindPanel({
   isVisible = true
 }: {
   isVisible?: boolean
 }): React.JSX.Element {
   const route = useSyncExternalStore(subscribeMegamindPanelRoute, megamindPanelRoute)
-  const approvals = useSyncExternalStore(subscribeMegamindApprovals, megamindApprovalsSnapshot)
-  const chatVisible = isVisible && route.tab === 'chat'
-  const { state, selectChannel, post } = useMegamindChat(chatVisible)
+  const { state, selectChannel, post } = useMegamindChat(isVisible)
   const { members, degraded } = useMegamindMembers(isVisible)
+  const connection = useMegamindConnection()
+  const [openChannel, setOpenChannel] = useState<string | null>(null)
+  const [setupOpen, setSetupOpen] = useState(false)
   const [panelUrl, setPanelUrl] = useState<string | null>(null)
-  // The tab badge must be right as soon as the panel opens, not only after the app-wide poll ticks.
+  const open = useCallback(
+    (channel: string) => {
+      selectChannel(channel)
+      setOpenChannel(channel)
+    },
+    [selectChannel]
+  )
+  // The approval count must be right as soon as the panel opens, not only after the app-wide poll.
   useEffect(() => {
     if (isVisible) {
       refreshMegamindApprovals()
@@ -68,9 +100,14 @@ export default function MegamindPanel({
       .then((descriptor) => setPanelUrl(descriptor?.panelUrl ?? null))
       .catch(() => setPanelUrl(null))
   }, [])
+  // A notification carries the conversation it was about; opening the panel must land there.
+  useEffect(() => {
+    if (isVisible && route.requestedChannel) {
+      open(route.requestedChannel)
+      consumeMegamindRequestedChannel()
+    }
+  }, [isVisible, open, route])
 
-  const openExternallyLabel = translate('arca.megamind.openInBrowser', 'Open in browser')
-  const unread = state.channels.reduce((total, channel) => total + channel.unread, 0)
   if (isWebClientLocation()) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
@@ -86,80 +123,98 @@ export default function MegamindPanel({
       </div>
     )
   }
+
+  const connected = connection.status.state === 'connected'
+  const settingsLabel = translate('arca.megamind.setup', 'Connection and setup')
+  const openExternallyLabel = translate('arca.megamind.openInMainframe', 'Open in Mainframe')
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex h-8 min-h-8 items-center gap-2 border-b border-border px-2">
-        <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-          {translate('arca.megamind.title', 'Megamind')}
-        </span>
-        {panelUrl && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={openExternallyLabel}
-                onClick={() => void window.api.shell.openUrl(panelUrl)}
-              >
-                <ExternalLink className="size-3" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={4}>
-              {openExternallyLabel}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-      <MegamindConnection />
-      <MegamindPrerequisites />
-      <Tabs
-        value={route.tab}
-        onValueChange={(value) => isSubTab(value) && setMegamindSubTab(value)}
-        className="min-h-0 flex-1"
-      >
-        <div className="shrink-0 border-b border-border px-1">
-          <TabsList variant="line">
-            <SubTabTrigger
-              value="chat"
-              label={translate('arca.megamind.tabChat', 'Chat')}
-              count={unread}
-            />
-            <SubTabTrigger
-              value="presence"
-              label={translate('arca.megamind.tabPresence', 'Presence')}
-              count={0}
-            />
-            <SubTabTrigger
-              value="approvals"
-              label={translate('arca.megamind.tabApprovals', 'Approvals')}
-              count={approvals.items.length}
-            />
-          </TabsList>
+      {/* An open conversation carries its own header, with the way back in it. */}
+      {!openChannel && (
+        <div className="flex h-11 shrink-0 items-center gap-1 px-3">
+          <MegamindPresenceDot
+            state={connected ? 'working' : connection.status.state === 'pending' ? 'idle' : 'away'}
+            label={
+              connected
+                ? translate('arca.megamind.connected', 'Connected')
+                : translate('arca.megamind.notConnected', 'Not connected')
+            }
+          />
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+            {translate('arca.megamind.title', 'Megamind')}
+            {connection.status.device && (
+              <span className="font-normal text-muted-foreground">
+                {' · '}
+                {connection.status.device}
+              </span>
+            )}
+          </span>
+          <HeaderButton label={settingsLabel} onClick={() => setSetupOpen((value) => !value)}>
+            <Settings />
+          </HeaderButton>
+          {panelUrl && (
+            <HeaderButton
+              label={openExternallyLabel}
+              onClick={() => void window.api.shell.openUrl(panelUrl)}
+            >
+              <ExternalLink />
+            </HeaderButton>
+          )}
         </div>
-        <TabsContent value="chat" className="flex min-h-0 flex-col">
-          <MegamindChatTab
-            state={state}
+      )}
+      <MegamindSetup connection={connection} expanded={setupOpen} />
+      {state.availability === 'unsupported' ? (
+        <MegamindNotice
+          message={translate(
+            'arca.megamind.chatUnsupported',
+            'This Mainframe has no chat. Presence and approvals still work.'
+          )}
+        />
+      ) : state.availability === 'login' ? (
+        <MegamindNotice
+          message={translate('arca.megamind.chatLogin', 'Sign in to Mainframe to read the chat.')}
+          action={{
+            label: translate('arca.megamind.signIn', 'Sign in'),
+            run: () => void window.api.arcaMegamind.openMainframeLogin()
+          }}
+        />
+      ) : openChannel ? (
+        <MegamindConversation
+          channel={openChannel}
+          state={state}
+          members={members}
+          post={post}
+          onBack={() => setOpenChannel(null)}
+        />
+      ) : (
+        <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-2">
+          <MegamindPeopleStrip
             members={members}
-            selectChannel={selectChannel}
-            post={post}
-          />
-        </TabsContent>
-        <TabsContent value="presence" className="flex min-h-0 flex-col">
-          <MegamindPresenceTab
-            members={members}
-            degraded={degraded}
             channels={state.channels}
-            onOpenDm={(channel) => {
-              selectChannel(channel)
-              setMegamindSubTab('chat')
-            }}
+            viewerHandle={state.viewerHandle}
+            onOpenConversation={open}
           />
-        </TabsContent>
-        <TabsContent value="approvals" className="flex min-h-0 flex-col">
-          <MegamindApprovalsTab />
-        </TabsContent>
-      </Tabs>
+          {degraded && (
+            <p className="px-3 pb-2 text-[11px] text-muted-foreground">
+              {translate(
+                'arca.megamind.presenceDegraded',
+                'This Mainframe predates per-person presence; app and agent are told apart by session.'
+              )}
+            </p>
+          )}
+          <MegamindApprovalCards />
+          <MegamindConversationList
+            channels={state.channels}
+            members={members}
+            emptyText={
+              state.availability === 'loading'
+                ? translate('arca.megamind.chatLoading', 'Loading chat…')
+                : translate('arca.megamind.chatOffline', 'Chat is out of contact. Retrying.')
+            }
+            onOpen={open}
+          />
+        </div>
+      )}
     </div>
   )
 }

@@ -13,7 +13,6 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "openInBrowser": "在浏览器中打开",
       "unsupportedTitle": "Megamind 需要桌面应用",
       "unsupportedDetail": "Megamind 通过桌面应用登录 ARCA Mainframe，配对的网页客户端无法完成此操作。",
       "connectedAs": "已连接为",

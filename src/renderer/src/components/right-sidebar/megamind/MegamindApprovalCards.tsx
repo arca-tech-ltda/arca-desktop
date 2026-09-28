@@ -35,7 +35,8 @@ function problemMessage(problem: MegamindApprovalsProblem): string {
   }
 }
 
-export function MegamindApprovalsTab(): React.JSX.Element {
+/** Nothing is drawn while no one is waiting on the user: approvals are an interruption, not a tab. */
+export function MegamindApprovalCards(): React.JSX.Element | null {
   const state = useSyncExternalStore(subscribeMegamindApprovals, megamindApprovalsSnapshot)
   const [busy, setBusy] = useState(false)
   useEffect(() => {
@@ -56,11 +57,14 @@ export function MegamindApprovalsTab(): React.JSX.Element {
       setBusy(false)
     }
   }
+  if (state.items.length === 0 && !state.login && !state.problem) {
+    return null
+  }
   return (
-    <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2 text-xs">
+    <div className="flex shrink-0 flex-col gap-2 px-3 pb-2">
       {state.login && (
-        <div className="flex flex-col items-start gap-1" role="status">
-          <p>
+        <div className="flex items-center gap-2" role="status">
+          <p className="min-w-0 flex-1 text-xs text-muted-foreground">
             {translate(
               'arca.megamind.loginRequired',
               'Sign in to Mainframe, then retry your decision.'
@@ -76,23 +80,25 @@ export function MegamindApprovalsTab(): React.JSX.Element {
           </Button>
         </div>
       )}
-      {state.problem && <p role="alert">{problemMessage(state.problem)}</p>}
-      {state.items.length === 0 && !state.login && !state.problem && (
-        <p className="p-2 text-center text-muted-foreground">
-          {translate('arca.megamind.approvalsEmpty', 'No approvals waiting for you.')}
+      {state.problem && (
+        <p role="alert" className="text-xs text-destructive">
+          {problemMessage(state.problem)}
         </p>
       )}
       {state.items.map((item) => (
         <div
           key={item.id}
           id={`megamind-approval-${item.id}`}
-          className="flex flex-col gap-1 rounded-md border border-border p-2"
+          className="flex flex-col gap-2 rounded-lg bg-accent/60 p-3 shadow-xs"
         >
-          <p className="break-words">{item.summary}</p>
+          <p className="text-xs leading-relaxed font-medium break-words text-foreground">
+            {item.summary}
+          </p>
           <div className="flex gap-2">
             <Button
               type="button"
               size="xs"
+              className="active:scale-[0.96]"
               disabled={busy}
               onClick={() => void decide(item.id, 'approved')}
             >
@@ -102,6 +108,7 @@ export function MegamindApprovalsTab(): React.JSX.Element {
               type="button"
               size="xs"
               variant="outline"
+              className="active:scale-[0.96]"
               disabled={busy}
               onClick={() => void decide(item.id, 'denied')}
             >

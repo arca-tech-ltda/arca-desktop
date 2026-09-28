@@ -13,7 +13,6 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "openInBrowser": "Ouvrir dans le navigateur",
       "unsupportedTitle": "Megamind nécessite l’application de bureau",
       "unsupportedDetail": "Megamind se connecte à ARCA Mainframe depuis l'application de bureau, ce que le client web appairé ne peut pas faire.",
       "connectedAs": "Connecté en tant que",

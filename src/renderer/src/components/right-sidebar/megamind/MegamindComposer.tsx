@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useImeEnterGestureOwnership } from '@/lib/ime-composition-keyboard-event'
-import { consumeMegamindMention, megamindPanelRoute } from '@/attention/megamind-panel-route'
 import {
   applyMentionCompletion,
   mentionCandidates,
@@ -11,6 +10,8 @@ import {
   type MentionCandidate
 } from '../../../../../shared/arca-megamind-mentions'
 import type { MegamindMember } from '../../../../../shared/arca-megamind-chat'
+import { MegamindPresenceDot } from './MegamindPresenceDot'
+import { megamindSessionState } from './megamind-presence-state'
 
 type MegamindComposerProps = {
   members: readonly MegamindMember[]
@@ -41,17 +42,6 @@ export function MegamindComposer({
     },
     [members]
   )
-
-  // The presence tab hands the composer a handle to mention.
-  useEffect(() => {
-    const pending = megamindPanelRoute().pendingMention
-    if (!pending) {
-      return
-    }
-    consumeMegamindMention()
-    setBody((current) => `${current}${current && !current.endsWith(' ') ? ' ' : ''}@${pending} `)
-    inputRef.current?.focus()
-  }, [])
 
   const complete = useCallback(
     (handle: string) => {
@@ -113,21 +103,21 @@ export function MegamindComposer({
   }
 
   return (
-    <div className="relative shrink-0 border-t border-border p-2">
+    <div className="relative shrink-0 p-2">
       {candidates.length > 0 && (
         <ul
           role="listbox"
           aria-label={translate('arca.megamind.mentionSuggestions', 'Mention suggestions')}
-          className="absolute bottom-full left-2 z-10 mb-1 w-[calc(100%-1rem)] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-floating"
+          className="absolute bottom-full left-2 z-10 mb-1 w-[calc(100%-1rem)] overflow-hidden rounded-lg bg-popover p-1 text-popover-foreground shadow-floating"
         >
           {candidates.map((candidate, index) => (
-            <li key={candidate.handle}>
+            <li key={candidate.session?.id ?? candidate.handle}>
               <button
                 type="button"
                 role="option"
                 aria-selected={index === highlighted}
                 className={cn(
-                  'flex w-full items-center gap-2 px-2 py-1 text-left text-xs',
+                  'flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs',
                   index === highlighted ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'
                 )}
                 onMouseDown={(event) => {
@@ -135,13 +125,22 @@ export function MegamindComposer({
                   complete(candidate.handle)
                 }}
               >
-                <span className="font-medium">@{candidate.handle}</span>
+                {candidate.session && (
+                  <MegamindPresenceDot state={megamindSessionState(candidate.session.status)} />
+                )}
+                <span className="shrink-0 font-medium">
+                  {candidate.session ? candidate.session.name : `@${candidate.handle}`}
+                </span>
                 <span className="truncate text-muted-foreground">
-                  {candidate.agent
-                    ? translate('arca.megamind.mentionAgent', 'agent of {{name}}', {
+                  {candidate.session
+                    ? translate('arca.megamind.mentionSession', 'session of {{name}}', {
                         name: candidate.name
                       })
-                    : candidate.name}
+                    : candidate.agent
+                      ? translate('arca.megamind.mentionAgent', 'agent of {{name}}', {
+                          name: candidate.name
+                        })
+                      : candidate.name}
                 </span>
               </button>
             </li>

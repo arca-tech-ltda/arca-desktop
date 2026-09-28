@@ -2,11 +2,26 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MegamindComposer } from './MegamindComposer'
-import { requestMegamindMention } from '@/attention/megamind-panel-route'
 import type { MegamindMember } from '../../../../../shared/arca-megamind-chat'
 
 const members: MegamindMember[] = [
-  { handle: 'enzo', name: 'Enzo', online: true, appOnline: true, sessions: [] },
+  {
+    handle: 'enzo',
+    name: 'Enzo',
+    online: true,
+    appOnline: true,
+    sessions: [
+      {
+        sessionId: 'b1c2',
+        label: 'pi wgs-sistema@MEAN',
+        project: 'wgs-sistema',
+        harness: 'pi',
+        note: '',
+        lastSeen: '2026-01-01 12:00:00Z',
+        status: 'idle'
+      }
+    ]
+  },
   { handle: 'daniel', name: 'Daniel', online: false, appOnline: false, sessions: [] }
 ]
 
@@ -60,12 +75,13 @@ it('does not send an empty body', () => {
   expect(onSend).not.toHaveBeenCalled()
 })
 
-it('suggests the person and the agent while an @ mention is typed, and completes it', async () => {
+it('suggests the person, the agent and their sessions while an @ mention is typed', async () => {
   const { input, onSend } = composer()
   type(input, 'oi @en')
   expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
     '@enzoEnzo',
-    '@enzo-piagent of Enzo'
+    '@enzo-piagent of Enzo',
+    'wgs-sistema · pisession of Enzo'
   ])
   fireEvent.mouseDown(screen.getByRole('option', { name: /@enzo-pi/ }))
   await waitFor(() => expect(input.value).toBe('oi @enzo-pi '))
@@ -82,8 +98,9 @@ it('keeps Enter on the suggestion list while it is open', () => {
   expect(input.value).toBe('@daniel ')
 })
 
-it('picks up the handle the presence tab asked to mention', async () => {
-  requestMegamindMention('enzo-pi')
+it('writes the owner’s agent handle when a session is picked', async () => {
   const { input } = composer()
+  type(input, '@enzo-')
+  fireEvent.mouseDown(screen.getByRole('option', { name: /session of Enzo/ }))
   await waitFor(() => expect(input.value).toBe('@enzo-pi '))
 })

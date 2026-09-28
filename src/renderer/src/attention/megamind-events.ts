@@ -38,17 +38,11 @@ function chatNotificationTitle(item: MegamindRecord): string {
 
 function notificationRoute(item: MegamindRecord): MegamindPanelRoute {
   if (item.kind === 'chat') {
-    return {
-      tab: 'chat',
-      ...(typeof item.channel === 'string' ? { channel: item.channel } : {})
-    }
+    return typeof item.channel === 'string' ? { channel: item.channel } : {}
   }
-  return {
-    tab: 'approvals',
-    ...(item.kind === 'approval_pending' && typeof item.id === 'string'
-      ? { approvalId: item.id }
-      : {})
-  }
+  return item.kind === 'approval_pending' && typeof item.id === 'string'
+    ? { approvalId: item.id }
+    : {}
 }
 
 export function announceMegamind(item: MegamindRecord): void {
@@ -93,10 +87,7 @@ function navigate(link: ArcaDeepLink): boolean {
     store.setRightSidebarTab('megamind')
     store.setRightSidebarOpen(true)
     pendingApprovalId = link.approvalId
-    routeMegamindPanel({
-      tab: link.approvalId ? 'approvals' : 'chat',
-      ...(link.approvalId ? { approvalId: link.approvalId } : {})
-    })
+    routeMegamindPanel(link.approvalId ? { approvalId: link.approvalId } : {})
     if (link.approvalId) {
       window.dispatchEvent(new CustomEvent('arca-megamind-approval', { detail: link.approvalId }))
     }

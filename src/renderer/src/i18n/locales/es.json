@@ -13,7 +13,6 @@
   "arca": {
     "megamind": {
       "title": "Megamind",
-      "openInBrowser": "Abrir en el navegador",
       "unsupportedTitle": "Megamind necesita la aplicación de escritorio",
       "unsupportedDetail": "Megamind inicia sesión en ARCA Mainframe desde la aplicación de escritorio, algo que el cliente web emparejado no puede hacer.",
       "connectedAs": "Conectado como",

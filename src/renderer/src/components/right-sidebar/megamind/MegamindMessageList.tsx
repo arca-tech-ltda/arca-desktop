@@ -3,14 +3,8 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { mentionsHandle, splitMentionSegments } from '../../../../../shared/arca-megamind-mentions'
+import { megamindClockTime } from './megamind-chat-time'
 import type { MegamindChatMessage } from '../../../../../shared/arca-megamind-chat'
-
-function time(value: string): string {
-  const parsed = Date.parse(value.replace(' ', 'T'))
-  return Number.isFinite(parsed)
-    ? new Date(parsed).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : ''
-}
 
 function MessageBody({
   body,
@@ -65,23 +59,28 @@ export function MegamindMessageList({
     )
   }
   return (
-    <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-      {messages.map((message) => (
-        <div key={message.id} className="flex flex-col gap-0.5">
-          <div className="flex items-baseline gap-1.5">
-            <span className="truncate text-xs font-medium text-foreground">
-              {message.authorName}
-            </span>
-            {message.authorKind === 'agent' && (
-              <Badge variant="hostContext">{translate('arca.megamind.agentBadge', 'agent')}</Badge>
-            )}
-            <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-              {time(message.createdAt)}
-            </span>
+    <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-2">
+      {/* A short history sits at the bottom, where a chat reads from. */}
+      <div className="mt-auto flex flex-col gap-2.5">
+        {messages.map((message) => (
+          <div key={message.id} className="flex flex-col gap-0.5">
+            <div className="flex items-baseline gap-1.5">
+              <span className="truncate text-xs font-medium text-foreground">
+                {message.authorName}
+              </span>
+              {message.authorKind === 'agent' && (
+                <Badge variant="hostContext">
+                  {translate('arca.megamind.agentBadge', 'agent')}
+                </Badge>
+              )}
+              <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                {megamindClockTime(message.createdAt)}
+              </span>
+            </div>
+            <MessageBody body={message.body} viewerHandle={viewerHandle} />
           </div>
-          <MessageBody body={message.body} viewerHandle={viewerHandle} />
-        </div>
-      ))}
+        ))}
+      </div>
       <div ref={bottomRef} />
     </div>
   )

@@ -25,11 +25,11 @@ export type MegamindApprovalsResult =
 
 export type MegamindDecision = 'ok' | 'login' | 'forbidden' | 'conflict' | 'rate' | 'error'
 
-export type MegamindSubTab = 'chat' | 'presence' | 'approvals'
-
-/** Where a notification or deep link wants the Megamind panel to land. */
+/**
+ * Where a notification or deep link wants the Megamind panel to land. The panel is a single
+ * screen: a channel opens that conversation, an approval id scrolls its card into view.
+ */
 export type MegamindPanelRoute = {
-  tab: MegamindSubTab
   channel?: string
   approvalId?: string
 }

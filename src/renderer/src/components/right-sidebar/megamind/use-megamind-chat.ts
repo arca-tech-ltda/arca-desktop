@@ -5,10 +5,6 @@ import {
   type MegamindChatState,
   type MegamindMember
 } from '../../../../../shared/arca-megamind-chat'
-import {
-  consumeMegamindRequestedChannel,
-  megamindPanelRoute
-} from '@/attention/megamind-panel-route'
 
 /** Chat state lives in main; the panel mirrors it and forwards the user's intent back. */
 export function useMegamindChat(visible: boolean): {
@@ -36,14 +32,6 @@ export function useMegamindChat(visible: boolean): {
   const selectChannel = useCallback((channel: string) => {
     void window.api.arcaMegamind?.chatSelectChannel(channel).catch(noop)
   }, [])
-  // A notification carries the channel it was about; opening the panel must land there.
-  useEffect(() => {
-    const requested = megamindPanelRoute().requestedChannel
-    if (visible && requested) {
-      selectChannel(requested)
-      consumeMegamindRequestedChannel()
-    }
-  }, [selectChannel, visible, state.channels])
   const post = useCallback(
     (target: string, body: string): Promise<MegamindChatPostResult> =>
       window.api.arcaMegamind.chatPost(target, body).catch(() => ({ status: 'error' }) as const),

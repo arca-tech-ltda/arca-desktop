@@ -1,24 +1,21 @@
 import { expect, it } from 'vitest'
 import {
-  consumeMegamindMention,
   consumeMegamindRequestedChannel,
   megamindPanelRoute,
-  requestMegamindMention,
   routeMegamindPanel
 } from './megamind-panel-route'
-import { MEGAMIND_GROUP_CHANNEL } from '../../../shared/arca-megamind-chat'
 
-it('sends an agent mention to the group channel, where the mention wakes the agent', () => {
-  routeMegamindPanel({ tab: 'chat', channel: 'dm:apa0b320to4sf22:bqr1c430up5tg33' })
+it('keeps the conversation a notification asked for until the panel opens it', () => {
+  routeMegamindPanel({ channel: 'dm:apa0b320to4sf22:bqr1c430up5tg33' })
+  expect(megamindPanelRoute().requestedChannel).toBe('dm:apa0b320to4sf22:bqr1c430up5tg33')
   consumeMegamindRequestedChannel()
-  requestMegamindMention('enzo-pi')
-  expect(megamindPanelRoute()).toMatchObject({
-    tab: 'chat',
-    requestedChannel: MEGAMIND_GROUP_CHANNEL,
-    pendingMention: 'enzo-pi'
-  })
-  consumeMegamindMention()
-  consumeMegamindRequestedChannel()
-  expect(megamindPanelRoute().pendingMention).toBeUndefined()
   expect(megamindPanelRoute().requestedChannel).toBeUndefined()
+})
+
+it('routes an approval without opening a conversation', () => {
+  routeMegamindPanel({ approvalId: 'zzzzzzzzzzzzzzz' })
+  expect(megamindPanelRoute()).toMatchObject({
+    approvalId: 'zzzzzzzzzzzzzzz',
+    requestedChannel: undefined
+  })
 })
