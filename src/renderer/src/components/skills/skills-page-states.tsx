@@ -117,15 +117,3 @@ export function SkillsScanErrorBand({
   )
 }
 
-/** One page-level sentence instead of the same reason repeated on every row. */
-export function SkillsRemoteShareNotice({ hostLabel }: { hostLabel: string }): React.JSX.Element {
-  return (
-    <p className="border-b border-border/50 px-2 py-2 text-xs text-muted-foreground">
-      {translate(
-        'auto.components.skills.SkillsPage.remoteShareNotice',
-        'These skills live on {{host}}. Open Skills on that machine to share them.',
-        { host: hostLabel }
-      )}
-    </p>
-  )
-}

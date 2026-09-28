@@ -720,7 +720,6 @@ describe('createUISlice space navigation', () => {
     const store = createUIStore()
 
     store.getState().openSkillShare('share-1')
-    store.getState().openSkillsSharedLinks()
 
     expect(store.getState().worktreeNavHistory).toEqual(['skills'])
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)

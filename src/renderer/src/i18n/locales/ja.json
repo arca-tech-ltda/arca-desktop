@@ -4030,16 +4030,9 @@
           "closeSkills": "スキルを閉じる",
           "closeTooltip": "閉じる · Esc",
           "moreActions": "その他の操作",
-          "sharedLinks": "共有リンク",
           "emptyCopy": "スキャンしたスキルフォルダーは空です。共有バンドルをインストールするか、スキルを追加後に更新してください。",
           "retry": "再試行",
-          "remoteShareNotice": "これらのスキルは {{host}} にあります。共有するには、そのマシンでスキルを開いてください。",
-          "viewSwitch": "表示",
-          "searchLinks": "リンクを検索",
           "deleteSkills": "スキルを削除…"
-        },
-        "SkillShareSelectionControls": {
-          "01c5a15e02": "スキルを共有"
         },
         "SkillRow": {
           "updatedUnknown": "日付なし",
@@ -4076,11 +4069,7 @@
           "fileOther": "{{count}} 個のファイル",
           "resultOne": "{{count}} 件の結果",
           "resultOther": "{{count}} 件の結果",
-          "selected": "{{count}} 件を選択",
-          "shareOne": "{{count}} 件のスキルを共有",
-          "shareOther": "{{count}} 件のスキルを共有",
-          "linkOne": "{{count}} 件のリンク",
-          "linkOther": "{{count}} 件のリンク"
+          "selected": "{{count}} 件を選択"
         },
         "filter": {
           "allAgents": "すべての Agent",
@@ -4089,7 +4078,6 @@
         "SkillsSelectionHeader": {
           "exit": "選択を終了",
           "exitTooltip": "選択を終了 · Esc",
-          "title": "共有するスキルを選択",
           "selectAll": "対象の {{count}} 件をすべて選択",
           "clear": "クリア",
           "deleteTitle": "削除するスキルを選択"

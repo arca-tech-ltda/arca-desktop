@@ -5,7 +5,6 @@ import { GeneralPane } from './GeneralPane'
 import { IntegrationsPane } from './IntegrationsPane'
 import { OrcaAccountSettingsPane } from './OrcaAccountSettingsPane'
 import { SettingsSetupGuidePane } from './SettingsSetupGuidePane'
-import { ShareSkillsSettingsPane } from './ShareSkillsSettingsPane'
 import { SettingsSection } from './SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
@@ -133,26 +132,6 @@ export function renderArtifactsSettingsSection(context: SettingsRenderContext): 
       {view.isSectionMounted('artifacts') ? (
         <ArtifactsSettingsPane settings={model.settings} updateSettings={model.updateSettings} />
       ) : null}
-    </SettingsSection>
-  )
-}
-
-export function renderShareSkillsSettingsSection(
-  context: SettingsRenderContext
-): React.JSX.Element {
-  const { navigation, view } = context
-  return (
-    <SettingsSection
-      id="share-skills"
-      title={translate('auto.components.settings.shareSkills.title', 'Share Skills')}
-      badge="Beta"
-      description={translate(
-        'auto.components.settings.shareSkills.description',
-        'Share your skills with an unlisted link. Anyone who has it can install them.'
-      )}
-      searchEntries={navigation.getSectionSearchEntries('share-skills')}
-    >
-      {view.isSectionMounted('share-skills') ? <ShareSkillsSettingsPane /> : null}
     </SettingsSection>
   )
 }

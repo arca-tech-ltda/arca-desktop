@@ -4045,16 +4045,9 @@
           "closeSkills": "关闭技能",
           "closeTooltip": "关闭 · Esc",
           "moreActions": "更多操作",
-          "sharedLinks": "共享链接",
           "emptyCopy": "扫描的技能文件夹为空。请安装共享包，或添加技能后刷新。",
           "retry": "重试",
-          "remoteShareNotice": "这些技能位于 {{host}}。请在该机器上打开“技能”以进行共享。",
-          "viewSwitch": "显示",
-          "searchLinks": "搜索链接",
           "deleteSkills": "删除技能…"
-        },
-        "SkillShareSelectionControls": {
-          "01c5a15e02": "共享技能"
         },
         "SkillRow": {
           "updatedUnknown": "无日期",
@@ -4092,10 +4085,6 @@
           "resultOne": "{{count}} 个结果",
           "resultOther": "{{count}} 个结果",
           "selected": "已选择 {{count}} 个",
-          "shareOne": "共享 {{count}} 个技能",
-          "shareOther": "共享 {{count}} 个技能",
-          "linkOne": "{{count}} 个链接",
-          "linkOther": "{{count}} 个链接",
           "deleteOne": "删除 {{count}} 个技能",
           "deleteOther": "删除 {{count}} 个技能",
           "deletedOne": "已删除 {{count}} 个技能",
@@ -4112,7 +4101,6 @@
         "SkillsSelectionHeader": {
           "exit": "退出选择",
           "exitTooltip": "退出选择 · Esc",
-          "title": "选择要共享的技能",
           "selectAll": "选择全部 {{count}} 个符合条件的项目",
           "clear": "清除",
           "deleteTitle": "选择要删除的技能"

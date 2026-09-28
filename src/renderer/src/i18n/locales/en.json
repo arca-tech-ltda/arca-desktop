@@ -1251,8 +1251,6 @@
         "artifactsDescription": "Share HTML and Markdown files with your team and manage their public links.",
         "automationsTitle": "Automations",
         "automationsDescription": "Schedule agent work and choose whether Automations appears in the sidebar.",
-        "shareSkillsTitle": "Share Skills",
-        "shareSkillsDescription": "Share your skills with an unlisted link. Anyone who has it can install them.",
         "floatingWorkspaceWebDescription": "Global terminal and markdown tabs."
       },
       "useAppMenuPaste": {
@@ -4596,12 +4594,8 @@
           "closeSkills": "Close skills",
           "closeTooltip": "Close · Esc",
           "moreActions": "More actions",
-          "sharedLinks": "Shared links",
           "emptyCopy": "The scanned skill folders are empty. Install a shared bundle, or refresh after adding a skill.",
           "retry": "Retry",
-          "remoteShareNotice": "These skills live on {{host}}. Open Skills on that machine to share them.",
-          "viewSwitch": "Show",
-          "searchLinks": "Search links",
           "deleteSkills": "Delete skills…"
         },
         "SkillFreshnessNudge": {
@@ -4704,32 +4698,14 @@
           "checkFailed": "Check failed"
         },
         "SkillShareDialog": {
-          "reconnect": "Reconnect your ARCA account before sharing.",
-          "unconfigured": "Connect an ARCA Cloud account before sharing.",
-          "prepareFailed": "Could not prepare this skill for sharing.",
           "peopleRequired": "Select at least one teammate.",
-          "publishCancelled": "Upload cancelled. The prepared copy is still available to retry.",
-          "publishFailed": "Could not publish this skill. The prepared copy is still available to retry.",
-          "copied": "Share link copied",
-          "preparing": "Preparing preview…",
-          "ready": "Skill link ready",
-          "title": "Share skill",
           "readyDescription": "Recipients authenticate with ARCA before they can inspect or install it.",
           "newVersionDescription": "Review the exact files, then publish an immutable version to the existing Cloud package.",
           "description": "Review the exact files, choose who can access them, then publish an immutable version.",
-          "0f07fa2a79": "Publish skill",
-          "7aa4ba0dba": "Publish new version",
-          "3a51d0f34f": "Cancel upload",
-          "e9d652ae3d": "Cancelling…",
-          "30985d4fc0": "Cancel",
-          "3af85f6add": "Done",
           "readyDescriptionV2": "Anyone with this unlisted link can inspect and install the skills.",
-          "descriptionV2": "Review the exact files, then publish an immutable version behind an unlisted link.",
-          "publishBundle": "Publish bundle",
-          "cancelRequestFailed": "ARCA could not send the cancellation request. The upload may still finish."
+          "descriptionV2": "Review the exact files, then publish an immutable version behind an unlisted link."
         },
         "SkillCard": {
-          "d25a1b8ae6": "Share skill",
           "01c5a16e01": "Select {{value0}}"
         },
         "SkillCloudManagementActions": {
@@ -4836,11 +4812,7 @@
         },
         "SkillShareReviewContent": {
           "e3caf6baeb": "Revoking this link blocks future access. It does not remove copies already installed on recipients’ machines.",
-          "6d6233a3a4": "Copy link",
-          "0142581727": "Uploading…",
           "ad940367a5": "Validating and publishing…",
-          "bf02d6ed9e": "What changed in this version?",
-          "f0c0411549": "Release notes",
           "4895d3e0ee": "No teammates are available.",
           "8188f5d765": "can access the link.",
           "fe204e06f0": "the organization",
@@ -4848,25 +4820,17 @@
           "f25429e266": "Selected people",
           "0a49d901ab": "Organization",
           "6817a7f6f8": "Skill access",
-          "c15d90c10b": "A connected ARCA Cloud account is required.",
           "266527d295": "Publishing as {{value0}}{{value1}}.",
           "78d863235c": "Access",
-          "b3b1d4b911": "SHA-256",
           "77f636eac3": "executable",
           "8edd32622f": "scripts",
           "3121f44358": "files",
-          "2dca0b720b": "Publish new skill version",
           "01c5a17e01": "{{value0}} skills",
           "01c5a17e02": "Review included skills",
           "01c5a17e03": "{{value0}} files · {{value1}}",
           "unlistedLinkTitle": "Unlisted link",
           "unlistedPublishingAs": "Publishing as {{value0}}. Anyone with the link can inspect and install these skills.",
-          "unlistedLinkDetails": "The link is not searchable or listed publicly. Revoke it to block future access; installed copies remain.",
-          "bundleReady": "Skill bundle link ready",
-          "publishBundleVersion": "Publish new skill bundle version",
-          "shareBundle": "Share skill bundle",
-          "publishingLink": "Publishing link…",
-          "verifyingPackage": "Verifying package…"
+          "unlistedLinkDetails": "The link is not searchable or listed publicly. Revoke it to block future access; installed copies remain."
         },
         "SkillBundleInstallFlow": {
           "01c5a13e01": "Close",
@@ -4913,13 +4877,8 @@
         "SkillShareSelectionControls": {
           "01c5a15e05": "Share {{value0}} skills",
           "01c5a15e01": "Cancel sharing",
-          "01c5a15e02": "Share skills",
           "01c5a15e03": "{{value0}} selected",
-          "01c5a15e04": "Select all results",
-          "01c5a15e06": "Open this skill on its owning machine to share it.",
-          "01c5a15e07": "Install this skill before sharing it.",
-          "01c5a15e08": "Only home and workspace skills can be shared.",
-          "01c5a15e09": "A skill with this name is already selected from another source."
+          "01c5a15e04": "Select all results"
         },
         "SkillManagedInstallList": {
           "86c76cb262": "{{count}} skill bundle"
@@ -4931,7 +4890,6 @@
           "updatedUnknown": "No date",
           "pathCopied": "Path copied",
           "copyPath": "Copy path",
-          "notShareable": "Not shareable",
           "detailPath": "Path",
           "detailSource": "Source",
           "detailContents": "Contents",
@@ -4971,14 +4929,10 @@
           "resultOne": "{{count}} result",
           "resultOther": "{{count}} results",
           "selected": "{{count}} selected",
-          "shareOne": "Share {{count}} skill",
-          "shareOther": "Share {{count}} skills",
           "installOne": "Install {{count}} skill",
           "installOther": "Install {{count}} skills",
           "retryOne": "Retry {{count}} skill",
           "retryOther": "Retry {{count}} skills",
-          "linkOne": "{{count}} link",
-          "linkOther": "{{count}} links",
           "deleteOne": "Delete {{count}} skill",
           "deleteOther": "Delete {{count}} skills",
           "deletedOne": "Deleted {{count}} skill",
@@ -4994,25 +4948,16 @@
         },
         "share": {
           "fileExecutable": "executable",
-          "fileScript": "script",
-          "reviewFiles": "Review files that can run",
-          "reviewSkills": "Review included skills",
-          "releaseNotesVersion": "Release notes",
-          "releaseNotesOptional": "Add release notes (optional)",
-          "releaseNotesFirst": "Describe this release",
           "readyDescription": "Copy the link to share it.",
           "newVersionDescription": "Publishes an immutable version to the existing package.",
           "description": "Publishes an immutable version behind an unlisted link.",
           "accessSummary": "Anyone with the link can install this. It is not listed anywhere, and revoking it blocks new installs — not copies already installed. Publishing as {{value0}}.",
-          "manageLinks": "Manage or revoke this link in Settings",
           "scriptOne": "{{count}} script",
           "scriptOther": "{{count}} scripts",
           "executableOne": "{{count}} executable",
           "executableOther": "{{count}} executables",
           "noExecutableContent": "No scripts or executables",
-          "newVersionDescriptionPlain": "Adds a new version to the existing link.",
-          "accessSummaryShort": "Unlisted link — anyone with it can install this. Publishing as {{value0}}.",
-          "accessSummaryPlain": "Unlisted link — anyone with it can install this."
+          "accessSummaryShort": "Unlisted link — anyone with it can install this. Publishing as {{value0}}."
         },
         "description": {
           "showLess": "Show less",
@@ -5078,7 +5023,6 @@
         "SkillsSelectionHeader": {
           "exit": "Exit selection",
           "exitTooltip": "Exit selection · Esc",
-          "title": "Select skills to share",
           "selectAll": "Select all {{count}} eligible",
           "clear": "Clear",
           "deleteTitle": "Select skills to delete"
@@ -5087,19 +5031,6 @@
           "agents": "Agents",
           "updated": "Updated",
           "copy": "Copy"
-        },
-        "SkillSharedLinkRow": {
-          "contentsUnavailable": "Could not load what this link contains.",
-          "loading": "Loading contents…",
-          "deleteFailed": "ARCA could not delete this from the Cloud.",
-          "deleted": "Deleted from the Cloud",
-          "confirmDelete": "Confirm delete",
-          "moreActions": "More actions for {{name}}",
-          "deletePackage": "Delete from the Cloud"
-        },
-        "SkillSharedLinksView": {
-          "loading": "Loading shared links…",
-          "noMatches": "No links match this search."
         },
         "SkillsSharedLinksHeader": {
           "back": "Back to skills",
@@ -11842,52 +11773,7 @@
           "refreshAccounts": "Refresh GitHub accounts"
         },
         "shareSkills": {
-          "title": "Share Skills",
-          "description": "Share your skills with an unlisted link. Anyone who has it can install them.",
-          "allowAgentPublishing": "Allow agents and the ARCA CLI to publish skill links",
-          "allowAgentPublishingDescription": "Let commands publish explicitly named installed skills. Skill folders can contain scripts, configuration, or secrets, so this is off by default.",
-          "allowAgentPublishingWebDescription": "Desktop only. Open Settings → Share Skills on the host device to change this setting.",
-          "selectTitle": "Select one or more skills",
-          "selectDescription": "Open Skills, choose Share skills, and select the skills to bundle behind one link.",
-          "reviewTitle": "Review and publish",
-          "reviewDescription": "Review included files, scripts, and executables before uploading the immutable bundle.",
-          "copyTitle": "Copy the unlisted link",
-          "copyDescription": "Anyone with the link can inspect and install all or selected skills without signing in.",
-          "manageTitle": "Manage or revoke links",
-          "manageDescription": "Revoking blocks future access. Skills already installed on another machine remain there.",
-          "linkTitle": "Unlisted skill links",
-          "linkDescription": "Shared bundles are not searchable or listed in ARCA. The link is the credential, so send it only to people you trust.",
-          "signInTitle": "Sign in to share skills",
-          "signInWebDescription": "Publishing and link management are available in the ARCA desktop app.",
-          "signInDescription": "Use your ARCA account to publish bundles and manage their links. Recipients do not need an account.",
-          "signInAgain": "Sign in again",
-          "signIn": "Sign in to ARCA",
-          "howToTitle": "How to share skills",
-          "howToDescription": "Publish one skill or a bundle such as a collection of 30 skills behind one link.",
-          "openSkills": "Open Skills",
-          "openSkillsDescription": "Publish a bundle, install from a link, or manage installed and shared skills.",
-          "searchDescription": "Share your skills with an unlisted link. Anyone who has it can install them.",
-          "linksReconnect": "Sign in again to manage shared links.",
-          "linksUnavailable": "Shared links are unavailable right now.",
-          "linkCopied": "Share link copied",
-          "linkRevoked": "Link revoked",
-          "revokeFailed": "ARCA could not revoke this link.",
-          "activeLinks": "Active shared links",
-          "activeLinksDescription": "Only people with a link can open it. Unshare a link to block future inspection and installs.",
-          "refreshLinks": "Refresh",
-          "noActiveLinks": "No active links. Publish a skill bundle from Skills to create one.",
-          "copyLink": "Copy link",
-          "confirmUnshare": "Confirm unshare",
-          "unshare": "Unshare",
-          "showButton": "Show Skills button",
-          "showButtonDescription": "Show the Skills shortcut in the sidebar.",
-          "manageInSkills": "Manage in Skills",
-          "keywordSkills": "skills",
-          "keywordShare": "share",
-          "keywordBundle": "bundle",
-          "keywordLink": "link",
-          "keywordUnlisted": "unlisted",
-          "keywordRevoke": "revoke"
+          "refreshLinks": "Refresh"
         },
         "bitbucket": {
           "credentials": {

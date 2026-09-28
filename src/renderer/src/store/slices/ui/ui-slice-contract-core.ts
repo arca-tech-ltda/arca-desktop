@@ -184,10 +184,6 @@ export type UISliceCore = {
   pendingSkillShareId: string | null
   openSkillShare: (shareId: string) => void
   clearPendingSkillShare: () => void
-  /** Set when another surface links straight to the page's shared-links view. */
-  pendingSkillsSharedView: boolean
-  openSkillsSharedLinks: () => void
-  clearPendingSkillsSharedView: () => void
   openArtifactsPage: () => void
   closeArtifactsPage: () => void
   setNewWorkspaceDraft: (draft: NonNullable<UISliceCore['newWorkspaceDraft']>) => void

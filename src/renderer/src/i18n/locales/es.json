@@ -4030,16 +4030,9 @@
           "closeSkills": "Cerrar skills",
           "closeTooltip": "Cerrar · Esc",
           "moreActions": "Más acciones",
-          "sharedLinks": "Enlaces compartidos",
           "emptyCopy": "Las carpetas de skills analizadas están vacías. Instala un paquete compartido o actualiza después de añadir una skill.",
           "retry": "Reintentar",
-          "remoteShareNotice": "Estas skills están en {{host}}. Abre Skills en esa máquina para compartirlas.",
-          "viewSwitch": "Mostrar",
-          "searchLinks": "Buscar enlaces",
           "deleteSkills": "Eliminar skills…"
-        },
-        "SkillShareSelectionControls": {
-          "01c5a15e02": "Compartir skills"
         },
         "SkillRow": {
           "updatedUnknown": "Sin fecha",
@@ -4076,11 +4069,7 @@
           "fileOther": "{{count}} archivos",
           "resultOne": "{{count}} resultado",
           "resultOther": "{{count}} resultados",
-          "selected": "{{count}} seleccionadas",
-          "shareOne": "Compartir {{count}} skill",
-          "shareOther": "Compartir {{count}} skills",
-          "linkOne": "{{count}} enlace",
-          "linkOther": "{{count}} enlaces"
+          "selected": "{{count}} seleccionadas"
         },
         "filter": {
           "allAgents": "Todos los agentes",
@@ -4089,7 +4078,6 @@
         "SkillsSelectionHeader": {
           "exit": "Salir de la selección",
           "exitTooltip": "Salir de la selección · Esc",
-          "title": "Seleccionar skills para compartir",
           "selectAll": "Seleccionar las {{count}} aptas",
           "clear": "Borrar",
           "deleteTitle": "Seleccionar skills para eliminar"

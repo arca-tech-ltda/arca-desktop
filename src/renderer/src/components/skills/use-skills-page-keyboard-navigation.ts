@@ -1,21 +1,16 @@
 import { useEffect } from 'react'
-import type { SkillsPageView } from './skills-page-view'
 import { hasVisibleOverlay } from '@/lib/visible-overlay'
 
 type UseSkillsPageKeyboardNavigationOptions = {
   closeSkillsPage: () => void
   exitSelection: () => void
-  exitSharedLinks: () => void
-  selectionMode: 'share' | 'delete' | null
-  view: SkillsPageView
+  selectionMode: 'delete' | null
 }
 
 export function useSkillsPageKeyboardNavigation({
   closeSkillsPage,
   exitSelection,
-  exitSharedLinks,
-  selectionMode,
-  view
+  selectionMode
 }: UseSkillsPageKeyboardNavigationOptions): void {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -39,15 +34,11 @@ export function useSkillsPageKeyboardNavigation({
         exitSelection()
         return
       }
-      if (view === 'shared') {
-        exitSharedLinks()
-        return
-      }
       closeSkillsPage()
     }
 
     // Why: tooltips can consume Escape before bubble listeners see it.
     window.addEventListener('keydown', handleKeyDown, { capture: true })
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true })
-  }, [closeSkillsPage, exitSelection, exitSharedLinks, selectionMode, view])
+  }, [closeSkillsPage, exitSelection, selectionMode])
 }

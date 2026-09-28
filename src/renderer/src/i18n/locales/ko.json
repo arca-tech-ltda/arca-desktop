@@ -4035,16 +4035,9 @@
           "closeSkills": "스킬 닫기",
           "closeTooltip": "닫기 · Esc",
           "moreActions": "추가 작업",
-          "sharedLinks": "공유 링크",
           "emptyCopy": "검색한 스킬 폴더가 비어 있습니다. 공유 번들을 설치하거나 스킬을 추가한 후 새로 고치세요.",
           "retry": "다시 시도",
-          "remoteShareNotice": "이 스킬은 {{host}}에 있습니다. 공유하려면 해당 머신에서 스킬을 여세요.",
-          "viewSwitch": "표시",
-          "searchLinks": "링크 검색",
           "deleteSkills": "스킬 삭제…"
-        },
-        "SkillShareSelectionControls": {
-          "01c5a15e02": "스킬 공유"
         },
         "SkillRow": {
           "updatedUnknown": "날짜 없음",
@@ -4081,11 +4074,7 @@
           "fileOther": "파일 {{count}}개",
           "resultOne": "결과 {{count}}개",
           "resultOther": "결과 {{count}}개",
-          "selected": "{{count}}개 선택됨",
-          "shareOne": "스킬 {{count}}개 공유",
-          "shareOther": "스킬 {{count}}개 공유",
-          "linkOne": "링크 {{count}}개",
-          "linkOther": "링크 {{count}}개"
+          "selected": "{{count}}개 선택됨"
         },
         "filter": {
           "allAgents": "모든 에이전트",
@@ -4094,7 +4083,6 @@
         "SkillsSelectionHeader": {
           "exit": "선택 나가기",
           "exitTooltip": "선택 나가기 · Esc",
-          "title": "공유할 스킬 선택",
           "selectAll": "가능한 {{count}}개 모두 선택",
           "clear": "지우기",
           "deleteTitle": "삭제할 스킬 선택"

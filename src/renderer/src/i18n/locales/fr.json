@@ -1008,8 +1008,6 @@
         "artifactsDescription": "Partagez des fichiers HTML et Markdown avec votre équipe et gérez leurs liens publics.",
         "automationsTitle": "Automatisations",
         "automationsDescription": "Planifiez le travail des agents et choisissez si Automatisations apparaît dans la barre latérale.",
-        "shareSkillsTitle": "Partage de skills",
-        "shareSkillsDescription": "Partagez vos skills avec un lien non répertorié. Toute personne qui l'a peut les installer.",
         "floatingWorkspaceWebDescription": "Onglets globaux de terminal et de markdown."
       },
       "useAppMenuPaste": {
@@ -4237,12 +4235,8 @@
           "closeSkills": "Fermer les skills",
           "closeTooltip": "Fermer · Esc",
           "moreActions": "Plus d'actions",
-          "sharedLinks": "Liens partagés",
           "emptyCopy": "Les dossiers de skills analysés sont vides. Installez un bundle partagé, ou actualisez après avoir ajouté un skill.",
           "retry": "Réessayer",
-          "remoteShareNotice": "Ces skills se trouvent sur {{host}}. Ouvrez Skills sur cette machine pour les partager.",
-          "viewSwitch": "Afficher",
-          "searchLinks": "Rechercher des liens",
           "deleteSkills": "Supprimer des skills…"
         },
         "SkillFreshnessNudge": {
@@ -4345,31 +4339,14 @@
           "checkFailed": "Échec de la vérification"
         },
         "SkillShareDialog": {
-          "reconnect": "Reconnectez votre compte ARCA avant de partager.",
-          "unconfigured": "Connectez un compte ARCA Cloud avant de partager.",
-          "prepareFailed": "Impossible de préparer ce skill au partage.",
           "peopleRequired": "Sélectionnez au moins un membre de l'équipe.",
-          "publishCancelled": "Téléversement annulé. La copie préparée reste disponible pour une nouvelle tentative.",
-          "publishFailed": "Impossible de publier ce skill. La copie préparée reste disponible pour une nouvelle tentative.",
-          "copied": "Lien de partage copié",
-          "preparing": "Préparation de l'aperçu…",
-          "ready": "Lien du skill prêt",
-          "title": "Partager le skill",
           "readyDescription": "Les destinataires s'authentifient auprès d'ARCA avant de pouvoir l'inspecter ou l'installer.",
           "newVersionDescription": "Vérifiez les fichiers exacts, puis publiez une version immuable dans le package Cloud existant.",
           "description": "Vérifiez les fichiers exacts, choisissez qui peut y accéder, puis publiez une version immuable.",
-          "0f07fa2a79": "Publier le skill",
-          "7aa4ba0dba": "Publier une nouvelle version",
-          "3a51d0f34f": "Annuler le téléversement",
-          "e9d652ae3d": "Annulation…",
-          "30985d4fc0": "Annuler",
-          "3af85f6add": "Terminé",
           "readyDescriptionV2": "Toute personne disposant de ce lien non répertorié peut inspecter et installer les skills.",
-          "descriptionV2": "Vérifiez les fichiers exacts, puis publiez une version immuable protégée par un lien non répertorié.",
-          "publishBundle": "Publier le bundle"
+          "descriptionV2": "Vérifiez les fichiers exacts, puis publiez une version immuable protégée par un lien non répertorié."
         },
         "SkillCard": {
-          "d25a1b8ae6": "Partager le skill",
           "01c5a16e01": "Sélectionner {{value0}}"
         },
         "SkillCloudManagementActions": {
@@ -4476,11 +4453,7 @@
         },
         "SkillShareReviewContent": {
           "e3caf6baeb": "La révocation de ce lien bloque les accès futurs. Elle ne retire pas les copies déjà installées sur les machines des destinataires.",
-          "6d6233a3a4": "Copier le lien",
-          "0142581727": "Téléversement…",
           "ad940367a5": "Validation et publication…",
-          "bf02d6ed9e": "Quoi de neuf dans cette version ?",
-          "f0c0411549": "Notes de version",
           "4895d3e0ee": "Aucun membre de l'équipe disponible.",
           "8188f5d765": "peuvent accéder au lien.",
           "fe204e06f0": "l'organisation",
@@ -4488,25 +4461,17 @@
           "f25429e266": "Personnes sélectionnées",
           "0a49d901ab": "Organisation",
           "6817a7f6f8": "Accès aux skills",
-          "c15d90c10b": "Un compte ARCA Cloud connecté est requis.",
           "266527d295": "Publication en tant que {{value0}}{{value1}}.",
           "78d863235c": "Accès",
-          "b3b1d4b911": "SHA-256",
           "77f636eac3": "exécutable",
           "8edd32622f": "scripts",
           "3121f44358": "fichiers",
-          "2dca0b720b": "Publier une nouvelle version du skill",
           "01c5a17e01": "{{value0}} skills",
           "01c5a17e02": "Examiner les skills inclus",
           "01c5a17e03": "{{value0}} fichiers · {{value1}}",
           "unlistedLinkTitle": "Lien non répertorié",
           "unlistedPublishingAs": "Publication en tant que {{value0}}. Toute personne disposant du lien peut inspecter et installer ces skills.",
-          "unlistedLinkDetails": "Le lien n'est ni recherchable ni listé publiquement. Révoquez-le pour bloquer les accès futurs ; les copies installées restent en place.",
-          "bundleReady": "Lien du bundle de skills prêt",
-          "publishBundleVersion": "Publier une nouvelle version du bundle de skills",
-          "shareBundle": "Partager le bundle de skills",
-          "publishingLink": "Publication du lien…",
-          "verifyingPackage": "Vérification du package…"
+          "unlistedLinkDetails": "Le lien n'est ni recherchable ni listé publiquement. Révoquez-le pour bloquer les accès futurs ; les copies installées restent en place."
         },
         "SkillBundleInstallFlow": {
           "01c5a13e01": "Fermer",
@@ -4553,13 +4518,8 @@
         "SkillShareSelectionControls": {
           "01c5a15e05": "Partager {{value0}} skills",
           "01c5a15e01": "Annuler le partage",
-          "01c5a15e02": "Partager des skills",
           "01c5a15e03": "{{value0}} sélectionnés",
-          "01c5a15e04": "Sélectionner tous les résultats",
-          "01c5a15e06": "Ouvrez ce skill sur la machine qui l'héberge pour le partager.",
-          "01c5a15e07": "Installez ce skill avant de le partager.",
-          "01c5a15e08": "Seuls les skills home et espace de travail peuvent être partagés.",
-          "01c5a15e09": "Un skill portant ce nom est déjà sélectionné depuis une autre source."
+          "01c5a15e04": "Sélectionner tous les résultats"
         },
         "SkillManagedInstallList": {
           "86c76cb262": "{{count}} bundle de skills"
@@ -4571,7 +4531,6 @@
           "updatedUnknown": "Aucune date",
           "pathCopied": "Chemin copié",
           "copyPath": "Copier le chemin",
-          "notShareable": "Non partageable",
           "detailPath": "Chemin",
           "detailSource": "Source",
           "detailContents": "Contenu",
@@ -4611,14 +4570,10 @@
           "resultOne": "{{count}} résultat",
           "resultOther": "{{count}} résultats",
           "selected": "{{count}} sélectionnés",
-          "shareOne": "Partager {{count}} skill",
-          "shareOther": "Partager {{count}} skills",
           "installOne": "Installer {{count}} skill",
           "installOther": "Installer {{count}} skills",
           "retryOne": "Réessayer {{count}} skill",
           "retryOther": "Réessayer {{count}} skills",
-          "linkOne": "{{count}} lien",
-          "linkOther": "{{count}} liens",
           "deleteOne": "Supprimer {{count}} skill",
           "deleteOther": "Supprimer {{count}} skills",
           "deletedOne": "{{count}} skill supprimé",
@@ -4634,25 +4589,16 @@
         },
         "share": {
           "fileExecutable": "exécutable",
-          "fileScript": "script",
-          "reviewFiles": "Examiner les fichiers exécutables",
-          "reviewSkills": "Examiner les skills inclus",
-          "releaseNotesVersion": "Notes de version",
-          "releaseNotesOptional": "Ajouter des notes de version (facultatif)",
-          "releaseNotesFirst": "Décrivez cette version",
           "readyDescription": "Copiez le lien pour le partager.",
           "newVersionDescription": "Publie une version immuable dans le package existant.",
           "description": "Publie une version immuable protégée par un lien non répertorié.",
           "accessSummary": "Toute personne disposant du lien peut l'installer. Il n'est listé nulle part, et le révoquer bloque les nouvelles installations — pas les copies déjà installées. Publication en tant que {{value0}}.",
-          "manageLinks": "Gérer ou révoquer ce lien dans les Paramètres",
           "scriptOne": "{{count}} script",
           "scriptOther": "{{count}} scripts",
           "executableOne": "{{count}} exécutable",
           "executableOther": "{{count}} exécutables",
           "noExecutableContent": "Aucun script ni exécutable",
-          "newVersionDescriptionPlain": "Ajoute une nouvelle version au lien existant.",
-          "accessSummaryShort": "Lien non répertorié — toute personne qui le possède peut l'installer. Publication en tant que {{value0}}.",
-          "accessSummaryPlain": "Lien non répertorié — toute personne qui le possède peut l'installer."
+          "accessSummaryShort": "Lien non répertorié — toute personne qui le possède peut l'installer. Publication en tant que {{value0}}."
         },
         "description": {
           "showLess": "Afficher moins",
@@ -4701,7 +4647,6 @@
         "SkillsSelectionHeader": {
           "exit": "Quitter la sélection",
           "exitTooltip": "Quitter la sélection · Esc",
-          "title": "Sélectionner les skills à partager",
           "selectAll": "Sélectionner les {{count}} éligibles",
           "clear": "Effacer",
           "deleteTitle": "Sélectionner les skills à supprimer"
@@ -4710,19 +4655,6 @@
           "agents": "Agents",
           "updated": "Mis à jour",
           "copy": "Copier"
-        },
-        "SkillSharedLinkRow": {
-          "contentsUnavailable": "Impossible de charger le contenu de ce lien.",
-          "loading": "Chargement du contenu…",
-          "deleteFailed": "ARCA n'a pas pu supprimer cet élément du Cloud.",
-          "deleted": "Supprimé du Cloud",
-          "confirmDelete": "Confirmer la suppression",
-          "moreActions": "Autres actions pour {{name}}",
-          "deletePackage": "Supprimer du Cloud"
-        },
-        "SkillSharedLinksView": {
-          "loading": "Chargement des liens partagés…",
-          "noMatches": "Aucun lien ne correspond à cette recherche."
         },
         "SkillsSharedLinksHeader": {
           "back": "Retour aux skills",
@@ -11115,46 +11047,7 @@
           "off": "Désactivé"
         },
         "shareSkills": {
-          "title": "Partage de skills",
-          "description": "Partagez vos skills avec un lien non répertorié. Toute personne qui l'a peut les installer.",
-          "allowAgentPublishing": "Autoriser les agents et la CLI ARCA à publier des liens de skills",
-          "allowAgentPublishingDescription": "Permet aux commandes de publier des skills installées nommées explicitement. Les dossiers de skills peuvent contenir des scripts, de la configuration ou des secrets, c'est donc désactivé par défaut.",
-          "allowAgentPublishingWebDescription": "Bureau uniquement. Ouvrez Paramètres → Partage de skills sur l'appareil hôte pour modifier ce paramètre.",
-          "selectTitle": "Sélectionnez une ou plusieurs skills",
-          "selectDescription": "Ouvrez Skills, choisissez Partager des skills, puis sélectionnez les skills à regrouper derrière un seul lien.",
-          "reviewTitle": "Vérifier et publier",
-          "reviewDescription": "Vérifiez les fichiers, scripts et exécutables inclus avant de téléverser le bundle immuable.",
-          "copyTitle": "Copier le lien non répertorié",
-          "copyDescription": "Quiconque possède le lien peut inspecter et installer toutes les skills ou celles sélectionnées, sans se connecter.",
-          "manageTitle": "Gérer ou révoquer les liens",
-          "manageDescription": "La révocation bloque tout accès futur. Les skills déjà installées sur une autre machine y restent.",
-          "linkTitle": "Liens de skills non répertoriés",
-          "linkDescription": "Les bundles partagés ne sont ni recherchables ni listés dans ARCA. Le lien tient lieu d'identifiant : envoyez-le uniquement à des personnes de confiance.",
-          "signInTitle": "Se connecter pour partager des skills",
-          "signInWebDescription": "La publication et la gestion des liens sont disponibles dans l'app ARCA de bureau.",
-          "signInDescription": "Utilisez votre compte ARCA pour publier des bundles et gérer leurs liens. Les destinataires n'ont pas besoin de compte.",
-          "signInAgain": "Se reconnecter",
-          "signIn": "Se connecter à ARCA",
-          "howToTitle": "Comment partager des skills",
-          "howToDescription": "Publiez une seule skill ou un bundle, par exemple une collection de 30 skills, derrière un seul lien.",
-          "openSkills": "Ouvrir Skills",
-          "openSkillsDescription": "Publiez un bundle, installez depuis un lien ou gérez les skills installées et partagées.",
-          "searchDescription": "Partagez vos skills avec un lien non répertorié. Toute personne qui l'a peut les installer.",
-          "linksReconnect": "Reconnectez-vous pour gérer les liens partagés.",
-          "linksUnavailable": "Les liens partagés sont indisponibles pour le moment.",
-          "linkCopied": "Lien de partage copié",
-          "linkRevoked": "Lien révoqué",
-          "revokeFailed": "ARCA n'a pas pu révoquer ce lien.",
-          "activeLinks": "Liens partagés actifs",
-          "activeLinksDescription": "Seules les personnes disposant du lien peuvent l'ouvrir. Annulez le partage d'un lien pour bloquer toute inspection et installation futures.",
-          "refreshLinks": "Actualiser",
-          "noActiveLinks": "Aucun lien actif. Publiez un bundle de skills depuis Skills pour en créer un.",
-          "copyLink": "Copier le lien",
-          "confirmUnshare": "Confirmer l'arrêt du partage",
-          "unshare": "Ne plus partager",
-          "showButton": "Afficher le bouton Skills",
-          "showButtonDescription": "Afficher le raccourci Skills dans la barre latérale.",
-          "manageInSkills": "Gérer dans Skills"
+          "refreshLinks": "Actualiser"
         },
         "bitbucket": {
           "credentials": {
