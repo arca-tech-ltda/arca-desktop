@@ -1,5 +1,4 @@
 import { SessionHistorySettingsPane } from './SessionHistorySettingsPane'
-import { ArtifactsSettingsPane } from './ArtifactsSettingsPane'
 import { AutomationsSettingsPane } from './AutomationsSettingsPane'
 import { GeneralPane } from './GeneralPane'
 import { IntegrationsPane } from './IntegrationsPane'
@@ -111,26 +110,6 @@ export function renderAutomationsSettingsSection(
     >
       {view.isSectionMounted('automations') ? (
         <AutomationsSettingsPane settings={model.settings} updateSettings={model.updateSettings} />
-      ) : null}
-    </SettingsSection>
-  )
-}
-
-export function renderArtifactsSettingsSection(context: SettingsRenderContext): React.JSX.Element {
-  const { model, navigation, view } = context
-  return (
-    <SettingsSection
-      id="artifacts"
-      title={translate('auto.components.settings.artifacts.title', 'Artifacts')}
-      badge="Beta"
-      description={translate(
-        'auto.components.settings.artifacts.description',
-        'Share HTML and Markdown files with your team and manage their public links.'
-      )}
-      searchEntries={navigation.getSectionSearchEntries('artifacts')}
-    >
-      {view.isSectionMounted('artifacts') ? (
-        <ArtifactsSettingsPane settings={model.settings} updateSettings={model.updateSettings} />
       ) : null}
     </SettingsSection>
   )

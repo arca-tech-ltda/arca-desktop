@@ -1247,8 +1247,6 @@
         "pluginsTitle": "Plugins",
         "pluginsDescription": "Install and manage experimental ARCA plugins.",
         "tasksDescription": "Connect providers, install the Linear skill, and choose what appears in Tasks.",
-        "artifactsTitle": "Artifacts",
-        "artifactsDescription": "Share HTML and Markdown files with your team and manage their public links.",
         "automationsTitle": "Automations",
         "automationsDescription": "Schedule agent work and choose whether Automations appears in the sidebar.",
         "floatingWorkspaceWebDescription": "Global terminal and markdown tabs."
@@ -5465,7 +5463,6 @@
           "0ccba862b8": "Open GitHub tasks",
           "fee535205b": "Tasks",
           "d599269755": "Hide from sidebar",
-          "artifacts": "Artifacts",
           "skills": "Skills"
         },
         "SidebarRepositoryFilterSection": {
@@ -11664,41 +11661,7 @@
           "account": "ARCA account",
           "connected": "Connected",
           "signInRequired": "Sign in is required to upload and manage artifacts.",
-          "signIn": "Sign in to ARCA",
-          "title": "Artifacts",
-          "description": "Share HTML and Markdown files with your team and manage their public links.",
-          "howToTitle": "How to use Artifacts",
-          "howToDescription": "Publish HTML or Markdown files as public links, then share them with your team.",
-          "shareStepTitle": "Choose a file to share",
-          "shareStepDescription": "Open an HTML or Markdown file and select Share as artifact, or ask an agent to share it.",
-          "linkStepTitle": "Copy the public link",
-          "linkStepDescription": "After publishing, copy the link and send it to your team.",
-          "manageStepTitle": "Manage it in ARCA",
-          "manageStepDescription": "Open Artifacts from the sidebar to preview or remove links.",
-          "openArtifacts": "Open Artifacts",
-          "openArtifactsDescription": "View and delete links shared through your account.",
-          "showButton": "Show Artifacts Button",
-          "showButtonDescription": "Show the Artifacts shortcut in the sidebar.",
-          "openArtifactsDescriptionV2": "Preview, copy, and manage links shared through your account.",
-          "signInTitle": "Sign in to share artifacts",
-          "signInDescription": "Use your ARCA account to upload artifacts and manage their public links.",
-          "signInAgain": "Sign in again",
-          "enableStepTitle": "Enable artifact sharing",
-          "enableStepWebDescription": "Open Settings → Artifacts in the ARCA desktop app on the host device and enable publishing.",
-          "enableStepDescription": "Turn on “Allow publishing public artifact links” above.",
-          "allowPublishing": "Allow publishing public artifact links",
-          "allowPublishingWebDescription": "Desktop only. Open Settings → Artifacts on the host device to change this setting.",
-          "allowPublishingDescription": "Publish HTML and Markdown files as links anyone with the URL can open. Existing links remain until you delete them from Artifacts.",
-          "howToDescriptionDisabled": "Enable artifact sharing above to publish HTML or Markdown files as public links.",
-          "allowPublishingSearchDescription": "Allow ARCA to publish HTML and Markdown files as public links.",
-          "keywordArtifacts": "artifacts",
-          "keywordShare": "share",
-          "keywordPublish": "publish",
-          "keywordPublic": "public",
-          "keywordPermission": "permission",
-          "keywordHtml": "HTML",
-          "keywordMarkdown": "Markdown",
-          "keywordUpload": "upload"
+          "openArtifactsDescription": "View and delete links shared through your account."
         },
         "orcaAccount": {
           "connected": "Connected",
@@ -16574,117 +16537,11 @@
       },
       "artifacts": {
         "ArtifactsPage": {
-          "signInAgain": "Sign in to ARCA again to load artifacts.",
-          "loadFailed": "Could not load artifacts.",
-          "deleteTitle": "Delete artifact?",
-          "deleteDescription": "“{{name}}” will no longer be available at its public link.",
-          "delete": "Delete",
-          "deleteFailed": "Could not delete the artifact.",
-          "title": "Artifacts",
-          "refresh": "Refresh",
-          "signInHeading": "Sign in to ARCA",
-          "signInCopy": "Sign in to view and manage artifacts shared through your account.",
-          "signIn": "Sign in to ARCA",
-          "empty": "No shared artifacts",
-          "emptyCopy": "Open an HTML or Markdown file and select Share as artifact, or ask your agent to share it.",
-          "openArtifact": "Open artifact",
-          "deleteArtifact": "Delete artifact",
-          "moreAvailable": "More artifacts are available",
-          "moreAvailableCopy": "Load the next page to continue.",
-          "loadMoreFailed": "Could not load more artifacts.",
-          "publishingOff": "Publishing is turned off",
-          "publishingOffCopy": "Nothing on this device can create a public artifact link yet. Allow publishing in Settings → Artifacts, then share from an open HTML or Markdown file or ask your agent.",
-          "openArtifactsSettings": "Open Settings → Artifacts",
-          "retry": "Retry",
-          "reconnectHeading": "Sign in to ARCA again",
-          "reconnectCopy": "Sign in again to view and manage the artifacts shared through your account.",
-          "signInAgainAction": "Sign in again",
-          "unconfiguredCopy": "ARCA account sign-in is not configured on this machine yet.",
-          "openAccountSettings": "Open account settings"
-        },
-        "copySuccess": "Artifact link copied",
-        "copyFailed": "Could not copy artifact link",
-        "copyLink": "Copy link",
-        "openInBrowser": "Open in browser",
-        "preview": "Artifact preview",
-        "previewUnavailable": "Preview unavailable",
-        "previewUnavailableDescription": "Open this artifact in your browser to view it.",
-        "actions": "Artifact actions",
-        "ArtifactActions": {
-          "more": "More artifact actions"
-        },
-        "ArtifactCollection": {
-          "loadMore": "Load more",
-          "noMatches": "No matches"
-        },
-        "ArtifactDetailHeader": {
-          "publicLink": "Anyone with this link can view it",
-          "close": "Close"
-        },
-        "updatedAt": "Updated {{when}}",
-        "updatedRecently": "recently",
-        "expiryUnknown": "Expiry unknown",
-        "expired": "Link expired",
-        "expires": "Link expires {{when}}",
-        "ArtifactPublishButton": {
-          "a4a49da6af": "Share as artifact",
-          "confirmTitle": "Share as artifact",
-          "confirmDescription": "This publishes the current file at a link anyone with the URL can view.",
-          "accountTitle": "ARCA account",
-          "accountDescription": "Sign in to create and manage this link.",
-          "signInAgain": "Sign in again",
-          "signIn": "Sign in",
-          "publishingOffTitle": "Artifact sharing is off",
-          "publishingOffDescription": "Learn about public links and enable sharing in Settings.",
-          "openSettings": "Open Artifacts settings",
-          "sharing": "Sharing…",
-          "sharePublicLink": "Generate link",
-          "publishedDescription": "Anyone with this link can view the shared file.",
-          "checkingLink": "Checking for an existing link…",
-          "checkFailed": "Could not check for an existing link.",
-          "tryAgain": "Try again"
+          "openArtifact": "Open artifact"
         },
         "artifact-publish-flow": {
-          "9a078a0c65": "Artifact sharing is unavailable",
-          "bba20daa6d": "Sign in to ARCA and try again.",
-          "54b1805328": "Could not share artifact",
-          "430019efd0": "Artifact shared",
-          "2fc727c831": "Artifact updated",
-          "5cb4f5ec36": "Copy link",
-          "fbb5018602": "This file is empty.",
-          "6112db5a1c": "This artifact is too large to share.",
-          "e2ed5acd8c": "ARCA couldn't read this file. Open it from a workspace and try again.",
-          "6d475e9b25": "Only local HTML and Markdown files can be shared as artifacts.",
-          "29a406be09": "Artifacts must contain text."
-        },
-        "ArtifactPublishedLinkPanel": {
-          "copyLink": "Copy link",
-          "openLink": "Open link",
-          "updating": "Updating…",
-          "update": "Update shared content"
-        },
-        "ArtifactDetailDrawer": {
-          "description": "Preview and manage this shared artifact."
-        },
-        "ArtifactListSearchField": {
-          "label": "Search artifacts",
-          "placeholder": "Search...",
-          "clear": "Clear search"
-        },
-        "ArtifactListTableHeader": {
-          "name": "Name",
-          "type": "Type",
-          "size": "Size",
-          "updated": "Updated",
-          "expires": "Expires",
-          "actions": "Actions"
-        },
-        "ArtifactsPageSkeleton": {
-          "loading": "Loading artifacts"
-        },
-        "expiredCompact": "Expired",
-        "typeMarkdown": "Markdown",
-        "typeHtml": "HTML"
+          "5cb4f5ec36": "Copy link"
+        }
       },
       "BrowserCookieImportMachineNotice": {
         "clientLabel": "Browsers on this device",

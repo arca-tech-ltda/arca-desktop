@@ -1,6 +1,5 @@
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react'
 import type { BrowserPage as BrowserPageState } from '../../../../../shared/browser-workspace-types'
-import type { ShareableBrowserArtifactFile } from '../describe-page/browser-artifact-upload'
 import type { GrabModeHook } from '../annotate/useGrabMode'
 import { BrowserPageToolbar } from './browser-page-toolbar'
 import { BrowserPageDownloadList } from '../navigate/browser-page-download-list'
@@ -29,8 +28,6 @@ export function BrowserPageChromeHeader({
   markupStart,
   markupCancel,
   grabElementShortcut,
-  shareableArtifactFile,
-  currentBrowserUrl,
   externalUrl,
   isBlankTab,
   resourceNotice,
@@ -54,8 +51,6 @@ export function BrowserPageChromeHeader({
   markupStart: () => Promise<void>
   markupCancel: () => void
   grabElementShortcut: string
-  shareableArtifactFile: ShareableBrowserArtifactFile | null
-  currentBrowserUrl: string
   externalUrl: string | null
   isBlankTab: boolean
   resourceNotice: string | null
@@ -98,8 +93,6 @@ export function BrowserPageChromeHeader({
         markupCancel={markupCancel}
         grabElementShortcut={grabElementShortcut}
         browserAnnotationsLength={annotationSend.browserAnnotations.length}
-        shareableArtifactFile={shareableArtifactFile}
-        currentBrowserUrl={currentBrowserUrl}
         externalUrl={externalUrl}
       />
       <BrowserPageDownloadList
