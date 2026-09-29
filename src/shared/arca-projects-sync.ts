@@ -3,6 +3,8 @@ export type ArcaCatalogEntry = {
   name: string
   url: string
   destination: string
+  title?: string
+  description?: string
   pathFromCatalog?: boolean
   archived?: boolean
   legacy?: boolean

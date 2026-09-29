@@ -83,6 +83,12 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       onChange: () => () => {},
       onRepoUpdated: () => () => {}
     },
+    arcaProjectCreation: {
+      // Desktop-only flow: the web client has no gh/git runner.
+      create: async () => ({ ok: false, steps: [] }),
+      publishEligibility: async () => ({ eligible: false, reason: 'remote_host' as const }),
+      onProgress: () => () => {}
+    },
     arcaMegamind: {
       prerequisites: async () => ({
         mode: 'managed' as const,

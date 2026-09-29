@@ -10,8 +10,7 @@ import { gitExecFileAsync } from './gh-utils'
 import { loadArcaCatalog, normalizeArcaRemote } from '../arca-projects-sync/catalog'
 import { scanArcaDisk } from '../arca-projects-sync/disk'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
-
-const ARCA_ORG = 'arca-tech-ltda'
+import { ARCA_ORG } from '../../shared/arca-project-creation'
 
 function isArcaRemote(remote: string): boolean {
   return normalizeArcaRemote(remote)?.startsWith(`github.com/${ARCA_ORG}/`) === true
@@ -79,13 +78,13 @@ export async function listArcaOrgProjects(includeHidden = false): Promise<ArcaPr
         const destination = found?.path ?? entry.destination
         return {
           name: entry.name,
-          description: entry.repoKey,
+          description: entry.title ?? entry.description ?? entry.repoKey,
           isArchived: entry.archived === true,
           url: entry.url,
           sshUrl: entry.url,
           pushedAt: '',
           destination,
-          catalogued: true,
+          catalogued: entry.source !== 'github',
           selected: !found,
           ...(await inspectArcaProjectDestination(destination, entry.url))
         }

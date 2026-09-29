@@ -4,6 +4,7 @@ import { managedAccountProjectsApi } from './api/managed-account-projects-bridge
 import { agentAuthorityApi } from './api/agent-authority-bridge'
 import { piAccountUsageApi } from './api/pi-account-usage-bridge'
 import { arcaProjectsSyncApi } from './api/arca-projects-sync-bridge'
+import { arcaProjectCreationApi } from './api/arca-project-creation-bridge'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { PreloadApi } from './api-types'
 import {
@@ -177,6 +178,7 @@ const api = {
   agentAuthority: agentAuthorityApi,
   piAccountUsage: piAccountUsageApi,
   arcaProjectsSync: arcaProjectsSyncApi,
+  arcaProjectCreation: arcaProjectCreationApi,
   arcaMegamind: arcaMegamindApi,
   arcaPriorities: arcaPrioritiesApi,
   notebook: notebookApi,

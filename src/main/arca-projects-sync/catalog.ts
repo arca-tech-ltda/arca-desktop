@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { object, readCredential, megamindConfigPath } from '../arca-megamind/credentials'
 import { callTool } from '../arca-megamind/gateway'
-import { ghExecFileAsync } from '../git/runner'
+import { discoverArcaOrgRepos } from './github-org-discovery'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import type { ArcaCatalogEntry } from '../../shared/arca-projects-sync'
 
@@ -72,6 +72,10 @@ export function parseCatalog(
           url: `https://${repoKey}.git`,
           destination: catalogDestination(home, relative),
           pathFromCatalog: typeof record.path === 'string',
+          ...(typeof project.title === 'string' && project.title ? { title: project.title } : {}),
+          ...(typeof record.description === 'string' && record.description
+            ? { description: record.description }
+            : {}),
           archived:
             catalogFlag(project, 'archived') ||
             catalogFlag(record, 'archived') ||
@@ -99,7 +103,12 @@ export function unionCatalogs(...catalogs: ArcaCatalogEntry[][]): ArcaCatalogEnt
           legacy: prior.legacy === true || entry.legacy === true
         }
         if (prior.source === 'mainframe' && !prior.pathFromCatalog && entry.source === 'file') {
-          result.set(entry.repoKey, { ...prior, ...visibility, destination: entry.destination })
+          result.set(entry.repoKey, {
+            ...prior,
+            ...visibility,
+            destination: entry.destination,
+            title: prior.title ?? entry.title
+          })
         } else if (visibility.archived !== prior.archived || visibility.legacy !== prior.legacy) {
           result.set(entry.repoKey, { ...prior, ...visibility })
         }
@@ -109,36 +118,12 @@ export function unionCatalogs(...catalogs: ArcaCatalogEntry[][]): ArcaCatalogEnt
   return [...result.values()]
 }
 
-let githubCache: { stdout: string; expires: number } | undefined
-let githubPending: Promise<string> | undefined
-
-async function githubCatalog(): Promise<string> {
-  if (githubCache && githubCache.expires > Date.now()) {
-    return githubCache.stdout
-  }
-  githubPending ??= ghExecFileAsync(
-    ['repo', 'list', 'arca-tech-ltda', '--limit', '100', '--json', 'url,isArchived'],
-    { timeout: 5_000 }
-  )
-    .then(({ stdout }) => {
-      const repos: unknown = JSON.parse(stdout)
-      return Array.isArray(repos) ? stdout : '[]'
-    })
-    .catch(() => '[]')
-    .then((stdout) => {
-      githubCache = { stdout, expires: Date.now() + 10 * 60_000 }
-      return stdout
-    })
-    .finally(() => {
-      githubPending = undefined
-    })
-  return githubPending
-}
-
 export async function loadArcaCatalog(
   home = homedir()
 ): Promise<{ entries: ArcaCatalogEntry[]; sources: string[]; errors: string[] }> {
   const paths = isWindowsAbsolutePathLike(home) ? path.win32 : path
+  // Started before the authoritative reads so discovery overlaps them instead of adding latency.
+  const discovery = discoverArcaOrgRepos()
   const catalogs: ArcaCatalogEntry[][] = []
   const sources: string[] = []
   const errors: string[] = []
@@ -181,14 +166,12 @@ export async function loadArcaCatalog(
   } catch (error) {
     errors.push(`projects.json: ${String(error)}`)
   }
-  // Authoritative catalogs suffice; optional discovery must not delay normal sync.
-  if (!sources.length) {
-    const repos: unknown = JSON.parse(await githubCatalog())
-    const entries = parseCatalog({ projects: [{ repos }] }, 'github', home)
-    if (entries.length) {
-      catalogs.push(entries)
-      sources.push('github')
-    }
+  // Discovery runs last so the authoritative catalogs keep the path and title of
+  // everything they list; it only adds org repositories neither of them knows about.
+  const discovered = parseCatalog({ projects: [{ repos: await discovery }] }, 'github', home)
+  if (discovered.length) {
+    catalogs.push(discovered)
+    sources.push('github')
   }
   return { entries: unionCatalogs(...catalogs), sources, errors }
 }

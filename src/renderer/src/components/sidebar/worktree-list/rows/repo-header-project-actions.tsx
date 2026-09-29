@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   CircleX,
+  CloudUpload,
   Ellipsis,
   Eye,
   FolderInput,
@@ -27,6 +28,8 @@ import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { getRepositoryIconSectionId } from '@/components/settings/repository-settings-targets'
 import { ProjectAccountSubmenu } from '@/components/settings/project-account-menu'
+import { ArcaCreateProjectDialog } from '@/components/arca-projects/ArcaCreateProjectDialog'
+import { useArcaPublishEligibility } from '@/components/arca-projects/use-arca-publish-eligibility'
 import type { ProjectGroup } from '../../../../../../shared/project-group-types'
 import type { Repo } from '../../../../../../shared/repo-types'
 import type { WorktreeVisibilityDefaults } from '../../../../../../shared/global-settings-types'
@@ -80,100 +83,124 @@ export function RepoHeaderProjectActionsMenu({
   projectGroups: readonly ProjectGroup[]
   actions: RepoHeaderProjectActions
 }): React.JSX.Element {
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const [publishOpen, setPublishOpen] = React.useState(false)
+  // Publishing runs git and gh on this machine, so it is offered for local projects only.
+  const publish = useArcaPublishEligibility(repo.connectionId ? undefined : repo.path, menuOpen)
   return (
-    <DropdownMenu modal={false}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              className={REPO_HEADER_ACTION_BUTTON_CLASS}
-              data-repo-header-action=""
-              aria-label={translate(
-                'auto.components.sidebar.WorktreeList.609633a9e6',
-                'Project actions for {{value0}}',
-                { value0: label }
-              )}
-              onClick={(event) => event.stopPropagation()}
-              onKeyDown={stopRepoHeaderKeyboardToggle}
-              onPointerDown={handleRepoHeaderActionPointerDown}
-            >
-              <Ellipsis className="size-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" sideOffset={6}>
-          {translate('auto.components.sidebar.WorktreeList.2ef41bf9a7', 'Project actions')}
-        </TooltipContent>
-      </Tooltip>
-      <DropdownMenuContent
-        align="end"
-        side="bottom"
-        sideOffset={6}
-        // Why: Radix portals keep React bubbling through the project header; block menu events from arming row drag/collapse.
-        onPointerDown={stopRepoHeaderMenuEvent}
-        onMouseDown={stopRepoHeaderMenuEvent}
-        onPointerUp={stopRepoHeaderMenuEvent}
-        onMouseUp={stopRepoHeaderMenuEvent}
-        onClick={stopRepoHeaderMenuEvent}
-        onKeyDown={stopRepoHeaderMenuEvent}
-      >
-        <DropdownMenuItem onSelect={() => actions.onOpenRepoSettings(repo.id)}>
-          <SlidersHorizontal className="size-3.5" />
-          {translate('auto.components.sidebar.WorktreeList.2cdffbc728', 'Project Settings')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => actions.onOpenRepoSettings(repo.id, getRepositoryIconSectionId(repo.id))}
+    <>
+      <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className={REPO_HEADER_ACTION_BUTTON_CLASS}
+                data-repo-header-action=""
+                aria-label={translate(
+                  'auto.components.sidebar.WorktreeList.609633a9e6',
+                  'Project actions for {{value0}}',
+                  { value0: label }
+                )}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={stopRepoHeaderKeyboardToggle}
+                onPointerDown={handleRepoHeaderActionPointerDown}
+              >
+                <Ellipsis className="size-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" sideOffset={6}>
+            {translate('auto.components.sidebar.WorktreeList.2ef41bf9a7', 'Project actions')}
+          </TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent
+          align="end"
+          side="bottom"
+          sideOffset={6}
+          // Why: Radix portals keep React bubbling through the project header; block menu events from arming row drag/collapse.
+          onPointerDown={stopRepoHeaderMenuEvent}
+          onMouseDown={stopRepoHeaderMenuEvent}
+          onPointerUp={stopRepoHeaderMenuEvent}
+          onMouseUp={stopRepoHeaderMenuEvent}
+          onClick={stopRepoHeaderMenuEvent}
+          onKeyDown={stopRepoHeaderMenuEvent}
         >
-          <Shapes className="size-3.5" />
-          {translate('auto.components.sidebar.WorktreeList.e82d3589a1', 'Change Project Icon')}
-        </DropdownMenuItem>
-        <ProjectAccountSubmenu projectPath={repo.path} connectionId={repo.connectionId} />
-        {isGitRepoKind(repo) ? (
-          <DropdownMenuItem onSelect={() => actions.onOpenWorktreeVisibility(repo)}>
-            <Eye className="size-3.5" />
-            {getWorktreeVisibilityMenuLabel(repo, actions.getWorktreeVisibilityDefaults(repo))}
+          <DropdownMenuItem onSelect={() => actions.onOpenRepoSettings(repo.id)}>
+            <SlidersHorizontal className="size-3.5" />
+            {translate('auto.components.sidebar.WorktreeList.2cdffbc728', 'Project Settings')}
           </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem onSelect={() => actions.onCreateGroupFromRepo(repo)}>
-          {/* Not FolderPlus: that now means "Add project" in the sidebar header above. */}
-          <FolderTree className="size-3.5" />
-          {translate('auto.components.sidebar.WorktreeList.cbfd565f83', 'New group from project')}
-        </DropdownMenuItem>
-        {projectGroups.length > 0 ? (
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <FolderInput className="size-3.5" />
-              {translate('auto.components.sidebar.WorktreeList.4a08fb55f2', 'Move to group')}
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              {projectGroups.map((group) => (
-                <DropdownMenuItem
-                  key={group.id}
-                  disabled={repo.projectGroupId === group.id}
-                  onSelect={() => actions.onMoveProjectToGroup(repo, group.id)}
-                >
-                  <span className="max-w-48 truncate">{group.name}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-        ) : null}
-        {repo.projectGroupId ? (
-          <DropdownMenuItem onSelect={() => actions.onRemoveProjectFromGroup(repo)}>
-            <CircleX className="size-3.5" />
-            {translate('auto.components.sidebar.WorktreeList.64e55f7f01', 'Remove from group')}
+          <DropdownMenuItem
+            onSelect={() =>
+              actions.onOpenRepoSettings(repo.id, getRepositoryIconSectionId(repo.id))
+            }
+          >
+            <Shapes className="size-3.5" />
+            {translate('auto.components.sidebar.WorktreeList.e82d3589a1', 'Change Project Icon')}
           </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onSelect={() => actions.onRemoveProject(repo)}>
-          <Trash2 className="size-3.5" />
-          {translate('auto.components.sidebar.WorktreeList.c83968f87f', 'Remove Project')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <ProjectAccountSubmenu projectPath={repo.path} connectionId={repo.connectionId} />
+          {isGitRepoKind(repo) ? (
+            <DropdownMenuItem onSelect={() => actions.onOpenWorktreeVisibility(repo)}>
+              <Eye className="size-3.5" />
+              {getWorktreeVisibilityMenuLabel(repo, actions.getWorktreeVisibilityDefaults(repo))}
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuItem onSelect={() => actions.onCreateGroupFromRepo(repo)}>
+            {/* Not FolderPlus: that now means "Add project" in the sidebar header above. */}
+            <FolderTree className="size-3.5" />
+            {translate('auto.components.sidebar.WorktreeList.cbfd565f83', 'New group from project')}
+          </DropdownMenuItem>
+          {projectGroups.length > 0 ? (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FolderInput className="size-3.5" />
+                {translate('auto.components.sidebar.WorktreeList.4a08fb55f2', 'Move to group')}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {projectGroups.map((group) => (
+                  <DropdownMenuItem
+                    key={group.id}
+                    disabled={repo.projectGroupId === group.id}
+                    onSelect={() => actions.onMoveProjectToGroup(repo, group.id)}
+                  >
+                    <span className="max-w-48 truncate">{group.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ) : null}
+          {repo.projectGroupId ? (
+            <DropdownMenuItem onSelect={() => actions.onRemoveProjectFromGroup(repo)}>
+              <CircleX className="size-3.5" />
+              {translate('auto.components.sidebar.WorktreeList.64e55f7f01', 'Remove from group')}
+            </DropdownMenuItem>
+          ) : null}
+          {publish?.eligible ? (
+            <DropdownMenuItem onSelect={() => setPublishOpen(true)}>
+              <CloudUpload className="size-3.5" />
+              {translate('components.arcaProjects.create.publishTitle', 'Publish to ARCA')}
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onSelect={() => actions.onRemoveProject(repo)}>
+            <Trash2 className="size-3.5" />
+            {translate('auto.components.sidebar.WorktreeList.c83968f87f', 'Remove Project')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {publish?.eligible ? (
+        <ArcaCreateProjectDialog
+          open={publishOpen}
+          onOpenChange={setPublishOpen}
+          sourcePath={repo.path}
+          {...(publish.suggestedName ? { initialName: publish.suggestedName } : {})}
+          {...(publish.suggestedType ? { initialType: publish.suggestedType } : {})}
+          {...(publish.originUrl ? { originUrl: publish.originUrl } : {})}
+        />
+      ) : null}
+    </>
   )
 }
 
