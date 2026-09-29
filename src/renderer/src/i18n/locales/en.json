@@ -17326,7 +17326,35 @@
       "addSelected": "Add selected",
       "added": "Added",
       "onDisk": "Already on disk",
-      "ready": "Ready to clone"
+      "ready": "Ready to clone",
+      "create": {
+        "publishTitle": "Publish to ARCA",
+        "title": "New ARCA project",
+        "publishDescription": "Creates a private repository in arca-tech-ltda, pushes this folder to it and adds it to the ARCA catalog.",
+        "description": "Creates a private repository in arca-tech-ltda, clones it under ~/ARCA and adds it to the ARCA catalog.",
+        "pullRequestOpen": "The catalog pull request is open and waiting for someone who can merge it: {{value0}}",
+        "close": "Close",
+        "publishAction": "Publish",
+        "createAction": "Create project",
+        "nameEmpty": "Give the project a name.",
+        "nameLength": "Use at most 64 characters.",
+        "nameCharset": "Use lowercase letters, numbers and single dashes, for example riva-radar-licitacoes.",
+        "nameLabel": "Name",
+        "nameHint": "Repository name in arca-tech-ltda and folder under ~/ARCA.",
+        "typeLabel": "Type",
+        "titleLabel": "Catalog title (optional)",
+        "descriptionLabel": "Description",
+        "remoteLabel": "Remote name",
+        "remoteHint": "This folder already has an origin pointing to {{value0}}, so the ARCA remote is added under another name.",
+        "moveLabel": "Also move the folder to ~/ARCA/{{value0}}/{{value1}}",
+        "mainframeSkipped": "The Mainframe has no project-registration tool; it imports projects.json once the pull request is merged.",
+        "stepCreateRepo": "Create the private repository on GitHub",
+        "stepPublishFolder": "Commit the folder and push it",
+        "stepSeedRepo": "Clone it and add README.md and STATUS.md",
+        "stepRegister": "Add the project to the app",
+        "stepCatalogPr": "Open the catalog pull request on arca",
+        "stepMainframe": "Register it on the Mainframe"
+      }
     },
     "featureWall": {
       "arcaCli": {

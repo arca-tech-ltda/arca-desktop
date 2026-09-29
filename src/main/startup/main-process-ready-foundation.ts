@@ -5,6 +5,7 @@ import {
 } from '../agent-authority/agent-authority-state'
 import { applyAgentAuthorityRegistrations } from './agent-authority-registrations'
 import { registerArcaProjectsSync } from '../arca-projects-sync/service'
+import { registerArcaProjectCreation } from '../arca-projects-create/registration'
 import { app, session } from 'electron'
 import { electronApp, is } from '@electron-toolkit/utils'
 import { applyBackgroundActivationPolicy } from '../window/foreground-activation-policy'
@@ -149,6 +150,7 @@ export async function initializeReadyFoundation(): Promise<void> {
   })
   state.store = store
   registerArcaProjectsSync(store)
+  registerArcaProjectCreation(store)
   registerAgentAuthority(store)
   onAgentAuthorityChanged((authority) => applyAgentAuthorityRegistrations(authority.mode, store))
   applyAgentAuthorityRegistrations(getAgentAuthorityMode(), store)

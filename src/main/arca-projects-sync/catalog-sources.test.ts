@@ -9,8 +9,10 @@ vi.mock('../arca-megamind/credentials', () => ({
 vi.mock('../arca-megamind/gateway', () => ({ callTool: mocks.tool }))
 vi.mock('../git/runner', () => ({ ghExecFileAsync: mocks.gh }))
 import { loadArcaCatalog } from './catalog'
+import { resetArcaOrgDiscoveryCache } from './github-org-discovery'
 beforeEach(() => {
   vi.resetAllMocks()
+  resetArcaOrgDiscoveryCache()
 })
 it('paginates Mainframe and unions the file without requiring git pull', async () => {
   mocks.tool
@@ -35,8 +37,8 @@ it('paginates Mainframe and unions the file without requiring git pull', async (
     stdout: JSON.stringify([{ url: 'https://github.com/arca-tech-ltda/legacy' }])
   })
   const result = await loadArcaCatalog('/home/ana')
-  expect(result.entries).toHaveLength(2)
-  expect(result.sources).toEqual(['mainframe', 'file'])
+  expect(result.entries.map((entry) => entry.name)).toEqual(['new', 'mcscala', 'legacy'])
+  expect(result.sources).toEqual(['mainframe', 'file', 'github'])
   expect(mocks.tool.mock.calls[1][3]).toEqual({ limit: 100, cursor: 'new' })
   expect(result.entries[1].destination).toBe('/home/ana/ARCA/clientes/mcdonalds-escalas')
 })
@@ -50,10 +52,9 @@ it('uses the file even when Mainframe and GitHub are unavailable', async () => {
   expect(result.sources).toEqual(['file'])
   expect(result.entries[0].repoKey).toBe('github.com/dkelles/mcscala')
   expect(result.errors).toHaveLength(1)
-  expect(mocks.gh).not.toHaveBeenCalled()
 })
 
-it('bounds fallback discovery and caches failures for ten minutes', async () => {
+it('bounds discovery to one paginated call and caches it for ten minutes', async () => {
   vi.useFakeTimers()
   try {
     mocks.tool.mockRejectedValue(new Error('offline'))
@@ -61,8 +62,8 @@ it('bounds fallback discovery and caches failures for ten minutes', async () => 
     mocks.gh.mockRejectedValue(new Error('timeout'))
     await Promise.all([loadArcaCatalog('/a'), loadArcaCatalog('/b')])
     expect(mocks.gh).toHaveBeenCalledTimes(1)
-    expect(mocks.gh).toHaveBeenCalledWith(expect.arrayContaining(['--limit', '100']), {
-      timeout: 5000
+    expect(mocks.gh).toHaveBeenCalledWith(expect.arrayContaining(['--limit', '200']), {
+      timeout: 10_000
     })
     await loadArcaCatalog('/a')
     expect(mocks.gh).toHaveBeenCalledTimes(1)
@@ -72,4 +73,71 @@ it('bounds fallback discovery and caches failures for ten minutes', async () => 
   } finally {
     vi.useRealTimers()
   }
+})
+
+it('offers an org repository the catalogs never listed', async () => {
+  mocks.tool.mockResolvedValue({ items: [], next_cursor: null })
+  mocks.read.mockResolvedValue(
+    JSON.stringify({
+      projects: [{ id: 'isaro', repos: [{ url: 'https://github.com/arca-tech-ltda/isaro.git' }] }]
+    })
+  )
+  mocks.gh.mockResolvedValue({
+    stdout: JSON.stringify([
+      { url: 'https://github.com/arca-tech-ltda/riva-radar-licitacoes', description: 'Radar' }
+    ])
+  })
+  const result = await loadArcaCatalog('/home/ana')
+  const discovered = result.entries.find((entry) => entry.name === 'riva-radar-licitacoes')
+  expect(discovered).toMatchObject({
+    source: 'github',
+    description: 'Radar',
+    destination: '/home/ana/ARCA/clientes/riva-radar-licitacoes'
+  })
+})
+
+it('keeps the catalog path and title when the org also reports the repository', async () => {
+  mocks.tool.mockRejectedValue(new Error('offline'))
+  mocks.read.mockResolvedValue(
+    JSON.stringify({
+      projects: [
+        {
+          id: 'wgs',
+          title: 'WGS — Controles de frota',
+          repos: [
+            {
+              url: 'https://github.com/arca-tech-ltda/wgs-sistema.git',
+              path: 'clientes/wgs-sistema'
+            }
+          ]
+        }
+      ]
+    })
+  )
+  mocks.gh.mockResolvedValue({
+    stdout: JSON.stringify([
+      { url: 'https://github.com/arca-tech-ltda/wgs-sistema', description: 'from github' }
+    ])
+  })
+  const result = await loadArcaCatalog('/home/ana')
+  expect(result.entries).toHaveLength(1)
+  expect(result.entries[0]).toMatchObject({
+    source: 'file',
+    title: 'WGS — Controles de frota',
+    destination: '/home/ana/ARCA/clientes/wgs-sistema'
+  })
+})
+
+it('marks a repository archived on GitHub even when the catalog still lists it', async () => {
+  mocks.tool.mockRejectedValue(new Error('offline'))
+  mocks.read.mockResolvedValue(
+    JSON.stringify({
+      projects: [{ id: 'old', repos: [{ url: 'https://github.com/arca-tech-ltda/old.git' }] }]
+    })
+  )
+  mocks.gh.mockResolvedValue({
+    stdout: JSON.stringify([{ url: 'https://github.com/arca-tech-ltda/old', isArchived: true }])
+  })
+  const result = await loadArcaCatalog('/home/ana')
+  expect(result.entries[0].archived).toBe(true)
 })

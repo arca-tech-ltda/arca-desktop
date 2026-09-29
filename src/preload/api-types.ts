@@ -4,6 +4,7 @@ import type { ManagedAccountProjectsApi } from '../shared/managed-account-projec
 import type { AgentAuthorityApi } from '../shared/agent-authority'
 import type { PiAccountUsageApi } from '../shared/pi-account-usage'
 import type { ArcaProjectsSyncApi } from '../shared/arca-projects-sync'
+import type { ArcaProjectCreationApi } from '../shared/arca-project-creation'
 import type { ArcaMegamindApi } from '../shared/arca-megamind'
 import type {
   ClaudeAccountsApi,
@@ -145,6 +146,7 @@ export type PreloadApi = {
   agentAuthority: AgentAuthorityApi
   piAccountUsage: PiAccountUsageApi
   arcaProjectsSync: ArcaProjectsSyncApi
+  arcaProjectCreation: ArcaProjectCreationApi
   arcaMegamind: ArcaMegamindApi
   arcaPriorities: ArcaPrioritiesApi
   stats: StatsApi
