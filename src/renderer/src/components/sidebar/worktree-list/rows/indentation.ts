@@ -38,9 +38,15 @@ export function getWorktreeCardContentIndent(args: {
   groupDepth: number
   lineageDepth: number
 }): number {
-  const groupSteps = args.isGrouped ? clampDepth(args.groupDepth) + 1 : 0
-  const projectCardIndent = args.isGrouped ? PROJECT_WORKTREE_CARD_EXTRA_INDENT : 0
-  return (groupSteps + clampDepth(args.lineageDepth)) * SIDEBAR_TREE_INDENT + projectCardIndent
+  const lineageIndent = clampDepth(args.lineageDepth) * SIDEBAR_TREE_INDENT
+  if (!args.isGrouped) {
+    return lineageIndent
+  }
+  // Why: one header step under its own project header, the same rhythm folder-scanned
+  // repos already use, so group > project > workspace steps evenly (#sidebar-legibility).
+  return (
+    getProjectGroupHeaderPaddingLeft(args.groupDepth) + PROJECT_GROUP_HEADER_INDENT + lineageIndent
+  )
 }
 
 export function getFolderBackedRepoWorktreeCardContentIndent(args: {
@@ -147,7 +153,19 @@ export function getWorktreeCardSurfaceInset(args: {
   isGrouped: boolean
   groupDepth: number
 }): number {
-  return args.isGrouped ? clampDepth(args.groupDepth) * GROUPED_WORKTREE_CARD_SURFACE_INDENT : 0
+  if (!args.isGrouped) {
+    return 0
+  }
+  const contentAnchor = getWorktreeCardContentIndent({
+    isGrouped: true,
+    groupDepth: args.groupDepth,
+    lineageDepth: 0
+  })
+  // Why: caps the surface so flush-card margin plus minimum padding can't overshoot the anchor.
+  return Math.min(
+    clampDepth(args.groupDepth) * GROUPED_WORKTREE_CARD_SURFACE_INDENT,
+    Math.max(0, contentAnchor - WORKTREE_CARD_SURFACE_MARGIN - FLUSH_CARD_MIN_CONTENT_INSET)
+  )
 }
 
 export function getFlushWorktreeCardPaddingLeft(

@@ -507,7 +507,8 @@ describe('WorktreeCard compact hover details', () => {
     )
 
     expectIdentityBodyIsHoverTrigger(markup)
-    expect(markup.match(/feature\/local-branch/g)).toHaveLength(3)
+    // Why: title plus hover copy only — no card style repeats the branch under its own title.
+    expect(markup.match(/feature\/local-branch/g)).toHaveLength(2)
   })
 
   it('keeps detailed metadata hover scoped to metadata icons by default', async () => {

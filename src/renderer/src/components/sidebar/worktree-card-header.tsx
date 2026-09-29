@@ -75,13 +75,13 @@ export function WorktreeCardHeader({
     setRenamingWorktreeId,
     titleRenaming,
     handleOpenRenameErrorDialog,
-    isFolder,
     handleWorkspaceQuickAction
   } = card
   const {
     showPinnedRepoIcon,
     showInlineRepoBadge,
     showHeaderActions,
+    showPrimaryMarker,
     showTitleRowPrimary,
     showDeleteQuickAction,
     showTitleRowIndicators,
@@ -214,15 +214,16 @@ export function WorktreeCardHeader({
             </TooltipContent>
           </Tooltip>
         ) : null}
-        {!compactCards && worktree.isMainWorktree && !isFolder && (
+        {!compactCards && showPrimaryMarker && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge
-                variant="outline"
-                className="h-[16px] px-1.5 text-[10px] font-medium rounded shrink-0 leading-none text-foreground/70 border-foreground/20 bg-foreground/[0.06]"
+              {/* Why: a quiet caption, not a pill — the worktree name is what the user scans for. */}
+              <span
+                tabIndex={0}
+                className="shrink-0 text-[10px] leading-none text-muted-foreground"
               >
                 {translate('auto.components.sidebar.WorktreeCard.7d517f82e2', 'primary')}
-              </Badge>
+              </span>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8}>
               {translate(

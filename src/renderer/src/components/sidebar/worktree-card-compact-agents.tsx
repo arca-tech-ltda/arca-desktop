@@ -110,11 +110,9 @@ export function CompactAgentSummaryButton({
         // Why: worktree-sidebar-accent is near-white in light mode and dark in dark
         // mode, so hover lightening needs a theme-specific token mix.
         'hover:bg-worktree-sidebar-accent/55 dark:hover:bg-worktree-sidebar-foreground/[0.035]',
-        // Why: expanded is a tree header inside the card, so only the
-        // standalone collapsed pill gets a resting surface and border.
-        expanded
-          ? 'compact-agent-summary-button-expanded'
-          : 'border border-worktree-sidebar-border/70 bg-worktree-sidebar-accent/35'
+        // Why: expanded is a tree header inside the card, so only the collapsed
+        // pill gets a resting surface — no border, which would read as card state.
+        expanded ? 'compact-agent-summary-button-expanded' : 'bg-worktree-sidebar-accent/35'
       )}
       aria-label={
         expanded

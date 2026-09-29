@@ -214,13 +214,13 @@ describe('WorktreeList lineage child card renderer', () => {
     const surfaceOpeningTag = getFolderWorkspaceSurfaceOpeningTag(markup, 'folder-workspace-1')
     const cardContentIndent = getDataNumber(cardOpeningTag, 'data-content-indent')
 
-    expect(cardOpeningTag).toContain('data-content-indent="24"')
+    expect(cardOpeningTag).toContain('data-content-indent="16"')
     expect(
       getFlushCardContentStart({
         cardContentIndent,
         surfaceInset: getPaddingLeft(surfaceOpeningTag)
       })
-    ).toBe(38)
+    ).toBe(30)
   })
 
   it('caps nested folder workspace surfaces to keep compact final anchors', async () => {

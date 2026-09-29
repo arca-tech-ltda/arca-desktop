@@ -231,6 +231,51 @@ describe('buildImportedWorktreesCardCandidates', () => {
     })
   })
 
+  // Why: the "N agents working" summary line is fed by these candidates. If it ever
+  // picked up a worktree the sidebar already renders as a card, it would just repeat
+  // that card's agent row; its only job is agents in worktrees with no card.
+  it('never summarizes agents from worktrees the sidebar already shows as cards', () => {
+    const candidates = buildImportedWorktreesCardCandidates({
+      repos: [repo],
+      detectedWorktreesByRepo: {
+        [repo.id]: detectedResult([
+          detectedWorktree({
+            id: 'repo-1::/repo/worktrees/shown',
+            path: '/repo/worktrees/shown',
+            visible: true,
+            agentWork: { source: 'marker', agent: 'claude', task: 'Shown in a card' }
+          }),
+          detectedWorktree({
+            id: 'repo-1::/tmp/arca-hidden-wt',
+            path: '/tmp/arca-hidden-wt',
+            visible: false,
+            agentWork: { source: 'marker', agent: 'codex', task: 'No card for this one' }
+          })
+        ])
+      }
+    })
+
+    expect(candidates.get(repo.id)?.agentWorktrees).toEqual([
+      expect.objectContaining({ id: 'repo-1::/tmp/arca-hidden-wt' })
+    ])
+  })
+
+  it('builds no candidate when a project only has agents inside worktrees it already shows', () => {
+    expect(
+      buildImportedWorktreesCardCandidates({
+        repos: [repo],
+        detectedWorktreesByRepo: {
+          [repo.id]: detectedResult([
+            detectedWorktree({
+              visible: true,
+              agentWork: { source: 'marker', agent: 'claude', task: 'Shown in a card' }
+            })
+          ])
+        }
+      }).size
+    ).toBe(0)
+  })
+
   it('builds no candidate when a dismissed project has only ordinary discovered worktrees', () => {
     expect(
       buildImportedWorktreesCardCandidates({

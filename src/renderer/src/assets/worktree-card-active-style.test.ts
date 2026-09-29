@@ -28,19 +28,29 @@ describe('worktree card active styling', () => {
     expect(darkPrimary).toContain(
       'background: color-mix(in srgb, var(--worktree-sidebar-foreground) 10%, transparent)'
     )
-    expect(darkPrimary).toContain('var(--worktree-sidebar-border)')
   })
 
-  it('keeps the secondary selection ring when CSS owns the active state', () => {
-    const secondary = getCssRuleBody(
-      "[data-worktree-card-surface][data-worktree-card-active='secondary']"
-    )
-    const darkSecondary = getCssRuleBody(
+  it('carries selection with surface only, never a card border or shadow', () => {
+    for (const selector of [
+      "[data-worktree-card-surface][data-worktree-card-active='primary']",
+      ".dark [data-worktree-card-surface][data-worktree-card-active='primary']",
+      "[data-worktree-card-surface][data-worktree-card-active='secondary']",
       ".dark [data-worktree-card-surface][data-worktree-card-active='secondary']"
-    )
+    ]) {
+      const body = getCssRuleBody(selector)
+      expect(body).toContain('background:')
+      expect(body).not.toContain('border-color:')
+      expect(body).not.toContain('box-shadow:')
+    }
+  })
 
-    expect(secondary).toContain('var(--sidebar-ring) 15%')
-    expect(darkSecondary).toContain('var(--sidebar-ring) 18%')
+  it('keeps the secondary selection wash on the sidebar accent token', () => {
+    expect(
+      getCssRuleBody("[data-worktree-card-surface][data-worktree-card-active='secondary']")
+    ).toContain('var(--sidebar-accent) 45%')
+    expect(
+      getCssRuleBody(".dark [data-worktree-card-surface][data-worktree-card-active='secondary']")
+    ).toContain('var(--sidebar-accent) 34%')
   })
 
   it('dims sleeping cards through theme tokens so the cue survives any surface', () => {

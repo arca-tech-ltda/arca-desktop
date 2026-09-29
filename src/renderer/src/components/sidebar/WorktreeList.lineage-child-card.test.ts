@@ -207,7 +207,7 @@ describe('WorktreeList lineage child card renderer', () => {
     const markup = await renderWorktreeListMarkup()
 
     expect(getOptionOpeningTag(markup, 'child')).toContain('padding-left:14px')
-    expect(getCardOpeningTag(markup, 'child')).toContain('data-content-indent="24"')
+    expect(getCardOpeningTag(markup, 'child')).toContain('data-content-indent="16"')
     expect(getCardOpeningTag(markup, 'child')).toContain('data-flush-surface="true"')
   })
 
@@ -218,7 +218,7 @@ describe('WorktreeList lineage child card renderer', () => {
     const parentRow = getOptionOpeningTag(markup, 'parent')
 
     expect(parentRow).toContain('padding-left:14px')
-    expect(getCardOpeningTag(markup, 'parent')).toContain('data-content-indent="24"')
+    expect(getCardOpeningTag(markup, 'parent')).toContain('data-content-indent="16"')
     expect(getCardOpeningTag(markup, 'parent')).toContain('data-flush-surface="true"')
   })
 

@@ -51,13 +51,24 @@ describe('worktree list indentation', () => {
       20
     )
     expect(getWorktreeCardContentIndent({ isGrouped: true, groupDepth: 1, lineageDepth: 0 })).toBe(
-      38
+      30
     )
+  })
+
+  it('steps grouped workspace content evenly with the project header grid', () => {
+    const headerSteps = [0, 1, 2, 3].map((groupDepth) =>
+      getProjectGroupHeaderPaddingLeft(groupDepth)
+    )
+    const cardSteps = [0, 1, 2, 3].map((groupDepth) =>
+      getWorktreeCardContentIndent({ isGrouped: true, groupDepth, lineageDepth: 0 })
+    )
+
+    expect(cardSteps).toEqual(headerSteps.map((padding) => padding + 10))
   })
 
   it('adds lineage depth after project/group depth', () => {
     expect(getWorktreeCardContentIndent({ isGrouped: true, groupDepth: 1, lineageDepth: 2 })).toBe(
-      74
+      66
     )
   })
 
@@ -76,7 +87,7 @@ describe('worktree list indentation', () => {
   it('caps folder-scanned repo worktree surfaces before they overshoot the compact anchor', () => {
     expect(getFolderBackedRepoWorktreeCardSurfaceInset({ groupDepth: 1, lineageDepth: 0 })).toBe(14)
     expect(getFolderBackedRepoWorktreeCardSurfaceInset({ groupDepth: 4, lineageDepth: 0 })).toBe(54)
-    expect(getFolderBackedRepoWorktreeCardSurfaceInset({ groupDepth: 4, lineageDepth: 1 })).toBe(56)
+    expect(getFolderBackedRepoWorktreeCardSurfaceInset({ groupDepth: 4, lineageDepth: 1 })).toBe(54)
   })
 
   it('keeps folder workspace content one step under its owning group', () => {
@@ -133,9 +144,9 @@ describe('worktree list indentation', () => {
 
     expect(geometry).toEqual({
       surfaceInset: 14,
-      cardContentIndent: 24
+      cardContentIndent: 16
     })
-    expect(getFlushCardContentStart(geometry)).toBe(38)
+    expect(getFlushCardContentStart(geometry)).toBe(30)
   })
 
   it('uses comparable repo worktree geometry for experimental folder-scanned folder workspaces', () => {
@@ -181,9 +192,9 @@ describe('worktree list indentation', () => {
 
     expect(geometry).toEqual({
       surfaceInset: 14,
-      cardContentIndent: 24
+      cardContentIndent: 16
     })
-    expect(getFlushCardContentStart(geometry)).toBe(38)
+    expect(getFlushCardContentStart(geometry)).toBe(30)
   })
 
   it('keeps experimental flat folder workspaces on normal worktree geometry', () => {

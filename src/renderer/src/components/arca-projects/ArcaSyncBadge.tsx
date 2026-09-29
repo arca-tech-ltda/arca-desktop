@@ -1,7 +1,7 @@
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import type { Repo } from '../../../../shared/repo-types'
 import { translate } from '@/i18n/i18n'
-import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ArcaSyncRow } from '../../../../shared/arca-projects-sync'
 import { useArcaProjectsSync } from './use-arca-projects-sync'
@@ -45,17 +45,39 @@ function withBehind(label: string, row: ArcaSyncRow): string {
     : label
 }
 
+// Why: "updated" is the resting state of every synced project, so naming it in the
+// header only competes with the project name. Only states asking for action show.
+export function isAttentionArcaSyncState(state: ArcaSyncRow['state']): boolean {
+  return state !== 'updated'
+}
+
+function isFailedArcaSyncState(state: ArcaSyncRow['state']): boolean {
+  return state === 'error' || state === 'inaccessible' || state === 'conflict'
+}
+
 export function ArcaSyncBadge({ repo }: { repo: Repo }): React.JSX.Element | null {
   const status = useArcaProjectsSync()
   const row = status.projects.find((project) => project.repoId === repo.id)
   if (!row || getRepoExecutionHostId(repo) !== 'local') {
     return null
   }
+  if (!isAttentionArcaSyncState(row.state)) {
+    return null
+  }
+  const label = arcaSyncLabel(row)
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span tabIndex={0}>
-          <Badge variant="outline">{arcaSyncLabel(row)}</Badge>
+        <span
+          tabIndex={0}
+          data-arca-sync-indicator={row.state}
+          aria-label={label}
+          className={cn(
+            'min-w-0 shrink truncate text-[11px] leading-none',
+            isFailedArcaSyncState(row.state) ? 'text-destructive' : 'text-muted-foreground'
+          )}
+        >
+          {label}
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-sm whitespace-pre-wrap break-words">
