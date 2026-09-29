@@ -53,7 +53,9 @@ describe('Project Group header drag DOM source', () => {
     expect(headerBlock).toContain(
       "!(isDraggableRepoHeader || isDraggableProjectGroupHeader) && 'cursor-pointer'"
     )
-    expect(headerBlock).toContain("'flex min-w-0 flex-1 items-center gap-1.5 self-stretch'")
+    expect(headerBlock).toContain(
+      "'relative flex min-w-0 flex-1 items-center gap-1.5 self-stretch'"
+    )
     expect(headerBlock).toContain("'cursor-grab active:cursor-grabbing'")
     // Row-level ternary grab must stay gone.
     expect(headerBlock).not.toMatch(

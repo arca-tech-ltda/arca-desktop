@@ -22,6 +22,7 @@ import {
   getOptionOpeningTag,
   getPaddingLeft
 } from './worktree-list-card-markup-queries'
+import { SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX } from './SidebarTreeGuide'
 import { setLineageFixtureState } from './worktree-list-lineage-store-state'
 import { setPinnedFixtureState } from './worktree-list-pinned-store-state'
 
@@ -189,7 +190,10 @@ describe('WorktreeList lineage child card renderer', () => {
     const parentRow = getOptionOpeningTag(markup, 'parent')
 
     expect(parentRow).not.toContain('padding-left')
-    expect(getCardOpeningTag(markup, 'parent')).toContain('data-content-indent="20"')
+    // A parent with lineage children is a branch node, so it also takes the tree lane.
+    expect(getCardOpeningTag(markup, 'parent')).toContain(
+      `data-content-indent="${20 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX}"`
+    )
     expect(getCardOpeningTag(markup, 'parent')).toContain('data-flush-surface="true"')
   })
 
@@ -218,7 +222,9 @@ describe('WorktreeList lineage child card renderer', () => {
     const parentRow = getOptionOpeningTag(markup, 'parent')
 
     expect(parentRow).toContain('padding-left:14px')
-    expect(getCardOpeningTag(markup, 'parent')).toContain('data-content-indent="16"')
+    expect(getCardOpeningTag(markup, 'parent')).toContain(
+      `data-content-indent="${16 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX}"`
+    )
     expect(getCardOpeningTag(markup, 'parent')).toContain('data-flush-surface="true"')
   })
 
@@ -231,14 +237,16 @@ describe('WorktreeList lineage child card renderer', () => {
     const cardContentIndent = getDataNumber(cardOpeningTag, 'data-content-indent')
 
     expect(parentRow).toContain('padding-left:14px')
-    expect(cardOpeningTag).toContain('data-content-indent="16"')
+    expect(cardOpeningTag).toContain(
+      `data-content-indent="${16 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX}"`
+    )
     expect(cardOpeningTag).toContain('data-flush-surface="true"')
     expect(
       getFlushCardContentStart({
         cardContentIndent,
         surfaceInset: getPaddingLeft(parentRow)
       })
-    ).toBe(30)
+    ).toBe(30 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX)
   })
 
   it('caps deeply nested folder-scanned repo worktree surfaces at the compact anchor', async () => {
@@ -254,12 +262,14 @@ describe('WorktreeList lineage child card renderer', () => {
     const cardContentIndent = getDataNumber(cardOpeningTag, 'data-content-indent')
 
     expect(parentRow).toContain('padding-left:54px')
-    expect(cardOpeningTag).toContain('data-content-indent="6"')
+    expect(cardOpeningTag).toContain(
+      `data-content-indent="${6 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX}"`
+    )
     expect(
       getFlushCardContentStart({
         cardContentIndent,
         surfaceInset: getPaddingLeft(parentRow)
       })
-    ).toBe(60)
+    ).toBe(60 + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX)
   })
 })

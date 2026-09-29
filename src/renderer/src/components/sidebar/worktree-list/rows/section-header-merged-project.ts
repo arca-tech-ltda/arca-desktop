@@ -9,12 +9,15 @@ export type MergedProjectHeader = {
   /** Set when this project header stands in for its only worktree. */
   mergedWorktree: Worktree | undefined
   mergedBranchLabel: string | null
+  /** The header replaces that worktree's card, so it also owes its selected fill. */
+  isActiveMergedWorktree: boolean
   activateMergedWorktree: () => void
 }
 
 export function resolveMergedProjectHeader(args: {
   row: GroupHeaderRow
   tree: SidebarTreeModel
+  activeWorktreeId: string | null
   onWorktreeCardClick?: () => void
   onImmediateActivate: (worktreeId: string, rowKey: string | undefined) => void
 }): MergedProjectHeader {
@@ -23,6 +26,8 @@ export function resolveMergedProjectHeader(args: {
   const identity = mergedWorktree ? getWorktreeGitIdentityDisplay(mergedWorktree) : null
   return {
     mergedWorktree,
+    isActiveMergedWorktree:
+      mergedWorktree !== undefined && args.activeWorktreeId === mergedWorktree.id,
     mergedBranchLabel:
       identity?.kind === 'branch'
         ? identity.branchName

@@ -1296,11 +1296,14 @@ html.native-shell .app-layout {
 
 /* Why: a translucent wash is the whole selected state. Borders on sidebar cards
    read as an unexplained per-card difference, so selection carries surface only. */
-[data-worktree-card-surface][data-worktree-card-active='primary'] {
+/* The merged project header replaces its worktree's card, so it shares the fill. */
+[data-worktree-card-surface][data-worktree-card-active='primary'],
+[data-project-header-active='true'] {
   background: color-mix(in srgb, var(--worktree-sidebar-foreground) 8%, transparent);
 }
 
-.dark [data-worktree-card-surface][data-worktree-card-active='primary'] {
+.dark [data-worktree-card-surface][data-worktree-card-active='primary'],
+.dark [data-project-header-active='true'] {
   background: color-mix(in srgb, var(--worktree-sidebar-foreground) 10%, transparent);
 }
 

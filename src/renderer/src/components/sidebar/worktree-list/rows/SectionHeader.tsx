@@ -19,6 +19,7 @@ import type { GroupHeaderRow, WorktreeGroupBy } from '../grouping/row-types'
 import { PINNED_GROUP_KEY } from '../grouping/group-keys'
 import WorktreeContextMenu from '../../WorktreeContextMenu'
 import type { SidebarTreeModel } from '../../sidebar-tree-model'
+import { MergedProjectHeaderFill } from './MergedProjectHeaderFill'
 import { resolveMergedProjectHeader } from './section-header-merged-project'
 import { resolveSectionHeaderCreateAffordances } from './section-header-create-affordances'
 import { getWorkspaceStatusFromGroupKey } from '../../workspace-status'
@@ -57,6 +58,7 @@ export type SectionHeaderRowContext = {
   sshConnectionStates: AppState['sshConnectionStates']
   /** Which project headers carry a single worktree's branch and agents. */
   tree: SidebarTreeModel
+  activeWorktreeId: string | null
   selectedWorktrees: readonly Worktree[]
   onContextMenuSelect: (
     event: React.MouseEvent<HTMLElement>,
@@ -133,12 +135,14 @@ export function renderWorktreeSectionHeaderRow(args: {
   const isHeaderCollapsed = ctx.collapsedGroups.has(row.key)
   // A project with exactly one worktree prints one line: the branch rides the
   // project name and the row activates that worktree instead of collapsing.
-  const { mergedWorktree, mergedBranchLabel, activateMergedWorktree } = resolveMergedProjectHeader({
-    row,
-    tree: ctx.tree,
-    onWorktreeCardClick: ctx.onWorktreeCardClick,
-    onImmediateActivate: ctx.onImmediateActivate
-  })
+  const { mergedWorktree, mergedBranchLabel, isActiveMergedWorktree, activateMergedWorktree } =
+    resolveMergedProjectHeader({
+      row,
+      tree: ctx.tree,
+      activeWorktreeId: ctx.activeWorktreeId,
+      onWorktreeCardClick: ctx.onWorktreeCardClick,
+      onImmediateActivate: ctx.onImmediateActivate
+    })
   // Why: repo/project/status/pinned share compact section chrome; flat "All" stays a simple label.
   const showHeaderCollapseAffordance =
     !mergedWorktree &&
@@ -251,6 +255,7 @@ export function renderWorktreeSectionHeaderRow(args: {
         }
       }}
     >
+      <MergedProjectHeaderFill active={isActiveMergedWorktree} />
       {/* Why: grab cursor on icon+title only. Row still has handle attrs so
             indent/padding can arm drag; actions are excluded via data-repo-header-actions.
             self-stretch fills h-7 so grab matches the full title column height. */}
@@ -258,7 +263,7 @@ export function renderWorktreeSectionHeaderRow(args: {
         data-repo-header-drag-handle={isDraggableRepoHeader ? '' : undefined}
         data-project-group-header-drag-handle={isDraggableProjectGroupHeader ? '' : undefined}
         className={cn(
-          'flex min-w-0 flex-1 items-center gap-1.5 self-stretch',
+          'relative flex min-w-0 flex-1 items-center gap-1.5 self-stretch',
           (isDraggableRepoHeader || isDraggableProjectGroupHeader) &&
             'cursor-grab active:cursor-grabbing'
         )}

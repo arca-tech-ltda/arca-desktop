@@ -82,6 +82,7 @@ export function buildWorktreeVirtualRowContext(args: BuildArgs): WorktreeVirtual
       projectGroups: args.projectGroups,
       sshConnectionStates: args.sshConnectionStates,
       tree,
+      activeWorktreeId: props.activeWorktreeId,
       selectedWorktrees: props.selectedWorktrees,
       onContextMenuSelect: props.onContextMenuSelect,
       onImmediateActivate: primaryActive.handleImmediateWorktreeRowActivate,

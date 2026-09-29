@@ -26,7 +26,11 @@ import { getWorktreeOptionId } from './option-dom'
 import type { WorktreeRowDragState } from '../drag/row-state'
 import WorktreeCardAgents from '../../WorktreeCardAgents'
 import type { SidebarTreeModel } from '../../sidebar-tree-model'
-import { SIDEBAR_TREE_GUIDE_LANE_PX, SidebarTreeGuide } from '../../SidebarTreeGuide'
+import {
+  SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX,
+  SIDEBAR_TREE_GUIDE_CONNECTOR_TOP_PX,
+  SidebarTreeGuide
+} from '../../SidebarTreeGuide'
 
 export type WorktreeItemRowContext = {
   settings: AppState['settings']
@@ -135,17 +139,25 @@ export function renderWorktreeItemRow(
   lineageChildren?: React.ReactNode,
   forceActiveSurface = false
 ): React.JSX.Element {
-  const { surfaceInset, cardContentIndent, lineageChildrenInlineOffset } =
-    getWorktreeItemRowGeometry(ctx, itemRow, nested)
+  const {
+    surfaceInset,
+    cardContentIndent: baseCardContentIndent,
+    lineageChildrenInlineOffset
+  } = getWorktreeItemRowGeometry(ctx, itemRow, nested)
   const lineageChildrenStyle = lineageChildren
     ? getLineageChildrenInlineStyle(lineageChildrenInlineOffset ?? LINEAGE_CHILDREN_INLINE_OFFSET)
     : undefined
   const isMergedIntoProjectHeader = ctx.tree.mergedRowKeys.has(itemRow.rowKey)
+  const isGuidedBranchNode = ctx.tree.guidedRowKeys.has(itemRow.rowKey)
+  // Why: a branch node is a level-1 child like a merged project's agents, so it takes
+  // the same lane — one guide step past the project's content anchor, plus the gap the
+  // compact agent row's own padding puts between the rail and its first glyph.
+  const cardContentIndent = isGuidedBranchNode
+    ? baseCardContentIndent + SIDEBAR_TREE_BRANCH_NODE_CONTENT_OFFSET_PX
+    : baseCardContentIndent
   // Why an overlay and not a flex lane: the card's flush-surface padding math owns
   // its content start, so the rail hangs in the project's indent instead of moving it.
-  const guideLeft = ctx.tree.guidedRowKeys.has(itemRow.rowKey)
-    ? Math.max(0, surfaceInset + cardContentIndent - SIDEBAR_TREE_GUIDE_LANE_PX)
-    : null
+  const guideLeft = isGuidedBranchNode ? surfaceInset + baseCardContentIndent : null
   const worktreeDragGroupKey = ctx.groupKeyByRowKey.get(itemRow.rowKey)
   const worktreeIdentity = getWorktreeHostIdentity(itemRow.worktree)
   const isLineageDropTarget =
@@ -199,7 +211,10 @@ export function renderWorktreeItemRow(
       {guideLeft === null ? null : (
         <SidebarTreeGuide
           isLast={ctx.tree.lastRowKeysInSection.has(itemRow.rowKey)}
-          className="pointer-events-none absolute top-0 h-7"
+          connectorTopPx={SIDEBAR_TREE_GUIDE_CONNECTOR_TOP_PX}
+          // Why: spans the whole row, agents included, so the project trunk reaches
+          // the next branch node instead of stopping at this label.
+          className="pointer-events-none absolute inset-y-0"
           style={{ left: `${guideLeft}px` }}
         />
       )}

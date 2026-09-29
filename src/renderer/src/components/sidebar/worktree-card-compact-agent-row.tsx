@@ -146,8 +146,11 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   const secondary = getCompactAgentSecondary(agent, now, stableMessage)
   // Why: sidebar truncation must preserve the passive-vs-active distinction.
   const leadingText = dotState === 'monitoring' ? secondary : primary
-  const trailingText =
+  const rawTrailingText =
     dotState === 'monitoring' ? (primary === secondary ? '' : primary) : secondary
+  // Why: with the identity icon on the row, a "- Codex" tail only repeats the glyph.
+  const trailingText =
+    !hideIcon && rawTrailingText === formatAgentTypeLabel(agent.agentType) ? '' : rawTrailingText
   const rowTitle = `${leadingText}${trailingText ? ` - ${trailingText}` : ''}`
   const model = agent.entry.model?.trim() ?? ''
   const shortTime = getCompactAgentTime(agent, now)
@@ -232,7 +235,9 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         </span>
       )}
       <span
-        className="min-w-0 flex-1 truncate"
+        // Why: leading-none clips descenders at the truncate overflow box; 16px keeps
+        // g/p/q inside it without changing the 24px row the virtualizer measures.
+        className="min-w-0 flex-1 truncate leading-4"
         title={sendTargetDisabledReason ? undefined : rowTitle}
       >
         {/* Why: the selected-row fill is strong enough to wash out the dimmed
