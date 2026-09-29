@@ -4,6 +4,7 @@ import { getAgentStatusInputRedactionSourceLines } from './agent-status-input-re
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 import { getOmpSessionOwnerHandlerSourceLines } from './omp-session-status-owner-source'
 import { getPiAgentStatusUiPromptHandlerSourceLines } from './agent-status-ui-prompt-source'
+import { getPiAgentStatusSubagentLifecycleSubscriptionSourceLines } from './agent-status-subagent-roster-source'
 
 // Why: keep the generated handler registrations separate from hook transport;
 // both are independently sizeable and the installed extension concatenates them.
@@ -17,6 +18,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
           '    // Why: /reload re-registers the active session, but it is not a',
           '    // turn boundary and must not clear the visible status or unread state.',
           "    if (event.reason === 'reload') return",
+          '    clearSubagentJobs()',
           "    post('session_start')",
           '  })',
           ''
@@ -129,19 +131,10 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     '  if (ownerPid && ownerPid !== selfPid && isStatusOwnerAlive(ownerPid)) return',
     `  process.env.${ownerEnv} = selfPid`,
     '  resetPostQueue()',
-    '  const piEventBus = (pi as { events?: { on?: (name: string, handler: (event: unknown) => void) => void } }).events',
-    '  const lifecycleState = (piEventBus as { __orcaPiSubagents?: { active: Set<string>; waiting: boolean; onEvent?: (event: unknown, forcedStatus?: string) => void; listener?: (event: unknown) => void } } | undefined)?.__orcaPiSubagents ?? { active: new Set<string>(), waiting: false }',
-    '  if (piEventBus) (piEventBus as { __orcaPiSubagents?: unknown }).__orcaPiSubagents = lifecycleState',
-    '  if (piEventBus?.on && !(lifecycleState as { listener?: unknown }).listener) {',
-    '    const listener = (event: unknown) => lifecycleState.onEvent?.(event)',
-    '    lifecycleState.listener = listener',
-    "    piEventBus.on('task:subagent:lifecycle', listener)",
-    "    piEventBus.on('subagent:async-started', (event: unknown) => lifecycleState.onEvent?.(event, 'started'))",
-    "    piEventBus.on('subagent:async-complete', (event: unknown) => lifecycleState.onEvent?.(event, 'completed'))",
-    '  }',
+    ...getPiAgentStatusSubagentLifecycleSubscriptionSourceLines(),
     ...(kind !== 'pi'
       ? [
-          "  pi.on('session_shutdown', () => { lifecycleState.active.clear(); lifecycleState.waiting = false; resetPostQueue(); clearPendingAgentEndCheck() })"
+          "  pi.on('session_shutdown', () => { lifecycleState.active.clear(); lifecycleState.waiting = false; clearSubagentJobs(); resetPostQueue(); clearPendingAgentEndCheck() })"
         ]
       : []),
     ...(kind !== 'prime-agent'
@@ -150,6 +143,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
           '    if (!isOmpRuntime()) return',
           '    lifecycleState.active.clear()',
           '    lifecycleState.waiting = false',
+          '    clearSubagentJobs()',
           '    resetPostQueue()',
           '    clearPendingAgentEndCheck()',
           '    updateRuntimeOmpSessionMetadata(ctx)',
@@ -186,6 +180,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     '',
     `  onStatus('tool_call', (event${ctxParam}) => {`,
     ...captureSessionMetadata,
+    '    trackSubagentLaunch(event)',
     "    post('tool_call', {",
     '      tool_name: event.toolName,',
     '      tool_input: sanitizeStatusToolInput(event.input),',
@@ -194,6 +189,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     '',
     `  onStatus('tool_execution_end', (event${ctxParam}) => {`,
     ...captureSessionMetadata,
+    '    observeSubagentToolResult(event)',
     "    post('tool_execution_end', {",
     '      tool_name: event.toolName,',
     '    })',
@@ -245,13 +241,17 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
     "    const id = typeof (event as { id?: unknown }).id === 'string' ? (event as { id: string }).id : ''",
     '    const status = forcedStatus ?? (event as { status?: unknown }).status',
     '    if (!id) return',
-    "    if (status === 'started') { lifecycleState.active.add(id); post('agent_start'); return }",
+    "    if (status === 'started') { lifecycleState.active.add(id); startSubagentJob(id, takeSubagentLaunch(undefined)); post('agent_start'); return }",
     "    if (status !== 'completed' && status !== 'failed' && status !== 'aborted') return",
     '    lifecycleState.active.delete(id)',
+    '    const droppedSubagent = dropSubagentJob(id)',
     '    if (lifecycleState.active.size === 0 && lifecycleState.waiting) {',
     '      lifecycleState.waiting = false',
     '      postAgentEndOnce()',
+    '      return',
     '    }',
+    "    // A child ending is not a lead transition, so the new roster rides on the pane's last status.",
+    "    if (droppedSubagent) post('subagent_update')",
     '  }',
     '  function postAgentEndOnce(): void {',
     '    if (lifecycleState.active.size > 0) {',

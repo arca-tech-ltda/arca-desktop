@@ -32,15 +32,24 @@ export function normalizePiCompatibleEvent(
   const model = readString(hookPayload, 'model')
   const modelSwitchCommand =
     hookPayload.model_switch_command === 'orca-model' ? 'orca-model' : undefined
-  if (eventName === 'model_select') {
-    // Why: a model switch happens between turns, so it must ride on the pane's last
-    // known status instead of inventing a state — and before any status exists there
-    // is nothing for a model to describe.
+  // Why: the Pi status extension reports its live subagent jobs on every post; an
+  // absent list is the positive claim that none are running.
+  const subagents = hookPayload.subagents
+  if (eventName === 'model_select' || eventName === 'subagent_update') {
+    // Why: neither a model switch nor a child starting/finishing is a lead transition,
+    // so both ride on the pane's last known status instead of inventing a state — and
+    // before any status exists there is nothing for them to describe.
     const previous = state.lastStatusByPaneKey.get(paneKey)?.payload
-    if (!model || !previous || previous.agentType !== agentType) {
+    if (!previous || previous.agentType !== agentType) {
       return null
     }
-    return normalizeAgentStatusPayload({ ...previous, model, modelSwitchCommand })
+    if (eventName === 'subagent_update') {
+      return normalizeAgentStatusPayload({ ...previous, subagents })
+    }
+    if (!model) {
+      return null
+    }
+    return normalizeAgentStatusPayload({ ...previous, model, modelSwitchCommand, subagents })
   }
 
   // Why: gate on the event's own tool_name so a stale cached question can't re-enter blocked.
@@ -104,6 +113,7 @@ export function normalizePiCompatibleEvent(
     toolInput: snapshot.toolInput,
     interactivePrompt: snapshot.interactivePrompt,
     lastAssistantMessage: snapshot.lastAssistantMessage,
-    lastAssistantMessageIsToolOutput: snapshot.lastAssistantMessageIsToolOutput
+    lastAssistantMessageIsToolOutput: snapshot.lastAssistantMessageIsToolOutput,
+    subagents
   })
 }

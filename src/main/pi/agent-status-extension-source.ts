@@ -14,6 +14,7 @@ import { getPiAgentStatusPostQueueSourceLines } from './agent-status-post-queue-
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 import { getPiAgentStatusHandlerSourceLines } from './agent-status-handler-source'
 import { getPiAgentStatusRuntimeDetectionSourceLines } from './agent-status-runtime-detection-source'
+import { getPiAgentStatusSubagentRosterSourceLines } from './agent-status-subagent-roster-source'
 import { getPiAgentStatusWslCurlSourceLines } from './agent-status-wsl-curl-source'
 
 export const ORCA_PI_AGENT_STATUS_EXTENSION_FILE = 'orca-agent-status.ts'
@@ -46,7 +47,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
           '  const sessionFile = sessionManager?.getSessionFile?.()',
           "  runtimeOmpSessionMetadata = typeof sessionId === 'string' && sessionId && typeof sessionFile === 'string' && sessionFile ? { session_id: sessionId, session_file: sessionFile } : {}",
           '  trackModelSession(runtimeOmpSessionMetadata.session_id)',
-          '  updateModelMetadata(ctx)', 
+          '  updateModelMetadata(ctx)',
           '}',
           '',
           'function getPostSessionMetadata(ompRuntime: boolean): Record<string, unknown> {',
@@ -75,7 +76,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
           '  const sessionId = sessionManager?.getSessionId?.()',
           '  const sessionFile = sessionManager?.getSessionFile?.()',
           "  sessionMetadata = typeof sessionId === 'string' && sessionId && typeof sessionFile === 'string' && sessionFile ? { session_id: sessionId, session_file: sessionFile } : {}",
-          '  trackModelSession(sessionMetadata.session_id)', 
+          '  trackModelSession(sessionMetadata.session_id)',
           '}',
           '',
           'function updateRuntimeOmpSessionMetadata(ctx: unknown): void {',
@@ -141,6 +142,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     '// Orca receiver from building an unbounded queue of obsolete snapshots.',
     'const HOOK_POST_TIMEOUT_MS = 1000',
     ...getPiAgentStatusPostQueueSourceLines(),
+    ...getPiAgentStatusSubagentRosterSourceLines(),
     ...(kind === 'pi' ? ['let piUiPromptDepth = 0', 'let piTurnInFlight = false'] : []),
     ...modelMetadataSourceLines,
     '',
@@ -206,6 +208,8 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     '  const ompRuntime = isOmpRuntime()',
     '  cancelPostRetry()',
     '  const metadata = getPostSessionMetadata(ompRuntime)',
+    '  // Every post carries the live child roster: an absent list clears the pane rows.',
+    '  const subagents = subagentStatusSnapshots(metadata.session_id)',
     '// Model changes must not erase an unacknowledged completion in the latest-only slot.',
     "  const previousCompletion = latestPost?.hookEventName === 'agent_end' && !latestPost.delivered && latestPost.metadata.session_id === metadata.session_id",
     '  pendingPost = {',
@@ -215,8 +219,8 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     "    hookEventName: ompRuntime && hookEventName === 'model_select' && previousCompletion ? 'agent_end' : hookEventName,",
     // Why: every coalesced snapshot must retain an open modal, not just its start event.
     kind === 'pi'
-      ? '    extra: { ...extra, ...(!ompRuntime && piUiPromptDepth > 0 ? { ui_prompt_active: true } : {}) },'
-      : '    extra,',
+      ? '    extra: { ...extra, ...(subagents.length > 0 ? { subagents } : {}), ...(!ompRuntime && piUiPromptDepth > 0 ? { ui_prompt_active: true } : {}) },'
+      : '    extra: { ...extra, ...(subagents.length > 0 ? { subagents } : {}) },',
     '    metadata,',
     '    ompRuntime,',
     '  }',
