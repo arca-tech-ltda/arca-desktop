@@ -8,9 +8,10 @@ type PostedPayload = {
 }
 
 function posts(fetchMock: ReturnType<typeof vi.fn>): PostedPayload[] {
-  return fetchMock.mock.calls.map(
-    (call) => JSON.parse(String(call[1]?.body)).payload as PostedPayload
-  )
+  return fetchMock.mock.calls.map((call) => {
+    const body: { payload?: PostedPayload } = JSON.parse(String(call[1]?.body))
+    return body.payload ?? {}
+  })
 }
 
 function lastPost(fetchMock: ReturnType<typeof vi.fn>): PostedPayload {

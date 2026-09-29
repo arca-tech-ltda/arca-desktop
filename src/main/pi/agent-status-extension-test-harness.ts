@@ -159,7 +159,7 @@ export function createAgentStatusExtensionHarness(args: {
     argv: args.argv ?? ['node', '/usr/bin/orca']
   }
 
-  const context = {
+  const context: Record<string, unknown> = {
     module,
     exports: module.exports,
     require: requireMock,
@@ -179,7 +179,7 @@ export function createAgentStatusExtensionHarness(args: {
     AbortController,
     setTimeout,
     clearTimeout
-  } as Record<string, unknown>
+  }
   context.globalThis = context
 
   const source = getPiAgentStatusExtensionSource(args.kind)
