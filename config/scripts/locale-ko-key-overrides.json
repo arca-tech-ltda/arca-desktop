@@ -86,9 +86,6 @@
   "auto.components.GitHubItemDialog.c0253318d6": {
     "ko": "이 PR의 조회 상태를 동기화할 수 없습니다."
   },
-  "auto.components.GitHubItemDialog.d23bbb6416": {
-    "ko": "{{value0}} 건너뜀"
-  },
   "auto.components.GitHubItemDialog.dc1ca081a8": {
     "ko": "열림"
   },
@@ -314,9 +311,6 @@
   "auto.components.PullRequestPage.b0e80f083d": {
     "ko": "다음 브랜치에 병합하려고 함"
   },
-  "auto.components.PullRequestPage.b8c6cbb8c4": {
-    "ko": "PR {{value0}}에 실패했습니다."
-  },
   "auto.components.PullRequestPage.c057f2fcb0": {
     "ko": "repos 경로가 없으면 체크를 새로고침할 수 없습니다."
   },
@@ -508,9 +502,6 @@
   },
   "auto.components.WorktreeJumpPalette.1628fd7dfa": {
     "ko": "활성 워크트리, 설정, 작업 또는 열린 탭이 없습니다."
-  },
-  "auto.components.WorktreeJumpPalette.1ebe225fee": {
-    "ko": "워크트리, 설정, 탭 및 작업 검색..."
   },
   "auto.components.WorktreeJumpPalette.50a1d11d5b": {
     "ko": "열린 탭"
@@ -1427,53 +1418,8 @@
   "auto.components.mobile.MobilePage.1b4509a8a1": {
     "ko": "페어링됨"
   },
-  "auto.components.mobile.MobilePage.e17393c6a3": {
-    "ko": "휴대폰 미리보기"
-  },
-  "auto.components.mobile.PhoneCarousel.93217b41c1": {
-    "ko": "워크트리 목록"
-  },
-  "auto.components.mobile.slides.HomeSlide.0bad5b07c8": {
-    "ko": "GitHub 및 Linear"
-  },
-  "auto.components.mobile.slides.HomeSlide.0bc1881bc4": {
-    "ko": "연결됨 · 워크트리 40개 · 활성 5개"
-  },
-  "auto.components.mobile.slides.HomeSlide.c0e2e9dcd9": {
-    "ko": "다시 오신 것을 환영합니다"
-  },
-  "auto.components.mobile.slides.TerminalSlide.2defc05141": {
-    "ko": "dev@mac"
-  },
-  "auto.components.mobile.slides.TerminalSlide.53ff909568": {
-    "ko": "Tab"
-  },
-  "auto.components.mobile.slides.TerminalSlide.58a9ee6003": {
-    "ko": "도구 호출 형식. 다음으로 diff를 추가할까요?"
-  },
-  "auto.components.mobile.slides.TerminalSlide.80cc356591": {
-    "ko": "읽기"
-  },
-  "auto.components.mobile.slides.TerminalSlide.8d6516312d": {
-    "ko": "terminals 2개 · claude 활성"
-  },
-  "auto.components.mobile.slides.TerminalSlide.a6e7cdc688": {
-    "ko": "pnpm test --filter mobile"
-  },
-  "auto.components.mobile.slides.TerminalSlide.e0f98be657": {
-    "ko": "orca/feat-mobile-page"
-  },
-  "auto.components.mobile.slides.TerminalSlide.e4befee569": {
-    "ko": "셸"
-  },
-  "auto.components.mobile.slides.WorktreeListSlide.17f9e0d226": {
-    "ko": "최근"
-  },
   "auto.components.new.workspace.ProjectCombobox.empty": {
     "ko": "검색과 일치하는 프로젝트가 없습니다."
-  },
-  "auto.components.new.workspace.ProjectCombobox.search": {
-    "ko": "프로젝트 검색..."
   },
   "auto.components.notification.sound.options.0acd3d384e": {
     "ko": "클랙"
@@ -1574,9 +1520,6 @@
   "auto.components.right.sidebar.AiVaultPanel.sessionHistory": {
     "ko": "Agent 세션 기록"
   },
-  "auto.components.right.sidebar.AiVaultPanel.shownRecent": {
-    "ko": "{{value0}}개 표시 · 최근 {{value1}}개"
-  },
   "auto.components.right.sidebar.AiVaultPanel.transcriptsSkipped": {
     "ko": "대화 기록 {{count}}개 건너뜀"
   },
@@ -1627,9 +1570,6 @@
   },
   "auto.components.right.sidebar.AiVaultPanelControls.scopeAriaLabel": {
     "ko": "세션 기록 범위: {{value0}}"
-  },
-  "auto.components.right.sidebar.AiVaultPanelControls.sort": {
-    "ko": "정렬"
   },
   "auto.components.right.sidebar.AiVaultPanelControls.thisScope": {
     "ko": "현재"
@@ -2165,9 +2105,6 @@
   "auto.components.settings.BrowserProfileRow.d420c43729": {
     "ko": "{{value1}}{{value2}}에서 {{value0}}개의 쿠키를 {{value3}}(으)로 가져왔습니다."
   },
-  "auto.components.settings.BrowserUseComputerUseNotice.15b5e680ba": {
-    "ko": "컴퓨터 사용 열기"
-  },
   "auto.components.settings.CliSection.8a9b784c60": {
     "ko": "오래됨"
   },
@@ -2203,9 +2140,6 @@
   },
   "auto.components.settings.DefaultWindowsProjectRuntimeSetting.wslUnavailable": {
     "ko": "WSL을 사용할 수 없습니다. WSL을 상속하는 프로젝트는 복구가 필요합니다."
-  },
-  "auto.components.settings.DevToolsPane.orcaCloudDescription": {
-    "ko": "자사 클라우드 로그인의 개발자 전용 미리보기. 프로덕션에서는 숨겨집니다. 개발 환경에서는 ORCA_CLOUD_API_URL과 ORCA_CLOUD_CLIENT_ID가 설정되면 사이드바 계정 전환기에도 표시됩니다."
   },
   "auto.components.settings.DeveloperPermissionsPane.16381e040a": {
     "ko": "마이크"
@@ -2344,9 +2278,6 @@
   },
   "auto.components.settings.MobileEmulatorSettingsPane.ae1612c58c": {
     "ko": "가용성"
-  },
-  "auto.components.settings.MobilePane.35100bca5d": {
-    "ko": "휴대폰에서 terminals을 사용하는 동안 ARCA는 휴대폰 화면에 맞게 terminals을 축소합니다. 앱을 닫거나 다른 곳으로 전환하면 terminals이 휴대폰 크기로 유지되는지(대화형 CLI 도구가 리플로우되지 않음) 또는 데스크탑으로 다시 크기가 조정되는지 여부가 제어됩니다. 배너에서 '이 terminals 복원' 또는 '모든 terminals 복원'을 사용해 언제든지 수동으로 크기를 조정할 수 있습니다."
   },
   "auto.components.settings.MobileSettingsPane.b0088412a1": {
     "ko": "또는 다음에서 Android APK를 받으세요"
@@ -2828,15 +2759,6 @@
   "auto.components.settings.TerminalThemeSections.d56af60e6f": {
     "ko": "ARCA가 라이트 모드일 때 사용되는 테마를 선택합니다."
   },
-  "auto.components.settings.TerminalThemeSections.d76f60c9cc": {
-    "ko": "라이트 모드에서 별도 테마 사용"
-  },
-  "auto.components.settings.TerminalThemeSections.import_themes_description": {
-    "ko": "가져온 테마는 다크 및 라이트 테마 선택기에서 모두 사용할 수 있습니다."
-  },
-  "auto.components.settings.TerminalThemeSections.import_themes_title": {
-    "ko": "테마 가져오기"
-  },
   "auto.components.settings.TerminalWindowSection.1be593d3e8": {
     "ko": "ANSI 밝은색"
   },
@@ -3173,30 +3095,6 @@
   "auto.components.settings.computerUseSkillRuntime.thisDevice": {
     "ko": "이 기기"
   },
-  "auto.components.settings.computerUseSummary.checkingDescription": {
-    "ko": "ARCA가 Computer Use 도우미의 macOS 개인정보 보호 권한을 확인하고 있습니다."
-  },
-  "auto.components.settings.computerUseSummary.checkingTitle": {
-    "ko": "Computer Use 액세스 확인 중입니다."
-  },
-  "auto.components.settings.computerUseSummary.permissionsRequired": {
-    "ko": "agents가 앱 창을 조작하려면 먼저 {{value0}} 권한{{value1}}이 필요합니다."
-  },
-  "auto.components.settings.computerUseSummary.permissionsTitle": {
-    "ko": "로컬 앱을 사용하려면 설정을 완료하세요."
-  },
-  "auto.components.settings.computerUseSummary.readyDescription": {
-    "ko": "요청하면 Agents가 앱 창을 검사하고 조작할 수 있습니다."
-  },
-  "auto.components.settings.computerUseSummary.readyTitle": {
-    "ko": "Computer Use를 사용할 준비가 되었습니다."
-  },
-  "auto.components.settings.computerUseSummary.unavailableDescription": {
-    "ko": "{{value0}} 때문에 Computer Use 권한을 사용할 수 없습니다."
-  },
-  "auto.components.settings.computerUseSummary.unavailableTitle": {
-    "ko": "Computer Use를 사용할 수 없습니다."
-  },
   "auto.components.settings.developer.permissions.search.00e954319e": {
     "ko": "Whisper"
   },
@@ -3256,9 +3154,6 @@
   },
   "auto.components.settings.experimental.search.f10d307468": {
     "ko": "완료"
-  },
-  "auto.components.settings.experimental.search.agentHibernation.hibernate": {
-    "ko": "최대 절전"
   },
   "auto.components.settings.experimental.search.agentHibernation.title": {
     "ko": "Agent 최대 절전"
@@ -3448,51 +3343,6 @@
   },
   "auto.components.settings.mobile.emulator.search.ea1f51b980": {
     "ko": "Xcode, simctl, serve-sim 및 에뮬레이터 장치가 준비되었는지 확인하세요."
-  },
-  "auto.components.settings.mobile.pane.search.16bff559a0": {
-    "ko": "tailnet"
-  },
-  "auto.components.settings.mobile.pane.search.1f70d63998": {
-    "ko": "IP"
-  },
-  "auto.components.settings.mobile.pane.search.2128a21096": {
-    "ko": "스캔"
-  },
-  "auto.components.settings.mobile.pane.search.3a5e31e84b": {
-    "ko": "나가기"
-  },
-  "auto.components.settings.mobile.pane.search.4a0c826f3d": {
-    "ko": "코드"
-  },
-  "auto.components.settings.mobile.pane.search.5e8fda4d7f": {
-    "ko": "페어링됨"
-  },
-  "auto.components.settings.mobile.pane.search.70f505f3c3": {
-    "ko": "LAN"
-  },
-  "auto.components.settings.mobile.pane.search.7b37c2e557": {
-    "ko": "네트워크"
-  },
-  "auto.components.settings.mobile.pane.search.8015fd9523": {
-    "ko": "유지"
-  },
-  "auto.components.settings.mobile.pane.search.d0c89bc4a9": {
-    "ko": "오버레이"
-  },
-  "auto.components.settings.mobile.pane.search.e518cbd61c": {
-    "ko": "페어링"
-  },
-  "auto.components.settings.mobile.pane.search.fadcbfdd99": {
-    "ko": "맞춤"
-  },
-  "auto.components.settings.mobile.settings.search.0b7e585cb9": {
-    "ko": "스캔"
-  },
-  "auto.components.settings.mobile.settings.search.59b1d75fd1": {
-    "ko": "코드"
-  },
-  "auto.components.settings.mobile.settings.search.cf2c93b479": {
-    "ko": "페어링"
   },
   "auto.components.settings.notifications.search.3014ad1b8f": {
     "ko": "딩"
@@ -3793,9 +3643,6 @@
   },
   "auto.components.settings.terminal.search.20ce287cc6": {
     "ko": "두께"
-  },
-  "auto.components.settings.terminal.search.232e532169": {
-    "ko": "라이트 모드에서 별도의 테마 사용"
   },
   "auto.components.settings.terminal.search.25f606d9e5": {
     "ko": "깜박임"
@@ -4112,12 +3959,6 @@
   "auto.components.sidebar.AddRepoNestedImportStep.220dd32d83": {
     "ko": "스캔 중..."
   },
-  "auto.components.sidebar.AddRepoNestedImportStep.b20bb7c24f": {
-    "ko": "이 리포지토리들을 하나의 그룹으로 묶어 둡니다. 마이크로서비스처럼 서로 관련된 리포지토리에 적합합니다."
-  },
-  "auto.components.sidebar.AddRepoNestedImportStep.e907ec8935": {
-    "ko": "모노 repo 이름이란?"
-  },
   "auto.components.sidebar.AddRepoRemoteStep.35831a7312": {
     "ko": "추가 중..."
   },
@@ -4256,9 +4097,6 @@
   "auto.components.sidebar.RemoteFileBrowser.971d85cc84": {
     "ko": "이 호스트에서 프로젝트로 열립니다 · {{value0}}"
   },
-  "auto.components.sidebar.RemoveFolderDialog.e62415c3d0": {
-    "ko": "다음 항목만 제거합니다"
-  },
   "auto.components.sidebar.ScrollToCurrentWorkspaceToolbarButton.23989bb663": {
     "ko": "활성 워크스페이스로 이동"
   },
@@ -4303,18 +4141,6 @@
   },
   "auto.components.sidebar.SidebarWorkspaceOptionsMenu.projectSshHost": {
     "ko": "프로젝트 SSH"
-  },
-  "auto.components.sidebar.SshDisconnectedDialog.authFailed": {
-    "ko": "원격 호스트 인증에 실패했습니다."
-  },
-  "auto.components.sidebar.SshDisconnectedDialog.disconnected": {
-    "ko": "이 SSH 호스트는 연결되어 있지 않습니다."
-  },
-  "auto.components.sidebar.SshDisconnectedDialog.reconnecting": {
-    "ko": "원격 호스트에 다시 연결하는 중..."
-  },
-  "auto.components.sidebar.SshDisconnectedDialog.reconnectionFailed": {
-    "ko": "원격 호스트에 다시 연결하지 못했습니다."
   },
   "auto.components.sidebar.WorkspaceKanbanStatusLane.8ad104642b": {
     "ko": "비어 있음"
