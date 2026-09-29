@@ -253,19 +253,24 @@ export default function Landing(): React.JSX.Element {
   }, [createTargetLabel, createWorktreeShortcut, nextWorktreeShortcut, previousWorktreeShortcut])
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-background">
-      <div className="w-full max-w-lg px-6">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-background">
+      {/* Symbol as a mask so it follows the theme's foreground color. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[min(110vh,110vw)] -translate-x-1/2 -translate-y-1/2 bg-foreground opacity-[0.06]"
+        style={{
+          maskImage: `url(${logo})`,
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+          maskSize: 'contain',
+          WebkitMaskImage: `url(${logo})`,
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          WebkitMaskSize: 'contain'
+        }}
+      />
+      <div className="relative w-full max-w-lg px-6">
         <div className="flex flex-col items-center gap-4 py-8">
-          <div
-            className="flex items-center justify-center size-20 rounded-2xl border border-border/80 shadow-lg shadow-black/40"
-            style={{ backgroundColor: '#12181e' }}
-          >
-            <img
-              src={logo}
-              alt={translate('auto.components.Landing.520304a067', 'ARCA logo')}
-              className="size-12"
-            />
-          </div>
           <h1 className="text-4xl font-bold text-foreground tracking-tight">
             {translate('auto.components.Landing.6ca6ff404e', 'ARCA')}
           </h1>
