@@ -270,6 +270,73 @@ describe('Pi hook normalization', () => {
     expect(result?.payload.lastAssistantMessage).toBe('final reply')
   })
 
+  it('carries the subagent roster a Pi post reports', () => {
+    const result = _internals.normalizeHookPayload(
+      'pi',
+      buildBody({
+        hook_event_name: 'tool_call',
+        tool_name: 'subagent',
+        subagents: [
+          { id: 'job-1', state: 'working', startedAt: 1, agentType: 'scout', description: 'Map it' }
+        ]
+      }),
+      'production'
+    )
+    expect(result?.payload.subagents).toEqual([
+      { id: 'job-1', state: 'working', startedAt: 1, agentType: 'scout', description: 'Map it' }
+    ])
+  })
+
+  it('subagent_update re-emits the last Pi status with the new roster', () => {
+    const working = _internals.normalizeHookPayload(
+      'pi',
+      buildBody({
+        hook_event_name: 'before_agent_start',
+        prompt: 'delegate the recon',
+        subagents: [{ id: 'job-1', state: 'working', startedAt: 1, agentType: 'scout' }]
+      }),
+      'production'
+    )
+    if (!working) {
+      throw new Error('expected the Pi turn start to normalize')
+    }
+    agentHookServer.ingestRemote(
+      {
+        paneKey: working.paneKey,
+        tabId: working.tabId,
+        worktreeId: working.worktreeId,
+        payload: working.payload
+      },
+      'conn-1'
+    )
+
+    const cleared = _internals.normalizeHookPayload(
+      'pi',
+      buildBody({ hook_event_name: 'subagent_update' }),
+      'production'
+    )
+    // Why: a child finishing is not a lead transition — only the roster may change.
+    expect(cleared?.payload).toMatchObject({
+      state: 'working',
+      prompt: 'delegate the recon',
+      agentType: 'pi'
+    })
+    expect(cleared?.payload.subagents).toBeUndefined()
+  })
+
+  it('subagent_update before any status has nothing to ride on', () => {
+    expect(
+      _internals.normalizeHookPayload(
+        'pi',
+        buildBody({
+          hook_event_name: 'subagent_update',
+          subagents: [{ id: 'job-1', state: 'working', startedAt: 1 }]
+        }),
+        'production'
+      )
+    ).toBeNull()
+  })
+
   it('unknown event names are dropped', () => {
     const result = _internals.normalizeHookPayload(
       'pi',

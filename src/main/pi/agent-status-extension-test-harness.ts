@@ -159,7 +159,7 @@ export function createAgentStatusExtensionHarness(args: {
     argv: args.argv ?? ['node', '/usr/bin/orca']
   }
 
-  const context = {
+  const context: Record<string, unknown> = {
     module,
     exports: module.exports,
     require: requireMock,
@@ -171,12 +171,15 @@ export function createAgentStatusExtensionHarness(args: {
       log: vi.fn()
     },
     Promise,
+    // Why: the generated source reads the clock; sharing the test realm's Date lets
+    // fake timers drive its throttles instead of wall time.
+    Date,
     Buffer,
     URL,
     AbortController,
     setTimeout,
     clearTimeout
-  } as Record<string, unknown>
+  }
   context.globalThis = context
 
   const source = getPiAgentStatusExtensionSource(args.kind)
