@@ -16,6 +16,7 @@ import type { WorktreeListVirtualizer } from './use-virtualizer'
 import type { VirtualizedWorktreeViewportProps } from './viewport-props'
 import type { WorktreeVirtualRowContext } from '../rows/virtual-row-dispatch'
 import { getRepoOwnerWorktreeVisibilityDefaults } from '../../../../store/worktree-visibility-defaults-by-host'
+import { buildSidebarTreeModel } from '../../sidebar-tree-model'
 
 type BuildArgs = {
   props: VirtualizedWorktreeViewportProps
@@ -51,6 +52,7 @@ type BuildArgs = {
 // is either a prop, a memoised hook result, or a stable callback.
 export function buildWorktreeVirtualRowContext(args: BuildArgs): WorktreeVirtualRowContext {
   const { props, runtime, session, statusDrag, headerDrag, primaryActive, reveal } = args
+  const tree = buildSidebarTreeModel(args.renderRows, props.groupBy)
   return {
     renderRows: args.renderRows,
     firstHeaderIndex: args.firstHeaderIndex,
@@ -79,6 +81,11 @@ export function buildWorktreeVirtualRowContext(args: BuildArgs): WorktreeVirtual
       workspaceStatuses: props.workspaceStatuses,
       projectGroups: args.projectGroups,
       sshConnectionStates: args.sshConnectionStates,
+      tree,
+      selectedWorktrees: props.selectedWorktrees,
+      onContextMenuSelect: props.onContextMenuSelect,
+      onImmediateActivate: primaryActive.handleImmediateWorktreeRowActivate,
+      onWorktreeCardClick: props.onWorktreeCardClick,
       highlightedRevealRowKey: reveal.highlightedRevealRowKey,
       dragOverStatus: runtime.dragOverStatus,
       pinDragOver: runtime.pinDragOver,
@@ -112,6 +119,7 @@ export function buildWorktreeVirtualRowContext(args: BuildArgs): WorktreeVirtual
     item: {
       settings: args.settings,
       groupBy: props.groupBy,
+      tree,
       folderBackedProjectGroupIds: args.folderBackedProjectGroupIds,
       groupKeyByRowKey: session.groupKeyByRowKey,
       groupIndexByRowKey: session.groupIndexByRowKey,

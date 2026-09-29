@@ -108,12 +108,14 @@ export function appendProjectGroupSections(
       projectGroupDepth: depth
     })
     if (!collapsedGroups.has(key)) {
-      for (const pair of folderWorkspacesByProjectGroupId.get(projectGroup.id) ?? []) {
-        result.push(buildFolderWorkspaceRow(pair, depth + 1))
-      }
       appendOrderedGroups(ctx, withRepoSectionDisplayLabels(repoEntries), depth + 1)
       for (const childGroup of childGroups) {
         appendProjectGroup(childGroup, depth + 1)
+      }
+      // Why last: a folder workspace has no git tree of its own, so it reads as a
+      // trailing "folders" tier rather than a peer of the projects above it.
+      for (const pair of folderWorkspacesByProjectGroupId.get(projectGroup.id) ?? []) {
+        result.push(buildFolderWorkspaceRow(pair, depth + 1))
       }
     }
     groupByProjectGroupId.delete(projectGroup.id)

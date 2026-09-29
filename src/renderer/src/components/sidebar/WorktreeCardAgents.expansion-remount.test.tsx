@@ -13,7 +13,7 @@ import {
 
 let mockAgents: unknown[] = []
 
-function mockAgent(paneKey: string, prompt: string): unknown {
+function mockAgent(paneKey: string, prompt: string, parentPaneKey?: string): unknown {
   return {
     paneKey,
     tab: { id: paneKey.split(':')[0] },
@@ -27,7 +27,7 @@ function mockAgent(paneKey: string, prompt: string): unknown {
       state: 'done',
       stateStartedAt: 1000,
       stateHistory: [],
-      orchestration: undefined
+      orchestration: parentPaneKey ? { parentPaneKey } : undefined
     },
     lineage: undefined
   }
@@ -94,12 +94,10 @@ async function mountAgents(worktreeId: string): Promise<HTMLElement> {
   return host
 }
 
-function summaryButton(host: HTMLElement): HTMLButtonElement {
-  // The compact multi-agent summary is the only control carrying aria-expanded
-  // when the agents are flat (no per-agent child disclosure).
+function childDisclosure(host: HTMLElement): HTMLButtonElement {
   const button = host.querySelector<HTMLButtonElement>('button[aria-expanded]')
   if (!button) {
-    throw new Error('compact agent summary button not found')
+    throw new Error('child agent disclosure not found')
   }
   return button
 }
@@ -107,7 +105,7 @@ function summaryButton(host: HTMLElement): HTMLButtonElement {
 describe('WorktreeCardAgents inline-list expansion durability', () => {
   beforeEach(() => {
     clearWorktreeAgentExpansionStateForTests()
-    mockAgents = [mockAgent('tab-1:1', 'One'), mockAgent('tab-2:2', 'Two')]
+    mockAgents = [mockAgent('tab-1:1', 'One'), mockAgent('tab-2:2', 'Two', 'tab-1:1')]
   })
 
   afterEach(async () => {
@@ -121,18 +119,18 @@ describe('WorktreeCardAgents inline-list expansion durability', () => {
     clearWorktreeAgentExpansionStateForTests()
   })
 
-  it('keeps the compact agent summary expanded across a card remount', async () => {
+  it('keeps a collapsed child-agent disclosure collapsed across a card remount', async () => {
     const host = await mountAgents('wt-remount')
-    expect(summaryButton(host).getAttribute('aria-expanded')).toBe('false')
+    expect(childDisclosure(host).getAttribute('aria-expanded')).toBe('true')
 
     await act(async () => {
-      summaryButton(host).dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      childDisclosure(host).dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    expect(summaryButton(host).getAttribute('aria-expanded')).toBe('true')
+    expect(childDisclosure(host).getAttribute('aria-expanded')).toBe('false')
 
     // Simulate the WorktreeCard remount that a virtualizer recycle or a sibling
     // child-worktrees toggle triggers: fully unmount, then mount a fresh tree
-    // for the same worktree. Before the fix this reset the summary to collapsed.
+    // for the same worktree. Before the fix this reset the disclosure.
     await act(async () => {
       const first = mountedRoots.shift()!
       first.root.unmount()
@@ -140,18 +138,18 @@ describe('WorktreeCardAgents inline-list expansion durability', () => {
     })
     const remounted = await mountAgents('wt-remount')
 
-    expect(summaryButton(remounted).getAttribute('aria-expanded')).toBe('true')
+    expect(childDisclosure(remounted).getAttribute('aria-expanded')).toBe('false')
   })
 
   it('does not leak expansion between different worktrees', async () => {
     const first = await mountAgents('wt-a')
     await act(async () => {
-      summaryButton(first).dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      childDisclosure(first).dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    expect(summaryButton(first).getAttribute('aria-expanded')).toBe('true')
+    expect(childDisclosure(first).getAttribute('aria-expanded')).toBe('false')
 
     const second = await mountAgents('wt-b')
-    expect(summaryButton(second).getAttribute('aria-expanded')).toBe('false')
+    expect(childDisclosure(second).getAttribute('aria-expanded')).toBe('true')
   })
 })
 

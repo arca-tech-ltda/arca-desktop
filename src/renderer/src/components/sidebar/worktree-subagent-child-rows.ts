@@ -17,6 +17,10 @@ function subagentRowKey(parentPaneKey: string, subagentId: string): string {
  * children have no PTY or tab of their own: the rows reuse the parent's tab,
  * activate the parent's pane, and link into the existing lineage tree through
  * `orchestration.parentPaneKey`.
+ *
+ * Only subagents that are still running get a row. A finished one leaves no
+ * trace in the tree; `unverifiable` is loss of contact, not an ending, so those
+ * stay.
  */
 export function buildSubagentChildRows(args: {
   parentEntry: AgentStatusEntry
@@ -29,7 +33,7 @@ export function buildSubagentChildRows(args: {
   if (!subagents || subagents.length === 0) {
     return []
   }
-  return subagents.map((subagent) => {
+  return subagents.flatMap((subagent) => {
     const freshness = resolveAgentChildWorkFreshness({
       state: subagent.state,
       membership: 'live',
@@ -37,7 +41,10 @@ export function buildSubagentChildRows(args: {
       transportObservation: args.parentEntry.subagentObservation ?? 'live'
     })
     const state = freshness === 'done' ? 'idle' : freshness === 'monitoring' ? 'working' : freshness
-    const activeState = state !== 'idle' && state !== 'unverifiable' ? state : undefined
+    if (state === 'idle') {
+      return []
+    }
+    const activeState = state !== 'unverifiable' ? state : undefined
     const startedAt = subagent.startedAt > 0 ? subagent.startedAt : args.parentEntry.stateStartedAt
     const paneKey = subagentRowKey(args.parentEntry.paneKey, subagent.id)
     const entry: AgentStatusEntry = {
@@ -58,15 +65,17 @@ export function buildSubagentChildRows(args: {
         parentPaneKey: args.parentEntry.paneKey
       }
     }
-    return {
-      paneKey,
-      entry,
-      tab: args.tab,
-      agentType: subagent.agentType ?? 'unknown',
-      rowSource: 'subagent' as const,
-      state,
-      activationPaneKey: args.parentEntry.paneKey,
-      startedAt
-    }
+    return [
+      {
+        paneKey,
+        entry,
+        tab: args.tab,
+        agentType: subagent.agentType ?? 'unknown',
+        rowSource: 'subagent' as const,
+        state,
+        activationPaneKey: args.parentEntry.paneKey,
+        startedAt
+      }
+    ]
   })
 }

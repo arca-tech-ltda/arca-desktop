@@ -14,6 +14,24 @@ const tab: TerminalTab = {
   createdAt: 1
 }
 
+function parentWithChild(
+  state: NonNullable<AgentStatusEntry['subagents']>[number]['state'],
+  subagentObservation?: AgentStatusEntry['subagentObservation']
+): AgentStatusEntry {
+  return {
+    paneKey: 'parent-pane',
+    tabId: tab.id,
+    worktreeId: tab.worktreeId,
+    state: 'working',
+    prompt: 'parent prompt',
+    updatedAt: 100,
+    stateStartedAt: 10,
+    stateHistory: [],
+    subagentObservation,
+    subagents: [{ id: 'child', state, startedAt: 20 }]
+  }
+}
+
 describe('shared CLI and structured child freshness', () => {
   it.each([
     ['working', true, undefined, 'working'],
@@ -26,25 +44,11 @@ describe('shared CLI and structured child freshness', () => {
     ['waiting', false, 'live', 'unverifiable'],
     ['blocked', false, undefined, 'unverifiable'],
     ['blocked', false, 'live', 'unverifiable'],
-    ['idle', false, undefined, 'idle'],
-    ['idle', false, 'live', 'idle'],
-    ['idle', false, 'unverifiable', 'idle'],
     ['unverifiable', true, 'live', 'unverifiable']
   ] as const)(
     '%s with fresh parent %s and transport %s projects %s',
     (state, parentIsFresh, subagentObservation, expected) => {
-      const parentEntry: AgentStatusEntry = {
-        paneKey: 'parent-pane',
-        tabId: tab.id,
-        worktreeId: tab.worktreeId,
-        state: 'working',
-        prompt: 'parent prompt',
-        updatedAt: 100,
-        stateStartedAt: 10,
-        stateHistory: [],
-        subagentObservation,
-        subagents: [{ id: 'child', state, startedAt: 20 }]
-      }
+      const parentEntry = parentWithChild(state, subagentObservation)
       const row = buildSubagentChildRows({ parentEntry, tab, parentIsFresh })[0]
       expect(row.state).toBe(expected)
       expect(row.activationPaneKey).toBe(parentEntry.paneKey)
@@ -52,4 +56,32 @@ describe('shared CLI and structured child freshness', () => {
       expect(parentEntry.subagents).toEqual([{ id: 'child', state, startedAt: 20 }])
     }
   )
+})
+
+describe('sidebar tree visibility', () => {
+  it('keeps a running subagent', () => {
+    const rows = buildSubagentChildRows({
+      parentEntry: parentWithChild('working'),
+      tab,
+      parentIsFresh: true
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].state).toBe('working')
+  })
+
+  it('drops a finished subagent', () => {
+    expect(
+      buildSubagentChildRows({ parentEntry: parentWithChild('idle'), tab, parentIsFresh: true })
+    ).toEqual([])
+  })
+
+  it('keeps an out-of-contact subagent, because silence is not an ending', () => {
+    const rows = buildSubagentChildRows({
+      parentEntry: parentWithChild('working'),
+      tab,
+      parentIsFresh: false
+    })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].state).toBe('unverifiable')
+  })
 })

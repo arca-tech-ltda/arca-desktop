@@ -420,13 +420,6 @@ function agentChildDisclosure(container: HTMLElement): HTMLButtonElement | null 
   return findButtonByAriaLabel(container, /child agent/i)
 }
 
-function compactAgentSummary(container: HTMLElement): HTMLButtonElement | null {
-  return (
-    [...container.querySelectorAll<HTMLButtonElement>('button.compact-agent-summary-button')][0] ??
-    null
-  )
-}
-
 function childWorktreeCardPresent(container: HTMLElement): boolean {
   return container.querySelector('[id="worktree-list-option-all%3A%7Cchild"]') !== null
 }
@@ -554,27 +547,23 @@ describe('WorktreeCard agent-list <-> child-worktrees expansion coupling', () =>
     expect(agentChildDisclosure(container)!.getAttribute('aria-expanded')).toBe('false')
   })
 
-  it('[compact mode] toggling CHILD WORKTREES preserves the compact agent summary expansion (regression)', async () => {
-    setAgentLineageState({ agentActivityDisplayMode: 'compact', secondRootAgent: true })
+  it('[compact mode] toggling CHILD WORKTREES preserves the child-agent disclosure (regression)', async () => {
+    setAgentLineageState({ agentActivityDisplayMode: 'compact' })
     const { container, root } = await renderWorktreeList()
 
-    // Two root agents => compact summary pill is shown, collapsed by default.
-    const summary = compactAgentSummary(container)
-    expect(summary).not.toBeNull()
-    expect(summary!.getAttribute('aria-expanded')).toBe('false')
-
-    // User expands the compact agent summary.
-    await click(summary!)
-    expect(compactAgentSummary(container)!.getAttribute('aria-expanded')).toBe('true')
+    // The compact tree shows every agent; only the child disclosure is stateful.
+    expect(agentChildDisclosure(container)!.getAttribute('aria-expanded')).toBe('true')
+    await click(agentChildDisclosure(container)!)
+    expect(agentChildDisclosure(container)!.getAttribute('aria-expanded')).toBe('false')
 
     // User toggles child worktrees.
     await click(childWorktreeChip(container)!)
     expect(mockStore.state.toggleCollapsedGroup).toHaveBeenCalledWith('lineage:parent')
     await rerender(root)
 
-    // FIXED: the card remounts (child card gone), but the expanded "N agents"
-    // summary is restored from the durable cache instead of collapsing.
+    // FIXED: the card remounts (child card gone), but the collapsed disclosure
+    // is restored from the durable cache instead of springing back open.
     expect(childWorktreeCardPresent(container)).toBe(false)
-    expect(compactAgentSummary(container)!.getAttribute('aria-expanded')).toBe('true')
+    expect(agentChildDisclosure(container)!.getAttribute('aria-expanded')).toBe('false')
   })
 })

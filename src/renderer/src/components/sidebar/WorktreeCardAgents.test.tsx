@@ -438,8 +438,6 @@ describe('WorktreeCardAgents', () => {
     expect(markup).toContain('role="tree"')
     expect(markup).toContain('data-pane-key="tab-parent:1"')
     expect(markup).toContain('data-pane-key="tab-child:1"')
-    expect(markup).toContain('data-pane-key="tab-parent:1" data-disclosure-in-gutter="true"')
-    expect(markup).toContain('data-pane-key="tab-child:1" data-disclosure-in-gutter="false"')
     expect(markup).toContain('aria-label="Hide 1 child agent"')
     expect(markup).toContain('aria-expanded="true"')
   })
@@ -539,7 +537,7 @@ describe('WorktreeCardAgents', () => {
     expect(markup).toBe('')
   })
 
-  it('renders a compact summary affordance for two flat agents', async () => {
+  it('gives each flat compact agent its own tree node', async () => {
     mockAgentActivityDisplayMode = 'compact'
     mockAgents = [
       mockAgent({ agentType: 'codex', state: 'done', startedAt: 1000, prompt: 'First agent' }),
@@ -555,17 +553,14 @@ describe('WorktreeCardAgents', () => {
 
     const markup = renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
 
-    expect(markup).toContain('All 2 agents done')
-    expect(markup).toContain('Expand All 2 agents done')
-    expect(markup).not.toContain('title="Codex done"')
-    expect(markup).not.toContain('title="Claude done"')
-    expect(markup).not.toContain('>2 done<')
-    expect(markup).not.toContain('First agent')
-    expect(markup).not.toContain('Second agent')
-    expect(markup).not.toContain('data-testid="agent-row"')
+    expect(markup).toContain('First agent')
+    expect(markup).toContain('Second agent')
+    expect(markup).toContain('data-sidebar-tree-guide')
+    expect(markup).not.toContain('All 2 agents done')
+    expect(markup).not.toContain('Expand All 2 agents done')
   })
 
-  it('does not show a prompt-cache timer on a collapsed compact summary row', async () => {
+  it('shows the prompt-cache timer on the agent tree node that owns it', async () => {
     mockAgentActivityDisplayMode = 'compact'
     const paneKey = makePaneKey('tab-1', LEAF_A)
     mockAgents = [
@@ -591,9 +586,9 @@ describe('WorktreeCardAgents', () => {
 
     const markup = renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
 
-    expect(markup).toContain('All 2 agents done')
-    expect(markup).not.toContain('Prompt cache expires')
-    expect(markup).not.toContain('compact-agent-row')
+    expect(markup).toContain('compact-agent-row')
+    expect(markup).toContain('Prompt cache expires')
+    expect(markup).not.toContain('All 2 agents done')
   })
 
   it('keeps compact agent messages with trusted data image markdown to the single-line preview', async () => {
@@ -715,19 +710,13 @@ describe('WorktreeCardAgents', () => {
 
     const markup = renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
 
-    expect(markup).toContain('aria-expanded="false"')
-    expect(markup).toContain('-space-x-0.5')
-    expect(markup).toContain('inline-flex size-4 items-center justify-center')
-    expect(markup).toContain('width="13"')
-    expect(markup).toContain('3 agents: 1 waiting, 1 working, 1 done')
-    expect(markup).toContain('Expand 3 agents: 1 waiting, 1 working, 1 done')
-    expect(markup).not.toContain('title="Codex waiting"')
-    expect(markup).not.toContain('title="Claude working"')
-    expect(markup).not.toContain('title="Gemini done"')
-    expect(markup).not.toContain('data-testid="agent-row"')
+    expect(markup).toContain('Pick a layout')
+    expect(markup).toContain('Run tests')
+    expect(markup).toContain('Review spacing')
+    expect(markup).not.toContain('3 agents: 1 waiting, 1 working, 1 done')
   })
 
-  it('avoids repeating the total when every compact summary agent has the same state', async () => {
+  it('keeps same-state agents as separate tree nodes', async () => {
     mockAgentActivityDisplayMode = 'compact'
     mockAgents = [
       mockAgent({ agentType: 'codex', state: 'done', startedAt: 1000, prompt: 'One' }),
@@ -750,13 +739,13 @@ describe('WorktreeCardAgents', () => {
 
     const markup = renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
 
-    expect(markup).toContain('All 3 agents done')
-    expect(markup).toContain('Expand All 3 agents done')
-    expect(markup).not.toContain('3 agents: 3 done')
-    expect(markup).not.toContain('>+3<')
+    expect(markup).toContain('One')
+    expect(markup).toContain('Two')
+    expect(markup).toContain('Three')
+    expect(markup).not.toContain('All 3 agents done')
   })
 
-  it('prioritizes agent varieties in compact summary icons', async () => {
+  it('keeps one identity icon per compact agent instead of a variety cluster', async () => {
     mockAgentActivityDisplayMode = 'compact'
     mockAgents = [
       ['tab-1:1', 'codex', 'One'],
@@ -770,13 +759,11 @@ describe('WorktreeCardAgents', () => {
     const { default: WorktreeCardAgents } = await import('./WorktreeCardAgents')
 
     const markup = renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
-    const iconTitles = [...markup.matchAll(/title="([^"]+)"/g)].map((match) => match[1])
 
-    // Variety icons stay identity-free; the state label belongs to the shared tooltip.
-    expect(iconTitles).toEqual([])
     expect(markup).toContain('>Working<')
     expect(markup).not.toContain('>5 working<')
-    expect(markup).toContain('>+2<')
+    expect(markup).not.toContain('-space-x-0.5')
+    expect(markup.match(/title="Codex"/g)).toHaveLength(3)
   })
 
   it('rotates the compact summary chevron when collapsed', async () => {
@@ -841,7 +828,7 @@ describe('WorktreeCardAgents', () => {
     expect(markup).toContain('compact-agent-expansion-content flex flex-col gap-0.5 pt-0.5 pl-1')
   })
 
-  it('summarizes compact lineage by parent rows before revealing children', async () => {
+  it('renders compact lineage parents and their children as tree nodes', async () => {
     mockAgentActivityDisplayMode = 'compact'
     mockAgents = [
       mockAgent({
@@ -890,12 +877,9 @@ describe('WorktreeCardAgents', () => {
 
     expect(markup).toContain('data-compact-agent-list="true"')
     expect(markup).toContain('role="tree"')
-    expect(markup).toContain('3 agents: 1 waiting, 1 working, 1 done')
-    expect(markup).not.toContain('title="Gemini waiting"')
-    expect(markup).not.toContain('title="Codex working"')
-    expect(markup).not.toContain('title="Codex done"')
-    expect(markup).not.toContain('Parent A')
-    expect(markup).not.toContain('Child A')
-    expect(markup).not.toContain('compact-agent-row')
+    expect(markup).toContain('Parent A')
+    expect(markup).toContain('Child A')
+    expect(markup).toContain('compact-agent-row')
+    expect(markup).not.toContain('3 agents: 1 waiting, 1 working, 1 done')
   })
 })

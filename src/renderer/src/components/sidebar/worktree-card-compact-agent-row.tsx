@@ -20,7 +20,13 @@ function getCompactAgentPrimary(
   conversationName: string | null
 ): string {
   const prompt = conversationName ?? getAgentRowPrimaryText(agent.entry)
-  return prompt || agentStateLabel(getAgentDotState(agent))
+  const text = prompt || agentStateLabel(getAgentDotState(agent))
+  // Why: a subagent is read as "role · task"; its role is the only thing the
+  // nesting does not already say.
+  const role = agent.agentType.trim()
+  return agent.rowSource === 'subagent' && role.length > 0 && text.trim() !== role
+    ? `${formatAgentTypeLabel(agent.agentType)} · ${text}`
+    : text
 }
 
 export function getCompactAgentSecondary(

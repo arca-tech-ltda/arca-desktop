@@ -24,10 +24,15 @@ import { stopNestedWorktreeCardBubble } from './header-event-guards'
 import type { WorktreeItemRow } from '../listing/renderable-rows'
 import { getWorktreeOptionId } from './option-dom'
 import type { WorktreeRowDragState } from '../drag/row-state'
+import WorktreeCardAgents from '../../WorktreeCardAgents'
+import type { SidebarTreeModel } from '../../sidebar-tree-model'
+import { SIDEBAR_TREE_GUIDE_LANE_PX, SidebarTreeGuide } from '../../SidebarTreeGuide'
 
 export type WorktreeItemRowContext = {
   settings: AppState['settings']
   groupBy: WorktreeGroupBy
+  /** Which worktree rows the project header already prints, leaving only agents here. */
+  tree: SidebarTreeModel
   folderBackedProjectGroupIds: ReadonlySet<string>
   groupKeyByRowKey: ReadonlyMap<string, string>
   groupIndexByRowKey: ReadonlyMap<string, number>
@@ -135,6 +140,12 @@ export function renderWorktreeItemRow(
   const lineageChildrenStyle = lineageChildren
     ? getLineageChildrenInlineStyle(lineageChildrenInlineOffset ?? LINEAGE_CHILDREN_INLINE_OFFSET)
     : undefined
+  const isMergedIntoProjectHeader = ctx.tree.mergedRowKeys.has(itemRow.rowKey)
+  // Why an overlay and not a flex lane: the card's flush-surface padding math owns
+  // its content start, so the rail hangs in the project's indent instead of moving it.
+  const guideLeft = ctx.tree.guidedRowKeys.has(itemRow.rowKey)
+    ? Math.max(0, surfaceInset + cardContentIndent - SIDEBAR_TREE_GUIDE_LANE_PX)
+    : null
   const worktreeDragGroupKey = ctx.groupKeyByRowKey.get(itemRow.rowKey)
   const worktreeIdentity = getWorktreeHostIdentity(itemRow.worktree)
   const isLineageDropTarget =
@@ -185,46 +196,67 @@ export function renderWorktreeItemRow(
         paddingLeft: surfaceInset > 0 ? `${surfaceInset}px` : undefined
       }}
     >
-      <WorktreeCard
-        worktree={itemRow.worktree}
-        repo={itemRow.repo}
-        isActive={isActiveWorktree}
-        isCurrentWorktree={ctx.currentWorktreeId === itemRow.worktree.id}
-        // Why: a child-active parent should look active without the active-card side effects (e.g. SSH reconnect UI).
-        isActiveSurface={forceActiveSurface || isActiveWorktree}
-        activeSurfaceVariant={
-          isActiveWorktree && !forceActiveSurface ? ctx.getActiveSurfaceVariant(itemRow) : 'primary'
-        }
-        isMultiSelected={ctx.selectedWorktreeIds.has(worktreeIdentity)}
-        revealHighlight={ctx.highlightedRevealRowKey === itemRow.rowKey}
-        revealHighlightTone={
-          ctx.agentSendTargetWorktreeId === itemRow.worktree.id ? 'ai' : 'default'
-        }
-        selectedWorktrees={ctx.selectedWorktrees}
-        nativeDragEnabled={false}
-        isLineageDropTarget={Boolean(isLineageDropTarget)}
-        contentIndent={cardContentIndent}
-        flushSurface
-        activationRowKey={itemRow.rowKey}
-        onImmediateActivate={ctx.onImmediateActivate}
-        onSelectionGesture={ctx.onSelectionGesture}
-        onWorktreeCardClick={ctx.onWorktreeCardClick}
-        onContextMenuSelect={ctx.onContextMenuSelect}
-        onCardDragStart={ctx.onCardDragStart}
-        onCardDragEnd={ctx.onCardDragEnd}
-        hideRepoBadge={ctx.groupBy === 'repo'}
-        // Why: pinned worktrees mix repos in one section, so only it needs the leading repo identity chip.
-        hostContextLabel={itemRow.hostContextLabel}
-        inPinnedSection={itemRow.sectionKey === PINNED_GROUP_KEY}
-        renameRowKey={itemRow.rowKey}
-        lineageChildCount={itemRow.lineageChildCount}
-        lineageCollapsed={itemRow.lineageCollapsed}
-        lineageChildren={lineageChildren}
-        lineageChildrenStyle={lineageChildrenStyle}
-        onLineageToggle={
-          itemRow.lineageGroupKey ? ctx.getLineageToggleHandler(itemRow.lineageGroupKey) : undefined
-        }
-      />
+      {guideLeft === null ? null : (
+        <SidebarTreeGuide
+          isLast={ctx.tree.lastRowKeysInSection.has(itemRow.rowKey)}
+          className="pointer-events-none absolute top-0 h-7"
+          style={{ left: `${guideLeft}px` }}
+        />
+      )}
+      {isMergedIntoProjectHeader ? (
+        // The project header already prints this worktree's name and branch;
+        // only its agents still need a line.
+        <WorktreeCardAgents
+          worktreeId={itemRow.worktree.id}
+          treeIndent={cardContentIndent}
+          className="mt-0"
+        />
+      ) : (
+        <WorktreeCard
+          worktree={itemRow.worktree}
+          repo={itemRow.repo}
+          isActive={isActiveWorktree}
+          isCurrentWorktree={ctx.currentWorktreeId === itemRow.worktree.id}
+          // Why: a child-active parent should look active without the active-card side effects (e.g. SSH reconnect UI).
+          isActiveSurface={forceActiveSurface || isActiveWorktree}
+          activeSurfaceVariant={
+            isActiveWorktree && !forceActiveSurface
+              ? ctx.getActiveSurfaceVariant(itemRow)
+              : 'primary'
+          }
+          isMultiSelected={ctx.selectedWorktreeIds.has(worktreeIdentity)}
+          revealHighlight={ctx.highlightedRevealRowKey === itemRow.rowKey}
+          revealHighlightTone={
+            ctx.agentSendTargetWorktreeId === itemRow.worktree.id ? 'ai' : 'default'
+          }
+          selectedWorktrees={ctx.selectedWorktrees}
+          nativeDragEnabled={false}
+          isLineageDropTarget={Boolean(isLineageDropTarget)}
+          contentIndent={cardContentIndent}
+          flushSurface
+          activationRowKey={itemRow.rowKey}
+          onImmediateActivate={ctx.onImmediateActivate}
+          onSelectionGesture={ctx.onSelectionGesture}
+          onWorktreeCardClick={ctx.onWorktreeCardClick}
+          onContextMenuSelect={ctx.onContextMenuSelect}
+          onCardDragStart={ctx.onCardDragStart}
+          onCardDragEnd={ctx.onCardDragEnd}
+          hideRepoBadge={ctx.groupBy === 'repo'}
+          // Why: pinned worktrees mix repos in one section, so only it needs the leading repo identity chip.
+          hostContextLabel={itemRow.hostContextLabel}
+          inPinnedSection={itemRow.sectionKey === PINNED_GROUP_KEY}
+          renameRowKey={itemRow.rowKey}
+          lineageChildCount={itemRow.lineageChildCount}
+          lineageCollapsed={itemRow.lineageCollapsed}
+          lineageChildren={lineageChildren}
+          lineageChildrenStyle={lineageChildrenStyle}
+          onLineageToggle={
+            itemRow.lineageGroupKey
+              ? ctx.getLineageToggleHandler(itemRow.lineageGroupKey)
+              : undefined
+          }
+        />
+      )}
     </div>
   )
 }

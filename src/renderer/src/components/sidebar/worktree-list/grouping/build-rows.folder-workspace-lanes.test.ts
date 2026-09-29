@@ -96,6 +96,17 @@ describe('folder workspaces render under every Group by mode', () => {
     const rows = buildSidebarRows({ groupBy: 'repo' })
     expect(folderRows(rows).map((row) => row.key)).toEqual(['folder-workspace:fw-1'])
   })
+
+  it('puts folders after the projects of their group', () => {
+    const rows = buildSidebarRows({ groupBy: 'repo' })
+    const folderIndex = rows.findIndex((row) => row.type === 'folder-workspace')
+    const lastProjectRowIndex = rows.reduce(
+      (last, row, index) =>
+        (row.type === 'header' && row.repo) || row.type === 'item' ? index : last,
+      -1
+    )
+    expect(folderIndex).toBeGreaterThan(lastProjectRowIndex)
+  })
 })
 
 describe('a folder workspace can be the only member of a lane', () => {
