@@ -5,7 +5,7 @@ import type { CliInstallMethod, CliInstallStatus } from '../../shared/cli-instal
 import { isAppImageExtractedLauncherPath } from './appimage-extracted-root'
 import { DEV_COMMAND_NAME, DEV_LAUNCHER_DIR } from './cli-install-constants'
 import { buildWindowsForwarder, extractManagedUnixLauncherTarget } from './cli-dev-launcher'
-import { isMissingError } from './cli-install-errors'
+import { isMissingError, isPermissionError } from './cli-install-errors'
 import { CliInstallLocation } from './cli-install-location'
 import { isPathInsideOrEqual, samePathEntry } from './cli-install-path-format'
 import { extractLegacyAppImageCliWrapperTarget } from './legacy-appimage-cli-wrapper'
@@ -52,33 +52,30 @@ export class CliCommandInspection extends CliInstallLocation {
         })
       }
 
-      if (this.platform === 'darwin' && (stats.mode & 0o005) !== 0o005) {
-        // Why: readlink on a root-owned link made under umask 077 fails with EACCES before any check.
-        const readable = await readlink(commandPath).then(
-          () => true,
-          () => false
-        )
-        if (!readable) {
-          return this.buildStatus({
-            commandPath,
-            launcherPath,
-            installMethod: 'symlink',
-            supported: true,
-            state: 'stale',
-            currentTarget: null,
-            detail: `${commandPath} is not readable by this user. Register again to repair it.`
-          })
+      // macOS honors symlink modes; older privileged installs under umask 077 may be unreadable.
+      const unreadableLink = this.platform === 'darwin' && (stats.mode & 0o005) !== 0o005
+      let currentTarget: string
+      try {
+        currentTarget = await readlink(commandPath)
+      } catch (error) {
+        if (!unreadableLink || !isPermissionError(error)) {
+          throw error
         }
+        // An unreadable target is not proof that ARCA owns the link.
+        return this.buildStatus({
+          commandPath,
+          launcherPath,
+          installMethod: 'symlink',
+          supported: true,
+          state: 'conflict',
+          currentTarget: null,
+          detail: `${commandPath} is a symlink this user cannot read, so ARCA cannot verify what it points to. Fix its permissions or remove it, then register again.`
+        })
       }
-      const currentTarget = await readlink(commandPath)
       const resolvedCurrentTarget = resolve(dirname(commandPath), currentTarget)
       const resolvedLauncher = resolve(launcherPath)
       const pointsAtLauncher =
         resolvedCurrentTarget === resolvedLauncher && existsSync(resolvedLauncher)
-      // macOS enforces a symlink's own mode: a root-owned link without world read+execute (an
-      // older privileged install made under umask 077) cannot be resolved from the user's shell,
-      // so it is stale and must be republished, not reported as installed.
-      const unreadableLink = this.platform === 'darwin' && (stats.mode & 0o005) !== 0o005
       const isInstalled = pointsAtLauncher && !unreadableLink
       const isManagedStaleTarget =
         !isInstalled &&
