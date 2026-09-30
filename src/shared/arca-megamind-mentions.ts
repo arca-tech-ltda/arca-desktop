@@ -5,6 +5,7 @@
  */
 
 import {
+  megamindPersonName,
   megamindSessionName,
   type MegamindMemberSession,
   type MegamindSessionStatus
@@ -154,17 +155,19 @@ export function mentionCandidates(
   const candidates: MentionCandidate[] = []
   for (const member of members) {
     const agentHandle = `${member.handle}${AGENT_MENTION_SUFFIX}`
+    // Named as the server addresses them now, never by the e-mail local part it kept as `name`.
+    const name = megamindPersonName(member)
     if (member.handle.startsWith(needle)) {
-      candidates.push({ handle: member.handle, name: member.name, agent: false })
+      candidates.push({ handle: member.handle, name, agent: false })
     }
     if (!agentHandle.startsWith(needle)) {
       continue
     }
-    candidates.push({ handle: agentHandle, name: member.name, agent: true })
+    candidates.push({ handle: agentHandle, name, agent: true })
     for (const session of member.sessions ?? []) {
       candidates.push({
         handle: agentHandle,
-        name: member.name,
+        name,
         agent: true,
         session: {
           id: session.sessionId,

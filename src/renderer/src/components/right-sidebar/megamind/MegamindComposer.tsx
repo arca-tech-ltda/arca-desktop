@@ -140,7 +140,10 @@ export function MegamindComposer({
                       ? translate('arca.megamind.mentionAgent', 'agent of {{name}}', {
                           name: candidate.name
                         })
-                      : candidate.name}
+                      : // The name repeats the handle whenever the handle is the current identity.
+                        candidate.name === candidate.handle
+                        ? ''
+                        : candidate.name}
                 </span>
               </button>
             </li>

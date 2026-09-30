@@ -1,4 +1,4 @@
-import { lstat, mkdir, readFile, readlink, symlink, writeFile } from 'node:fs/promises'
+import { lchmod, lstat, mkdir, readFile, readlink, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -549,6 +549,45 @@ describe('CliInstaller', () => {
       const status = await installer.getStatus()
       expect(status.commandPath).toBe(join(homePath, '.local', 'bin', 'arca'))
       expect(status.supported).toBe(true)
+    }
+  )
+
+  // Why: macOS honours a symlink's own mode, so a command published at 0700 (an older privileged
+  // install under umask 077) cannot be read by the user and must be republished, not called done.
+  it.skipIf(process.platform !== 'darwin')(
+    'republishes a macOS arca symlink the user cannot read',
+    async () => {
+      const fixture = await makeFixture()
+      const homePath = join(fixture.root, 'home')
+      const resourcesPath = await createPackagedMacLauncher(fixture.root)
+      const usrLocalBin = join(fixture.root, 'usr', 'local', 'bin')
+      const installPath = join(usrLocalBin, 'arca')
+      const launcherPath = join(resourcesPath, 'bin', 'arca')
+      await mkdir(usrLocalBin, { recursive: true })
+      await symlink(launcherPath, installPath)
+      await lchmod(installPath, 0o700)
+
+      const installer = new CliInstaller({
+        platform: 'darwin',
+        isPackaged: true,
+        resourcesPath,
+        userDataPath: fixture.userDataPath,
+        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        appPath: fixture.appPath,
+        homePath,
+        defaultMacCommandPath: installPath,
+        processPathEnv: usrLocalBin
+      })
+
+      await expect(installer.getStatus()).resolves.toMatchObject({
+        commandPath: installPath,
+        state: 'stale'
+      })
+
+      const installed = await installer.install()
+      expect(installed.state).toBe('installed')
+      await expect(readlink(installPath)).resolves.toBe(launcherPath)
+      expect((await lstat(installPath)).mode & 0o005).toBe(0o005)
     }
   )
 })

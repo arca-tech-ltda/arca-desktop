@@ -153,7 +153,7 @@ export function MegamindConversation({
           <ChevronLeft />
         </Button>
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
-          {active ? megamindChannelTitle(active) : openChannel}
+          {active ? megamindChannelTitle(active, members) : openChannel}
           {agentCount > 0 && (
             <span className="font-normal text-muted-foreground">
               {' · '}

@@ -60,6 +60,13 @@ function connectionLine(connection: MegamindConnection): SetupLine | null {
   return null
 }
 
+/** `--pi` on POSIX, `-Pi` on Windows; both from the arca repo this computer already has. */
+export function piInstallCommand(requirements: MegamindPrerequisites): string {
+  return requirements.windows
+    ? `& "${requirements.repoPath}\\install.ps1" -Pi`
+    : `"${requirements.repoPath}/install.sh" --pi`
+}
+
 function prerequisitesMessage(requirements: MegamindPrerequisites, remote: boolean): string {
   if (remote) {
     return translate(
@@ -71,6 +78,12 @@ function prerequisitesMessage(requirements: MegamindPrerequisites, remote: boole
     return translate(
       'arca.megamind.installerMissing',
       'Installer not found in ~/ARCA/arca. Install the ARCA workspace first.'
+    )
+  }
+  if (requirements.piArcaMissing) {
+    return translate(
+      'arca.megamind.piWithoutArcaPi',
+      'Pi without ARCA Pi: run the installer so Megamind loads in Pi.'
     )
   }
   return requirements.mode === 'pi'
@@ -86,7 +99,8 @@ function prerequisitesMessage(requirements: MegamindPrerequisites, remote: boole
 
 /**
  * One line at the top of the panel, and only when something is in the way: the connection first,
- * then the workspace install the agent link needs. `expanded` is the gear button, which shows the
+ * then the install the agent link needs — the workspace one, or ARCA Pi when Pi is the agent here
+ * and `~/.pi/agent` is not linked to the repo. `expanded` is the gear button, which shows the
  * line even when everything is in order so the device is still reachable.
  */
 export function MegamindSetup({
@@ -97,7 +111,7 @@ export function MegamindSetup({
   expanded: boolean
 }): React.JSX.Element | null {
   const [requirements, setRequirements] = useState<MegamindPrerequisites | null>(null)
-  const [install, setInstall] = useState(false)
+  const [install, setInstall] = useState<'workspace' | 'pi' | null>(null)
   const remote = useAppStore((state) => Boolean(state.settings?.activeRuntimeEnvironmentId))
   useEffect(() => {
     void window.api.arcaMegamind
@@ -105,7 +119,10 @@ export function MegamindSetup({
       .then(setRequirements)
       .catch(() => {})
   }, [])
-  const installerLabel = translate('arca.megamind.install', 'Run workspace installer')
+  const workspaceLabel = translate('arca.megamind.install', 'Run workspace installer')
+  const piLabel = translate('arca.megamind.installPi', 'Install ARCA Pi')
+  const piMissing = requirements?.piArcaMissing === true
+  const installerLabel = piMissing ? piLabel : workspaceLabel
   const missing = requirements && !(requirements.agent && requirements.installer)
   const line =
     connectionLine(connection) ??
@@ -115,8 +132,8 @@ export function MegamindSetup({
           message: prerequisitesMessage(requirements, remote),
           action: {
             label: installerLabel,
-            run: () => setInstall(true),
-            disabled: !requirements.installer || remote || install
+            run: () => setInstall(piMissing ? 'pi' : 'workspace'),
+            disabled: !requirements.installer || remote || install !== null
           }
         }
       : expanded
@@ -150,12 +167,14 @@ export function MegamindSetup({
           </Button>
         )}
       </div>
-      {install && (
+      {install && requirements && (
         <OnboardingInlineCommandTerminal
           command={
-            requirements?.windows
-              ? '& "$HOME\\ARCA\\arca\\install.ps1" -Workspace'
-              : '~/ARCA/arca/install.sh --workspace'
+            install === 'pi'
+              ? piInstallCommand(requirements)
+              : requirements.windows
+                ? '& "$HOME\\ARCA\\arca\\install.ps1" -Workspace'
+                : '~/ARCA/arca/install.sh --workspace'
           }
           shellOverride={requirements?.windows ? 'powershell.exe' : undefined}
           forceHostRuntime

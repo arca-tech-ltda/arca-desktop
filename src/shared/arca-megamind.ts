@@ -38,7 +38,11 @@ export type MegamindPrerequisites = {
   mode: 'pi' | 'managed'
   /** Pi with its Megamind extension (`pi`), or the Claude Code/Codex MCP proxy (`managed`). */
   agent: boolean
+  /** `pi` mode with `~/.pi/agent` not linked to the arca repo: Pi runs, Megamind is not in it. */
+  piArcaMissing: boolean
   installer: boolean
+  /** The arca repo this computer has, empty when there is none; the install commands run from it. */
+  repoPath: string
   windows: boolean
 }
 export type ArcaMegamindApi = {

@@ -93,7 +93,9 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       prerequisites: async () => ({
         mode: 'managed' as const,
         agent: false,
+        piArcaMissing: false,
         installer: false,
+        repoPath: '',
         windows: false
       }),
       status: async () => ({ state: 'disconnected' }),

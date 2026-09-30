@@ -27,7 +27,7 @@ const chatState: MegamindChatState = {
       channel: DM,
       kind: 'dm',
       handle: 'enzo',
-      name: 'Enzo',
+      name: 'jabiscreidisom',
       lastMessageAt: '2026-01-01 12:50:00Z',
       lastMessageBody: 'consegue olhar o deploy do wgs?',
       unread: 3
@@ -75,7 +75,7 @@ beforeEach(() => {
           items: [
             {
               handle: 'enzo',
-              name: 'Enzo',
+              name: 'jabiscreidisom',
               online: true,
               appOnline: false,
               sessions: [
@@ -122,9 +122,10 @@ it('shows people, the pending approval and the conversations on one screen', asy
   const group = screen.getByRole('button', { name: /# arca/ })
   expect(group.textContent).toContain('leo: o logo da WGS tá no drive')
   expect(group.textContent).toContain('2')
-  expect(screen.getByRole('button', { name: /Enzo/ }).textContent).toContain(
-    'consegue olhar o deploy do wgs?'
-  )
+  // The DM is titled after the handle chat_members reports now, not the name the directory kept.
+  const dm = screen.getByRole('button', { name: /consegue olhar o deploy do wgs\?/ })
+  expect(dm.textContent).toContain('enzo')
+  expect(screen.queryByText('jabiscreidisom')).toBeNull()
   // No tabs and no setup noise while the connection and the prerequisites are in order.
   expect(screen.queryAllByRole('tab')).toEqual([])
   expect(screen.queryByText(/Connected as/)).toBeNull()
