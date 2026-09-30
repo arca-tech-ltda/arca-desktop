@@ -6,6 +6,7 @@ import {
   unregisterManagedAccountProjects
 } from '../managed-account-projects/registration'
 import type { ManagedAccountSettingsSource } from '../managed-account-projects/managed-account-project-map'
+import { ensureMegamindAgentRegistrations } from '../arca-megamind/megamind-agent-registration'
 import { standDownManagedHostAccountsForPiAuthority } from './main-process-account-services'
 
 /**
@@ -27,4 +28,10 @@ export function applyAgentAuthorityRegistrations(
   unregisterPiAccounts()
   unregisterPiAccountUsage()
   registerManagedAccountProjects(settings)
+  // Claude Code and Codex are the agents here, so they are the ones that must reach Megamind.
+  try {
+    ensureMegamindAgentRegistrations()
+  } catch (error) {
+    console.warn('[megamind] could not register the agent MCP server or skill:', error)
+  }
 }
