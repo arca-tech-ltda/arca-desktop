@@ -52,6 +52,24 @@ export class CliCommandInspection extends CliInstallLocation {
         })
       }
 
+      if (this.platform === 'darwin' && (stats.mode & 0o005) !== 0o005) {
+        // Why: readlink on a root-owned link made under umask 077 fails with EACCES before any check.
+        const readable = await readlink(commandPath).then(
+          () => true,
+          () => false
+        )
+        if (!readable) {
+          return this.buildStatus({
+            commandPath,
+            launcherPath,
+            installMethod: 'symlink',
+            supported: true,
+            state: 'stale',
+            currentTarget: null,
+            detail: `${commandPath} is not readable by this user. Register again to repair it.`
+          })
+        }
+      }
       const currentTarget = await readlink(commandPath)
       const resolvedCurrentTarget = resolve(dirname(commandPath), currentTarget)
       const resolvedLauncher = resolve(launcherPath)
