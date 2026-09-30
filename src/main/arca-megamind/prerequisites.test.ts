@@ -36,7 +36,7 @@ describe('megamindPrerequisites', () => {
     const extension = join(home, 'ARCA', 'arca-chat', 'extensions', 'arca-megamind')
     mkdirSync(extension, { recursive: true })
     write(join(home, '.pi', 'agent', 'settings.json'), JSON.stringify({ extensions: [extension] }))
-    expect((await megamindPrerequisites()).agent).toBe(true)
+    expect(await megamindPrerequisites()).toMatchObject({ agent: true, piArcaMissing: false })
   })
 
   it('ignores a disabled or missing settings.json entry', async () => {
@@ -49,13 +49,34 @@ describe('megamindPrerequisites', () => {
     expect((await megamindPrerequisites()).agent).toBe(false)
   })
 
+  it('reports Pi running without the ARCA Pi links, with the repo the command runs from', async () => {
+    write(join(home, 'ARCA', 'arca', 'install.sh'), '#!/bin/bash\n')
+    expect(await megamindPrerequisites()).toMatchObject({
+      mode: 'pi',
+      agent: false,
+      piArcaMissing: true,
+      installer: true,
+      repoPath: join(home, 'ARCA', 'arca')
+    })
+  })
+
   it('in managed mode requires the MCP proxy, not Pi', async () => {
     mode = 'managed'
     expect(await megamindPrerequisites()).toMatchObject({
       mode: 'managed',
-      agent: false
+      agent: false,
+      piArcaMissing: false
     })
     write(join(home, '.codex', 'config.toml'), '[mcp_servers.arca-megamind]\ncommand = "node"\n')
     expect((await megamindPrerequisites()).agent).toBe(true)
+  })
+
+  it('registers the MCP proxy itself in managed mode, so the check answers true unaided', async () => {
+    mode = 'managed'
+    const repo = join(home, 'ARCA', 'arca')
+    write(join(repo, 'install.sh'), '#!/bin/bash\n')
+    write(join(repo, 'bin', 'arca-megamind-mcp.mjs'), '// proxy\n')
+    mkdirSync(join(repo, 'skills', 'arca-megamind'), { recursive: true })
+    expect(await megamindPrerequisites()).toMatchObject({ agent: true, installer: true })
   })
 })

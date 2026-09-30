@@ -3,6 +3,8 @@ import { homedir } from 'node:os'
 import { basename, isAbsolute, join } from 'node:path'
 import { isCommandOnPath } from '../ipc/preflight-command-exec'
 import { getAgentAuthorityMode } from '../agent-authority/agent-authority-state'
+import { resolveArcaRepoPath } from './arca-repo-path'
+import { ensureMegamindAgentRegistrations } from './megamind-agent-registration'
 import type { MegamindPrerequisites } from '../../shared/arca-megamind'
 
 const exists = async (path: string): Promise<boolean> =>
@@ -51,15 +53,26 @@ export async function megamindPrerequisites(): Promise<MegamindPrerequisites> {
   const home = homedir()
   const windows = process.platform === 'win32'
   const mode = getAgentAuthorityMode()
+  const repoPath = resolveArcaRepoPath(home) ?? ''
+  if (mode === 'managed' && repoPath) {
+    // Reporting the link is also the moment to make it: the partners' agents get the MCP server
+    // and the skill without an installer run of their own.
+    ensureMegamindAgentRegistrations(home)
+  }
+  const piExtension =
+    mode === 'pi' && (await piMegamindExtensionInstalled(join(home, '.pi', 'agent')))
   const agent =
     mode === 'pi'
-      ? (await isCommandOnPath('pi')) &&
-        (await piMegamindExtensionInstalled(join(home, '.pi', 'agent')))
+      ? (await isCommandOnPath('pi')) && piExtension
       : await managedMegamindMcpInstalled(home)
   return {
     mode,
     agent,
-    installer: await exists(join(home, 'ARCA', 'arca', windows ? 'install.ps1' : 'install.sh')),
+    // Pi runs, but `~/.pi/agent` is not linked to the arca repo, so no `arca-megamind` extension
+    // is loaded. The session still opens; only Megamind is missing from it.
+    piArcaMissing: mode === 'pi' && !piExtension,
+    installer: repoPath !== '',
+    repoPath,
     windows
   }
 }
