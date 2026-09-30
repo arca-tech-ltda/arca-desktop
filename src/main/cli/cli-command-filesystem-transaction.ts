@@ -198,9 +198,11 @@ export function buildMacPrivilegedSymlinkTransaction(
   const rollback =
     `/bin/rm -f ${quoteShell(publishPath)}; /bin/rmdir ${quoteShell(publishDirectory)} 2>/dev/null || :; ` +
     `if [ "$captured" -eq 1 ]; then ${restoreOrPreserve}; else /bin/rmdir ${quoteShell(transactionDirectory)}; fi; exit 73`
+  // The transaction umask is 077 so the staging directory is private, but macOS honours a
+  // symlink's own mode: published at 0700 root-owned, no user could readlink the command.
   return (
     `${capture}if /bin/mkdir ${quoteShell(publishDirectory)} && ` +
-    `/bin/ln -s ${quoteShell(args.launcherPath)} ${quoteShell(publishPath)} && ` +
+    `(umask 022; /bin/ln -s ${quoteShell(args.launcherPath)} ${quoteShell(publishPath)}) && ` +
     `/bin/ln -P ${quoteShell(publishPath)} ${quoteShell(commandDirectory)}; then ` +
     `/bin/rm ${quoteShell(publishPath)}; /bin/rmdir ${quoteShell(publishDirectory)}; ` +
     `if [ "$captured" -eq 1 ]; then /bin/rm ${quoteShell(heldPath)}; fi; ` +

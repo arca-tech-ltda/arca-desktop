@@ -93,6 +93,8 @@ describe.skipIf(process.platform !== 'darwin' || process.getuid?.() === 0)(
       const installed = await installer.install()
       expect(installed.state).toBe('installed')
       await expect(readlink(fixture.commandPath)).resolves.toBe(installed.launcherPath)
+      // The transaction runs under umask 077; the published command must still be readable.
+      expect((await lstat(fixture.commandPath)).mode & 0o005).toBe(0o005)
 
       await chmod(fixture.protectedDirectory, 0o500)
       await expect(installer.remove()).resolves.toMatchObject({ state: 'not_installed' })

@@ -55,7 +55,13 @@ export class CliCommandInspection extends CliInstallLocation {
       const currentTarget = await readlink(commandPath)
       const resolvedCurrentTarget = resolve(dirname(commandPath), currentTarget)
       const resolvedLauncher = resolve(launcherPath)
-      const isInstalled = resolvedCurrentTarget === resolvedLauncher && existsSync(resolvedLauncher)
+      const pointsAtLauncher =
+        resolvedCurrentTarget === resolvedLauncher && existsSync(resolvedLauncher)
+      // macOS enforces a symlink's own mode: a root-owned link without world read+execute (an
+      // older privileged install made under umask 077) cannot be resolved from the user's shell,
+      // so it is stale and must be republished, not reported as installed.
+      const unreadableLink = this.platform === 'darwin' && (stats.mode & 0o005) !== 0o005
+      const isInstalled = pointsAtLauncher && !unreadableLink
       const isManagedStaleTarget =
         !isInstalled &&
         (resolvedCurrentTarget === resolvedLauncher ||
@@ -69,9 +75,11 @@ export class CliCommandInspection extends CliInstallLocation {
         currentTarget: resolvedCurrentTarget,
         detail: isInstalled
           ? `Registered at ${commandPath}.`
-          : isManagedStaleTarget
-            ? `${commandPath} points to an older ARCA launcher.`
-            : `${commandPath} points to a non-ARCA launcher.`
+          : unreadableLink && isManagedStaleTarget
+            ? `${commandPath} is not readable by this user. Register again to repair it.`
+            : isManagedStaleTarget
+              ? `${commandPath} points to an older ARCA launcher.`
+              : `${commandPath} points to a non-ARCA launcher.`
       })
     } catch (error) {
       if (isMissingError(error)) {
