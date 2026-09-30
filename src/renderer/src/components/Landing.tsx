@@ -254,16 +254,17 @@ export default function Landing(): React.JSX.Element {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-background">
-      {/* Symbol as a mask so it follows the theme's foreground color. */}
+      {/* Symbol as a mask so it follows the theme's foreground color; the URL is quoted because an
+          inlined SVG data URI is not a valid unquoted url() and the declaration would be dropped. */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[min(110vh,110vw)] -translate-x-1/2 -translate-y-1/2 bg-foreground opacity-[0.06]"
         style={{
-          maskImage: `url(${logo})`,
+          maskImage: `url(${JSON.stringify(logo)})`,
           maskRepeat: 'no-repeat',
           maskPosition: 'center',
           maskSize: 'contain',
-          WebkitMaskImage: `url(${logo})`,
+          WebkitMaskImage: `url(${JSON.stringify(logo)})`,
           WebkitMaskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
           WebkitMaskSize: 'contain'

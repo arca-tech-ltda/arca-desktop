@@ -55,7 +55,7 @@ export function MegamindPeopleStrip({
               >
                 <span className="relative">
                   <span className="flex size-9 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground ring-1 ring-border">
-                    {megamindInitial(member.name, member.handle)}
+                    {megamindInitial(member.handle, member.name)}
                   </span>
                   <MegamindPresenceDot
                     state={state}
