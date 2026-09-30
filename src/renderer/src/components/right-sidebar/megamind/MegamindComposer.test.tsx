@@ -7,7 +7,7 @@ import type { MegamindMember } from '../../../../../shared/arca-megamind-chat'
 const members: MegamindMember[] = [
   {
     handle: 'enzo',
-    name: 'Enzo',
+    name: 'jabiscreidisom',
     online: true,
     appOnline: true,
     sessions: [
@@ -79,9 +79,9 @@ it('suggests the person, the agent and their sessions while an @ mention is type
   const { input, onSend } = composer()
   type(input, 'oi @en')
   expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-    '@enzoEnzo',
-    '@enzo-piagent of Enzo',
-    'wgs-sistema · pisession of Enzo'
+    '@enzo',
+    '@enzo-piagent of enzo',
+    'wgs-sistema · pisession of enzo'
   ])
   fireEvent.mouseDown(screen.getByRole('option', { name: /@enzo-pi/ }))
   await waitFor(() => expect(input.value).toBe('oi @enzo-pi '))
@@ -101,6 +101,6 @@ it('keeps Enter on the suggestion list while it is open', () => {
 it('writes the owner’s agent handle when a session is picked', async () => {
   const { input } = composer()
   type(input, '@enzo-')
-  fireEvent.mouseDown(screen.getByRole('option', { name: /session of Enzo/ }))
+  fireEvent.mouseDown(screen.getByRole('option', { name: /session of enzo/ }))
   await waitFor(() => expect(input.value).toBe('@enzo-pi '))
 })

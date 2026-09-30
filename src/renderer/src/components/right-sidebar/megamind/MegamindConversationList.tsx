@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import {
+  megamindPersonName,
   megamindSessionName,
   type MegamindChatChannel,
   type MegamindMember
@@ -14,8 +15,19 @@ import {
   megamindPresenceLabel
 } from './megamind-presence-state'
 
-export function megamindChannelTitle(channel: MegamindChatChannel): string {
-  return channel.kind === 'group' ? `# ${channel.channel}` : channel.name || channel.handle
+/**
+ * A DM is titled after the person as `chat_members` knows them now; the channel's own name is the
+ * e-mail local part the directory denormalized, which survives a handle change.
+ */
+export function megamindChannelTitle(
+  channel: MegamindChatChannel,
+  members: readonly MegamindMember[] = []
+): string {
+  if (channel.kind === 'group') {
+    return `# ${channel.channel}`
+  }
+  const member = members.find((item) => item.handle === channel.handle)
+  return megamindPersonName(member, channel.handle || channel.name)
 }
 
 /** The group first, then the direct messages with the freshest at the top. */
@@ -68,6 +80,7 @@ export function MegamindConversationList({
       </p>
       {rows.map((channel) => {
         const member = members.find((item) => item.handle === channel.handle)
+        const title = megamindChannelTitle(channel, members)
         return (
           <button
             key={channel.channel}
@@ -80,7 +93,7 @@ export function MegamindConversationList({
           >
             <span className="relative shrink-0">
               <span className="flex size-8 items-center justify-center rounded-lg bg-accent text-xs font-semibold text-accent-foreground">
-                {channel.kind === 'group' ? '#' : megamindInitial(channel.name, channel.handle)}
+                {channel.kind === 'group' ? '#' : megamindInitial(title, channel.handle)}
               </span>
               {member && (
                 <MegamindPresenceDot
@@ -92,7 +105,7 @@ export function MegamindConversationList({
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="flex items-baseline gap-2">
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                  {megamindChannelTitle(channel)}
+                  {title}
                 </span>
                 <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
                   {megamindConversationTime(channel.lastMessageAt)}

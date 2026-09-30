@@ -81,6 +81,17 @@ export type MegamindMember = {
   sessions: MegamindMemberSession[]
 }
 
+/**
+ * How a person is named in the UI. The handle is the identity the server resolves today; `name` is
+ * the e-mail local part it denormalizes, so it keeps the old one after a handle change.
+ */
+export function megamindPersonName(
+  person: Pick<MegamindMember, 'handle' | 'name'> | undefined,
+  fallback = ''
+): string {
+  return person?.handle || person?.name || fallback
+}
+
 export type MegamindMembers = {
   items: MegamindMember[]
   /** `list_agents` fallback on a v4 server: sessions are known, `app_online` is inferred. */

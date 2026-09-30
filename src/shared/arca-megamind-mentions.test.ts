@@ -50,23 +50,33 @@ describe('composer autocomplete', () => {
   })
   it('offers the person before the agent and filters by prefix', () => {
     const members = [
-      { handle: 'biel', name: 'Biel' },
-      { handle: 'enzo', name: 'Enzo' }
+      { handle: 'biel', name: 'biel' },
+      { handle: 'enzo', name: 'enzo' }
     ]
     expect(mentionCandidates(members, 'en')).toEqual([
-      { handle: 'enzo', name: 'Enzo', agent: false },
-      { handle: 'enzo-pi', name: 'Enzo', agent: true }
+      { handle: 'enzo', name: 'enzo', agent: false },
+      { handle: 'enzo-pi', name: 'enzo', agent: true }
     ])
     expect(mentionCandidates(members, 'enzo-p')).toEqual([
-      { handle: 'enzo-pi', name: 'Enzo', agent: true }
+      { handle: 'enzo-pi', name: 'enzo', agent: true }
     ])
     expect(mentionCandidates(members, 'zzz')).toEqual([])
+  })
+  it('names a candidate by the current handle, falling back to the denormalized name', () => {
+    expect(mentionCandidates([{ handle: 'enzo', name: 'jabiscreidisom' }], 'enzo')).toEqual([
+      { handle: 'enzo', name: 'enzo', agent: false },
+      { handle: 'enzo-pi', name: 'enzo', agent: true }
+    ])
+    expect(mentionCandidates([{ handle: '', name: 'jabiscreidisom' }], '')).toEqual([
+      { handle: '', name: 'jabiscreidisom', agent: false },
+      { handle: '-pi', name: 'jabiscreidisom', agent: true }
+    ])
   })
   it('offers each session under its owner, addressed to the agent that runs it', () => {
     const members = [
       {
         handle: 'enzo',
-        name: 'Enzo',
+        name: 'enzo',
         sessions: [
           {
             sessionId: 'b1c2',
@@ -81,10 +91,10 @@ describe('composer autocomplete', () => {
       }
     ]
     expect(mentionCandidates(members, 'enzo-')).toEqual([
-      { handle: 'enzo-pi', name: 'Enzo', agent: true },
+      { handle: 'enzo-pi', name: 'enzo', agent: true },
       {
         handle: 'enzo-pi',
-        name: 'Enzo',
+        name: 'enzo',
         agent: true,
         session: { id: 'b1c2', name: 'wgs-sistema \u00b7 pi', status: 'active' }
       }
