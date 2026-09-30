@@ -1,4 +1,9 @@
+import { readIpcErrorMessage } from '@/lib/ipc-error'
 import type { TerminalPasteExecutionReason } from './terminal-paste-model'
+
+export function formatClipboardFilePasteError(error: unknown): string {
+  return `File paste failed: ${readIpcErrorMessage(error) ?? String(error)}`
+}
 
 export function formatTerminalPasteExecutionError(
   reason: TerminalPasteExecutionReason | undefined

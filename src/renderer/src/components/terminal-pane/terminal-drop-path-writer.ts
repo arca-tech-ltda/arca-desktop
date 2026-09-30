@@ -22,6 +22,7 @@ type TerminalDropPathWriteResult = {
 }
 
 export async function writeTerminalDropPathsToCapturedTarget({
+  canContinue,
   dropTarget,
   manager,
   paneTransports,
@@ -29,6 +30,8 @@ export async function writeTerminalDropPathsToCapturedTarget({
   targetShell,
   operationTimeoutMs = TERMINAL_PASTE_OPERATION_TIMEOUT_MS
 }: {
+  /** Extra per-write guard (clipboard paste focus); drops omit it. */
+  canContinue?: () => boolean
   dropTarget: CapturedTerminalDropTarget
   manager: PaneManager
   paneTransports: Map<number, PtyTransport>
@@ -42,7 +45,7 @@ export async function writeTerminalDropPathsToCapturedTarget({
     // Why: acknowledged PTY writes are async, so a multi-path drop can outlive
     // the pane or PTY it originally targeted.
     const liveTransport = getCurrentTerminalDropTransport(manager, paneTransports, dropTarget)
-    if (!liveTransport) {
+    if (!liveTransport || canContinue?.() === false) {
       return { sentAnyPath, targetCurrent: false, pathsWritten, failureReason: 'target-stale' }
     }
     // Why: image drops are attachment payloads for terminal TUIs, which detect
@@ -86,7 +89,9 @@ export async function writeTerminalDropPathsToCapturedTarget({
   }
   return {
     sentAnyPath,
-    targetCurrent: Boolean(getCurrentTerminalDropTransport(manager, paneTransports, dropTarget)),
+    targetCurrent:
+      canContinue?.() !== false &&
+      Boolean(getCurrentTerminalDropTransport(manager, paneTransports, dropTarget)),
     pathsWritten
   }
 }

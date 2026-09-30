@@ -299,6 +299,9 @@ describe('registerClipboardHandlers', () => {
     expect(() =>
       handlers.get('clipboard:writeImage')?.(untrustedEvent, 'data:image/png;base64,AAAA')
     ).toThrow('Unauthorized clipboard IPC sender')
+    expect(() => handlers.get('clipboard:readFilePaths')?.(untrustedEvent)).toThrow(
+      'Unauthorized clipboard IPC sender'
+    )
 
     expect(clipboardReadTextMock).not.toHaveBeenCalled()
     expect(clipboardWriteTextMock).not.toHaveBeenCalled()
@@ -306,6 +309,7 @@ describe('registerClipboardHandlers', () => {
     expect(nativeImageCreateFromBufferMock).not.toHaveBeenCalled()
     expect(clipboardWriteImageMock).not.toHaveBeenCalled()
     expect(clipboardWriteBufferMock).not.toHaveBeenCalled()
+    expect(clipboardReadBufferMock).not.toHaveBeenCalled()
     expect(getSshFilesystemProviderMock).not.toHaveBeenCalled()
   })
 

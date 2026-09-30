@@ -68,8 +68,15 @@ vi.mock('./terminal-input-activity', () => ({
   recordTerminalUserInputForLeaf: mocks.recordTerminalUserInputForLeaf
 }))
 
+import type { PaneManager } from '@/lib/pane-manager/pane-manager'
 import { handleTerminalFileDrop } from './terminal-drop-handler'
+import type { PtyTransport } from './pty-transport'
+
+type PaneTransports = Map<number, PtyTransport>
 import { wrapTerminalBracketedPasteText } from './terminal-bracketed-paste'
+
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: these test doubles implement only the pane/transport members the drop flow reads.
+const asDropArg = <T>(value: unknown): T => value as T
 
 function createTerminalTransport(
   sendInput: ReturnType<typeof vi.fn>,
@@ -162,6 +169,102 @@ describe('handleTerminalFileDrop', () => {
     expect(mocks.recordTerminalUserInputForLeaf).toHaveBeenCalledWith('tab-1', 'leaf-1')
     expect(mocks.toastError).not.toHaveBeenCalled()
     expect(mocks.toastDismiss).toHaveBeenCalledWith('toast-1')
+  })
+
+  it('reports whether the paths reached the terminal', async () => {
+    mocks.importExternalPathsToRuntime.mockResolvedValue({
+      results: [
+        {
+          sourcePath: '/Users/me/logo.png',
+          status: 'imported',
+          destPath: '/remote/repo/.orca/drops/logo.png',
+          kind: 'file',
+          renamed: false
+        }
+      ]
+    })
+    const pane = { id: 1, leafId: 'leaf-1', terminal: { focus: vi.fn() } }
+    const manager = { getActivePane: () => pane, getPanes: () => [pane] }
+    const args = {
+      manager: asDropArg<PaneManager>(manager),
+      worktreeId: 'wt-1',
+      tabId: 'tab-1',
+      cwd: undefined,
+      data: { paths: ['/Users/me/logo.png'], target: 'terminal' }
+    }
+
+    await expect(
+      handleTerminalFileDrop({
+        ...args,
+        paneTransports: asDropArg<PaneTransports>(
+          new Map([[1, createTerminalTransport(vi.fn(() => true))]])
+        )
+      })
+    ).resolves.toBe(true)
+    await expect(
+      handleTerminalFileDrop({
+        ...args,
+        paneTransports: asDropArg<PaneTransports>(
+          new Map([[1, createTerminalTransport(vi.fn(() => false))]])
+        )
+      })
+    ).resolves.toBe(false)
+  })
+
+  it('reports a failure when the upload itself fails', async () => {
+    mocks.importExternalPathsToRuntime.mockRejectedValue(new Error('upload down'))
+    const pane = { id: 1, leafId: 'leaf-1', terminal: { focus: vi.fn() } }
+
+    await expect(
+      handleTerminalFileDrop({
+        manager: asDropArg<PaneManager>({ getActivePane: () => pane, getPanes: () => [pane] }),
+        paneTransports: asDropArg<PaneTransports>(
+          new Map([[1, createTerminalTransport(vi.fn(() => true))]])
+        ),
+        worktreeId: 'wt-1',
+        tabId: 'tab-1',
+        cwd: undefined,
+        data: { paths: ['/Users/me/logo.png'], target: 'terminal' }
+      })
+    ).resolves.toBe(false)
+  })
+
+  it('skips the write and the refocus when the caller cancelled during the upload', async () => {
+    let cancelled = false
+    mocks.importExternalPathsToRuntime.mockImplementation(async () => {
+      cancelled = true
+      return {
+        results: [
+          {
+            sourcePath: '/Users/me/logo.png',
+            status: 'imported',
+            destPath: '/remote/repo/.orca/drops/logo.png',
+            kind: 'file',
+            renamed: false
+          }
+        ]
+      }
+    })
+    const sendInput = vi.fn(() => true)
+    const focus = vi.fn()
+    const pane = { id: 1, leafId: 'leaf-1', terminal: { focus } }
+
+    await expect(
+      handleTerminalFileDrop({
+        manager: asDropArg<PaneManager>({ getActivePane: () => pane, getPanes: () => [pane] }),
+        paneTransports: asDropArg<PaneTransports>(
+          new Map([[1, createTerminalTransport(sendInput)]])
+        ),
+        worktreeId: 'wt-1',
+        tabId: 'tab-1',
+        cwd: undefined,
+        canContinue: () => !cancelled,
+        data: { paths: ['/Users/me/logo.png'], target: 'terminal' }
+      })
+    ).resolves.toBe(false)
+
+    expect(sendInput).not.toHaveBeenCalled()
+    expect(focus).not.toHaveBeenCalled()
   })
 
   it('does not paste runtime-uploaded paths when the target PTY changed', async () => {
@@ -638,7 +741,7 @@ describe('handleTerminalFileDrop', () => {
         cwd: undefined,
         data: { paths: ['/local/a.txt'], target: 'terminal' }
       })
-    ).resolves.toBeUndefined()
+    ).resolves.toBe(false)
 
     expect(mocks.toastError).toHaveBeenCalledWith(
       "Couldn't verify the SSH connection. Reconnect the host and try again."

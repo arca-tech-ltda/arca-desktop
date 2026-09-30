@@ -28,6 +28,7 @@ import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { resolvePaneAgentSessionId } from './pane-agent-session-id'
 
 type UseTerminalPaneContextMenuDeps = {
+  cwdRef: React.RefObject<string | undefined>
   managerRef: React.RefObject<PaneManager | null>
   paneTransportsRef: React.RefObject<Map<number, PtyTransport>>
   paneCwdRef: React.RefObject<PaneCwdMap>
@@ -79,6 +80,7 @@ type TerminalMenuState = {
 }
 
 export function useTerminalPaneContextMenu({
+  cwdRef,
   managerRef,
   paneTransportsRef,
   paneCwdRef,
@@ -118,6 +120,7 @@ export function useTerminalPaneContextMenu({
   ): Promise<void> =>
     pasteTerminalPaneMenuClipboard(
       {
+        cwdRef,
         managerRef,
         paneTransportsRef,
         tabId,

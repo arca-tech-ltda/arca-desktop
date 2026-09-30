@@ -133,6 +133,8 @@ export function createWebUiApi(): NonNullable<Partial<PreloadApi>['ui']> {
       return saveClipboardImageAsTempFileInRuntime(contentBase64, args)
     },
     readClipboardImageThumbnail: () => readClipboardImageThumbnail().catch(() => null),
+    // Why: the browser exposes no file references, and the terminal's host is remote anyway.
+    readClipboardFilePaths: () => Promise.resolve([]),
     writeClipboardText: writeWebClipboardText,
     writeTerminalClipboardText: writeWebClipboardText,
     writeSelectionClipboardText: () =>

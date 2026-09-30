@@ -52,6 +52,10 @@ export function useTerminalPaneFoundation(
     new Map()
   )
   const paneTransportsRef = useRef<Map<number, PtyTransport>>(new Map())
+  // Effect-registered paste/drop handlers outlive the render that captured `cwd`.
+  const cwdRef = useRef(cwd)
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
+  cwdRef.current = cwd
   const paneCwdRef = useRef<PaneCwdMap>(new Map())
   const paneMode2031Ref = useRef<Map<number, boolean>>(new Map())
   const paneKittyKeyboardModesRef = useRef<Map<number, TerminalKittyKeyboardModeTracker>>(new Map())
@@ -167,6 +171,7 @@ export function useTerminalPaneFoundation(
     onPtyExit,
     onCloseTab,
     containerRef,
+    cwdRef,
     managerRef,
     paneFontSizesRef,
     expandedPaneIdRef,

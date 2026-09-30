@@ -4,13 +4,17 @@ import { getConnectionId } from '@/lib/connection-context'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
 import { pasteTerminalText } from './terminal-bracketed-paste'
 import { pasteTerminalClipboard } from './terminal-clipboard-paste'
+import { createTerminalClipboardFilePasteDeps } from './terminal-clipboard-file-paste'
 import {
   executeTerminalPastePlan,
   planTerminalPasteWithYield,
   type TerminalPasteSource,
   type TerminalPasteTextOptions
 } from './terminal-paste-coordinator'
-import { formatTerminalPasteExecutionError } from './terminal-paste-errors'
+import {
+  formatClipboardFilePasteError,
+  formatTerminalPasteExecutionError
+} from './terminal-paste-errors'
 import { resolveTerminalPasteRuntime } from './terminal-paste-runtime'
 import { getTerminalPasteSshRemotePlatform } from './terminal-paste-ssh-platform'
 import { isTerminalPanePasteTargetCurrent } from './terminal-paste-target-state'
@@ -22,6 +26,7 @@ import { resolveTerminalInputHostPlatform } from './terminal-input-host-platform
 import { recordTerminalUserInputForLeaf } from './terminal-input-activity'
 
 export type TerminalPaneMenuPasteContext = {
+  cwdRef: React.RefObject<string | undefined>
   managerRef: React.RefObject<PaneManager | null>
   paneTransportsRef: React.RefObject<Map<number, PtyTransport>>
   tabId: string
@@ -122,6 +127,20 @@ export const pasteTerminalPaneMenuClipboard = async (
   const result = await pasteTerminalClipboard({
     readClipboardText: window.api.ui.readClipboardText,
     saveClipboardImageAsTempFile: window.api.ui.saveClipboardImageAsTempFile,
+    ...createTerminalClipboardFilePasteDeps(
+      {
+        cwdRef: context.cwdRef,
+        managerRef: context.managerRef,
+        paneTransportsRef: context.paneTransportsRef,
+        tabId,
+        worktreeId
+      },
+      pane,
+      // Why: the menu itself takes focus off the terminal, so a menu paste is
+      // only bound to the pane it was opened on, like the existing menu text paste.
+      { requireSameFocusedElement: false, activeElementAtDispatch: null }
+    ),
+    onFilePathsPasteError: (error) => onPasteError(formatClipboardFilePasteError(error)),
     connectionId,
     runtimeEnvironmentId,
     protectedMultilineTextPasteOptions: resolveProtectedMultilinePasteOptionsForPane({

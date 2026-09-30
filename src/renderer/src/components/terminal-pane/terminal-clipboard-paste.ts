@@ -16,6 +16,10 @@ type SaveClipboardImageAsTempFile = (args?: {
 type PasteTerminalClipboardDeps = {
   readClipboardText: (options?: ReadClipboardTextOptions) => Promise<string>
   saveClipboardImageAsTempFile: SaveClipboardImageAsTempFile
+  /** Both absent (old client / web) => the image and text paths behave as before. */
+  readClipboardFilePaths?: () => Promise<string[]>
+  pasteFilePaths?: (paths: string[]) => boolean | void | Promise<boolean | void>
+  onFilePathsPasteError?: (error: unknown) => void
   pasteText: (
     text: string,
     options?: TerminalPasteTextOptions
@@ -30,11 +34,13 @@ type PasteTerminalClipboardDeps = {
 }
 
 export type TerminalClipboardPasteResult =
-  | { status: 'pasted'; kind: 'image-path' | 'text' }
+  | { status: 'pasted'; kind: 'file-paths' | 'image-path' | 'text' }
   | {
       status: 'skipped'
       reason:
         | 'empty'
+        | 'file-paths-paste-failed'
+        | 'file-paths-paste-rejected'
         | 'image-paste-failed'
         | 'image-paste-rejected'
         | 'text-paste-failed'
@@ -45,6 +51,9 @@ export type TerminalClipboardPasteResult =
 export async function pasteTerminalClipboard({
   readClipboardText,
   saveClipboardImageAsTempFile,
+  readClipboardFilePaths,
+  pasteFilePaths,
+  onFilePathsPasteError,
   pasteText,
   connectionId,
   runtimeEnvironmentId,
@@ -74,6 +83,30 @@ export async function pasteTerminalClipboard({
     } catch (error) {
       onImagePasteError?.(error)
       return { status: 'skipped', reason: 'image-paste-failed' }
+    }
+  }
+
+  // Why: copying a file in Finder/Explorer also publishes its icon as a clipboard
+  // image, so the file reference must win before the image branch turns the copy
+  // into an icon screenshot (the drop flow then handles SSH/runtime/WSL targets).
+  if (readClipboardFilePaths && pasteFilePaths) {
+    let filePaths: string[]
+    try {
+      filePaths = await readClipboardFilePaths()
+    } catch (error) {
+      onFilePathsPasteError?.(error)
+      return { status: 'skipped', reason: 'file-paths-paste-failed' }
+    }
+    if (filePaths.length > 0) {
+      try {
+        const result = await pasteFilePaths(filePaths)
+        return result === false
+          ? { status: 'skipped', reason: 'file-paths-paste-rejected' }
+          : { status: 'pasted', kind: 'file-paths' }
+      } catch (error) {
+        onFilePathsPasteError?.(error)
+        return { status: 'skipped', reason: 'file-paths-paste-failed' }
+      }
     }
   }
 

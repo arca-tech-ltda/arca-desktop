@@ -15,6 +15,7 @@ export function useTerminalPaneContextActions(controller: TerminalPaneCloseContr
     closeRenameSession,
     containerRef,
     cwd,
+    cwdRef,
     forceBracketedMultilineTextPaste,
     handleClearPaneTitleShortcut,
     handleRequestClosePane,
@@ -151,6 +152,7 @@ export function useTerminalPaneContextActions(controller: TerminalPaneCloseContr
 
   const contextMenu = useTerminalPaneContextMenu({
     tabId,
+    cwdRef,
     managerRef,
     paneTransportsRef,
     paneCwdRef,

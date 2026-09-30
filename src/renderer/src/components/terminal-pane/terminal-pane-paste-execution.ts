@@ -17,10 +17,15 @@ import {
 } from './terminal-paste-target-state'
 import { pasteTerminalText } from './terminal-bracketed-paste'
 import { writeTerminalPastePtyInput } from './terminal-pty-paste-writer'
-import { formatTerminalPasteExecutionError } from './terminal-paste-errors'
+import {
+  formatClipboardFilePasteError,
+  formatTerminalPasteExecutionError
+} from './terminal-paste-errors'
+export { formatClipboardFilePasteError } from './terminal-paste-errors'
 import { recordTerminalUserInputForLeaf } from './terminal-input-activity'
 import { scheduleImagePasteWebglAtlasRecovery } from './terminal-webgl-atlas-recovery'
 import { pasteTerminalClipboard } from './terminal-clipboard-paste'
+import { createTerminalClipboardFilePasteDeps } from './terminal-clipboard-file-paste'
 import type { ReadClipboardTextOptions } from '../../../../shared/clipboard-text'
 import type { TerminalPaneCloseController } from './use-terminal-pane-close-actions'
 
@@ -36,6 +41,7 @@ export function createTerminalPanePasteExecution(
   shortcutPlatform: NodeJS.Platform
 ) {
   const {
+    cwdRef,
     forceBracketedMultilineTextPaste,
     managerRef,
     paneTransportsRef,
@@ -133,6 +139,12 @@ export function createTerminalPanePasteExecution(
     void pasteTerminalClipboard({
       readClipboardText,
       saveClipboardImageAsTempFile: window.api.ui.saveClipboardImageAsTempFile,
+      ...createTerminalClipboardFilePasteDeps(
+        { cwdRef, managerRef, paneTransportsRef, tabId, worktreeId },
+        pane,
+        { requireSameFocusedElement: true, activeElementAtDispatch }
+      ),
+      onFilePathsPasteError: (error) => setTerminalError(formatClipboardFilePasteError(error)),
       connectionId,
       runtimeEnvironmentId,
       forceBracketedMultilineTextPaste,

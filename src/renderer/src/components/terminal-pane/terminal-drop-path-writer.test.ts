@@ -52,6 +52,44 @@ describe('terminal drop path writer', () => {
     expect(sendInput).not.toHaveBeenCalled()
   })
 
+  it('stops writing and reports a stale target once canContinue turns false', async () => {
+    const sendInput = vi.fn(() => true)
+    const sendInputAccepted = vi.fn(async () => true)
+    const { manager, pane } = createManager()
+    const transport = createTransport(sendInput, 'pty-1', sendInputAccepted)
+    let canContinue = true
+
+    const result = await writeTerminalDropPathsToCapturedTarget({
+      canContinue: () => canContinue,
+      dropTarget: { paneId: pane.id, leafId: pane.leafId, ptyId: 'pty-1', transport } as never,
+      manager: manager as never,
+      paneTransports: new Map([[pane.id, transport]]) as never,
+      paths: ['/repo/a.ts', '/repo/b.ts'],
+      targetShell: 'posix'
+    })
+
+    expect(result).toEqual({ sentAnyPath: true, targetCurrent: true, pathsWritten: 2 })
+
+    canContinue = false
+    sendInputAccepted.mockClear()
+    const cancelled = await writeTerminalDropPathsToCapturedTarget({
+      canContinue: () => canContinue,
+      dropTarget: { paneId: pane.id, leafId: pane.leafId, ptyId: 'pty-1', transport } as never,
+      manager: manager as never,
+      paneTransports: new Map([[pane.id, transport]]) as never,
+      paths: ['/repo/a.ts'],
+      targetShell: 'posix'
+    })
+
+    expect(cancelled).toEqual({
+      sentAnyPath: false,
+      targetCurrent: false,
+      pathsWritten: 0,
+      failureReason: 'target-stale'
+    })
+    expect(sendInputAccepted).not.toHaveBeenCalled()
+  })
+
   it('writes dropped image paths as a bracketed paste of the raw path', async () => {
     const sendInput = vi.fn(() => true)
     const sendInputAccepted = vi.fn(async () => true)

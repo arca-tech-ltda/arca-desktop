@@ -18,9 +18,11 @@ import { isEditableTarget } from '@/lib/editable-target'
 import { copyTerminalSelection } from './terminal-selection-copy'
 import type { TerminalPaneCloseController } from './use-terminal-pane-close-actions'
 import {
+  formatClipboardFilePasteError,
   formatClipboardImagePasteError,
   type TerminalPanePasteExecution
 } from './terminal-pane-paste-execution'
+import { createTerminalClipboardFilePasteDeps } from './terminal-clipboard-file-paste'
 
 const NATIVE_CHAT_ROOT_SELECTOR = '[data-native-chat-root="true"]'
 
@@ -42,10 +44,13 @@ export function registerTerminalPanePasteListeners({
   shortcutPlatform: NodeJS.Platform
 }): () => void {
   const {
+    cwdRef,
     forceBracketedMultilineTextPaste,
     keybindings,
     managerRef,
+    paneTransportsRef,
     setTerminalError,
+    tabId,
     worktreeId
   } = controller
   const { executePanePasteText, pasteFromClipboard } = execution
@@ -187,6 +192,12 @@ export function registerTerminalPanePasteListeners({
     void pasteTerminalClipboard({
       readClipboardText: window.api.ui.readClipboardText,
       saveClipboardImageAsTempFile: window.api.ui.saveClipboardImageAsTempFile,
+      ...createTerminalClipboardFilePasteDeps(
+        { cwdRef, managerRef, paneTransportsRef, tabId, worktreeId },
+        pane,
+        { requireSameFocusedElement: true, activeElementAtDispatch }
+      ),
+      onFilePathsPasteError: (error) => setTerminalError(formatClipboardFilePasteError(error)),
       connectionId,
       runtimeEnvironmentId,
       forceBracketedMultilineTextPaste,

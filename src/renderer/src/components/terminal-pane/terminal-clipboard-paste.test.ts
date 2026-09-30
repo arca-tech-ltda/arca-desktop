@@ -417,3 +417,93 @@ describe('terminal clipboard paste', () => {
     expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
   })
 })
+
+describe('terminal clipboard paste of copied files', () => {
+  it('pastes the copied PNG file instead of its clipboard icon image', async () => {
+    const pasteFilePaths = vi.fn().mockResolvedValue(true)
+    const saveClipboardImageAsTempFile = vi.fn()
+    const pasteText = vi.fn()
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText: vi.fn().mockResolvedValue(''),
+      saveClipboardImageAsTempFile,
+      readClipboardFilePaths: vi.fn().mockResolvedValue(['/Users/me/ARCA/logo.png']),
+      pasteFilePaths,
+      pasteText
+    })
+
+    expect(result).toEqual({ status: 'pasted', kind: 'file-paths' })
+    expect(pasteFilePaths).toHaveBeenCalledWith(['/Users/me/ARCA/logo.png'])
+    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(pasteText).not.toHaveBeenCalled()
+  })
+
+  it('still saves a screenshot as a temp file when no file is copied', async () => {
+    const saveClipboardImageAsTempFile = vi.fn().mockResolvedValue('/tmp/orca-paste-1-id.png')
+    const pasteFilePaths = vi.fn()
+    const pasteText = vi.fn()
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText: vi.fn().mockResolvedValue(''),
+      saveClipboardImageAsTempFile,
+      readClipboardFilePaths: vi.fn().mockResolvedValue([]),
+      pasteFilePaths,
+      pasteText
+    })
+
+    expect(result).toEqual({ status: 'pasted', kind: 'image-path' })
+    expect(pasteFilePaths).not.toHaveBeenCalled()
+    expect(pasteText).toHaveBeenCalledWith('/tmp/orca-paste-1-id.png', {
+      forceBracketedPaste: true,
+      recoverImagePasteWebglAtlas: true
+    })
+  })
+
+  it('does not fall back to the icon image when reading file paths fails', async () => {
+    const saveClipboardImageAsTempFile = vi.fn()
+    const onFilePathsPasteError = vi.fn()
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText: vi.fn().mockResolvedValue(''),
+      saveClipboardImageAsTempFile,
+      readClipboardFilePaths: vi.fn().mockRejectedValue(new Error('clipboard unavailable')),
+      pasteFilePaths: vi.fn(),
+      onFilePathsPasteError,
+      pasteText: vi.fn()
+    })
+
+    expect(result).toEqual({ status: 'skipped', reason: 'file-paths-paste-failed' })
+    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+    expect(onFilePathsPasteError).toHaveBeenCalledOnce()
+  })
+
+  it('does not fall back to the icon image when delivery is refused', async () => {
+    const saveClipboardImageAsTempFile = vi.fn()
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText: vi.fn().mockResolvedValue(''),
+      saveClipboardImageAsTempFile,
+      readClipboardFilePaths: vi.fn().mockResolvedValue(['/Users/me/a.png']),
+      pasteFilePaths: vi.fn().mockResolvedValue(false),
+      pasteText: vi.fn()
+    })
+
+    expect(result).toEqual({ status: 'skipped', reason: 'file-paths-paste-rejected' })
+    expect(saveClipboardImageAsTempFile).not.toHaveBeenCalled()
+  })
+
+  it('keeps the image and text paths for clients without the file-path deps', async () => {
+    const saveClipboardImageAsTempFile = vi.fn().mockResolvedValue(null)
+    const pasteText = vi.fn()
+
+    const result = await pasteTerminalClipboard({
+      readClipboardText: vi.fn().mockResolvedValue('plain text'),
+      saveClipboardImageAsTempFile,
+      pasteText
+    })
+
+    expect(result).toEqual({ status: 'pasted', kind: 'text' })
+    expect(saveClipboardImageAsTempFile).toHaveBeenCalledOnce()
+    expect(pasteText).toHaveBeenCalledWith('plain text')
+  })
+})
