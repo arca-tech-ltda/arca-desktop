@@ -131,6 +131,8 @@ Sizes: `default` (36px), `sm` (32px), `xs` (24px), `lg` (40px), plus `icon`, `ic
 
 ### Other primitives in this repo
 
+`Badge` supports `size="compact"` for small numeric counters on toolbar icons. It keeps the chosen color variant and owns the 11px tabular type, height and padding; callers add placement only. Use the default size in full-size rows and menus.
+
 Browse `src/renderer/src/components/ui/` for the full list. Most wrap a Radix UI primitive — exceptions are `command` (wraps `cmdk`), `sonner` (wraps `sonner`), and the visual-only wrappers (`badge`, `button-group`, `card`, `input`) which apply tokens and Tailwind utilities directly. Never reimplement headless behavior; extend the existing wrapper.
 
 ### Picking the right primitive

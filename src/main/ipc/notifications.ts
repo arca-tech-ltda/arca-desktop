@@ -27,6 +27,7 @@ import {
   recordNotificationDeliveryOutcome,
   resetNotificationPermissionEvidence
 } from './notification-permission-probe'
+import { getTrustedUIRendererWindow } from './ui'
 
 export function registerNotificationHandlers(store: Store, runtime?: OrcaRuntimeService): void {
   ipcMain.removeHandler('notifications:getDesktopAwayState')
@@ -122,6 +123,7 @@ export function registerNotificationHandlers(store: Store, runtime?: OrcaRuntime
     readNotificationSettings: () => store.getSettings().notifications,
     findActiveWindow: () =>
       BrowserWindow.getAllWindows().find((window) => !window.isDestroyed()) ?? null,
+    findChatWindow: getTrustedUIRendererWindow,
     isWindowVisible: isMainWindowVisible,
     setTrayAttention,
     isNotificationSupported: () => Notification.isSupported(),

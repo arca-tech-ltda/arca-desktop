@@ -1,5 +1,5 @@
-import { beforeEach, expect, it, vi } from 'vitest'
-import { MegamindChatService } from './chat-service'
+import { beforeEach, expect, it, vi, type Mock } from 'vitest'
+import { MegamindChatService, type MegamindChatTransport } from './chat-service'
 import type { MegamindChatMessage, MegamindChatState } from '../../shared/arca-megamind-chat'
 
 const DM = 'dm:apa0b320to4sf22:bqr1c430up5tg33'
@@ -19,13 +19,7 @@ const message = (fields: Partial<MegamindChatMessage>): MegamindChatMessage => (
 
 type Harness = {
   service: MegamindChatService
-  client: {
-    identity: ReturnType<typeof vi.fn>
-    channels: ReturnType<typeof vi.fn>
-    recent: ReturnType<typeof vi.fn>
-    history: ReturnType<typeof vi.fn>
-    post: ReturnType<typeof vi.fn>
-  }
+  client: { [K in keyof MegamindChatTransport]: Mock<MegamindChatTransport[K]> }
   states: MegamindChatState[]
   alerts: { handle: string; alert: string }[]
 }
@@ -96,6 +90,9 @@ it('counts unread per channel and clears it when the channel is read', async () 
   })
   await harness.service.refresh()
   expect(latest().channels.find((channel) => channel.channel === 'arca')?.unread).toBe(2)
+  harness.service.setVisible(true, 'arca')
+  await vi.waitFor(() => expect(harness.client.history).toHaveBeenCalled())
+  await harness.service.refresh()
   harness.service.markRead('arca')
   expect(latest().channels.find((channel) => channel.channel === 'arca')?.unread).toBe(0)
 })
@@ -229,4 +226,262 @@ it('does not notify again about a message a previous run already alerted on', as
   await vi.waitFor(() => expect(restarted.states.at(-1)?.availability).toBe('ready'))
   await restarted.service.refresh()
   expect(restarted.alerts).toEqual([])
+})
+
+function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((done) => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
+it('never publishes delayed history under another channel or session', async () => {
+  harness.service.setVisible(true, 'arca')
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  for (const reset of [false, true]) {
+    const gate = deferred<{ ok: true; value: MegamindChatMessage[] }>()
+    harness.client.history.mockReturnValueOnce(gate.promise)
+    const calls = harness.client.history.mock.calls.length
+    const pending = harness.service.refresh()
+    await vi.waitFor(() => expect(harness.client.history.mock.calls.length).toBe(calls + 1))
+    if (reset) {
+      harness.service.resetSession()
+    } else {
+      await harness.service.setActiveChannel(DM)
+    }
+    const start = harness.states.length
+    gate.resolve({ ok: true, value: [message({ body: 'stale history' })] })
+    await pending
+    expect(harness.states.slice(start).flatMap((state) => state.messages)).not.toContainEqual(
+      message({ body: 'stale history' })
+    )
+  }
+})
+
+it('discards a delayed identity and clears all user state on session reset', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.client.recent.mockResolvedValue({ ok: true, value: [message({ channel: DM })] })
+  await harness.service.refresh()
+  await harness.service.setActiveChannel(DM)
+  const gate = deferred<{ ok: true; value: { id: string; handle: string; name: string } }>()
+  harness.client.identity.mockReturnValueOnce(gate.promise)
+  harness.service.resetSession()
+  expect(latest()).toMatchObject({
+    viewerHandle: '',
+    activeChannel: 'arca',
+    channels: [],
+    messages: []
+  })
+  harness.client.identity.mockResolvedValue({
+    ok: true,
+    value: { id: 'new', handle: 'leo', name: '' }
+  })
+  harness.service.resetSession()
+  const start = harness.states.length
+  gate.resolve({ ok: true, value: { id: 'old', handle: 'old', name: '' } })
+  await vi.waitFor(() => expect(latest().viewerHandle).toBe('leo'))
+  expect(harness.states.slice(start).some((state) => state.viewerHandle === 'old')).toBe(false)
+  harness.client.recent.mockResolvedValue({ ok: true, value: [] })
+  await harness.service.refresh()
+  expect(latest().channels.every((channel) => channel.unread === 0)).toBe(true)
+})
+
+it('returns the post acknowledgement without waiting for history or inventing a message', async () => {
+  harness.service.setVisible(true, 'arca')
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  const gate = deferred<{ ok: true; value: MegamindChatMessage[] }>()
+  harness.client.history.mockReturnValueOnce(gate.promise)
+  expect(await harness.service.post('arca', 'sent')).toEqual({ status: 'ok', woken: [] })
+  expect(latest().messages).toEqual([])
+  gate.resolve({ ok: true, value: [] })
+})
+
+it('polls channels and recent concurrently while retaining channel failure precedence', async () => {
+  const gate = deferred<{ ok: false; reason: 'unsupported' }>()
+  harness.client.channels.mockReturnValue(gate.promise)
+  harness.client.recent.mockResolvedValue({ ok: false, reason: 'error' })
+  harness.service.start()
+  await vi.waitFor(() => expect(harness.client.recent).toHaveBeenCalled())
+  gate.resolve({ ok: false, reason: 'unsupported' })
+  await vi.waitFor(() => expect(latest().availability).toBe('unsupported'))
+})
+
+it('keeps list and unfocused conversations unread; selection alone is not reading', async () => {
+  harness.service.setVisible(true, null)
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.client.recent.mockResolvedValue({ ok: true, value: [message({ channel: DM })] })
+  await harness.service.refresh()
+  await harness.service.setActiveChannel(DM)
+  harness.service.markRead(DM)
+  expect(latest().channels.find((channel) => channel.channel === DM)?.unread).toBe(1)
+  expect(harness.alerts).toHaveLength(1)
+  harness.service.setVisible(true, DM)
+  expect(latest().channels.find((channel) => channel.channel === DM)?.unread).toBe(0)
+})
+
+it('coalesces change hints and retains the visible and background fallback timers', async () => {
+  const timer = vi.fn(() => () => {})
+  const service = new MegamindChatService({
+    client: harness.client,
+    publish: () => {},
+    alert: () => {},
+    setTimer: timer
+  })
+  service.start()
+  await vi.waitFor(() => expect(timer).toHaveBeenLastCalledWith(expect.any(Function), 30_000))
+  const gate = deferred<{ ok: true; value: MegamindChatMessage[] }>()
+  harness.client.recent.mockReturnValueOnce(gate.promise)
+  const count = harness.client.recent.mock.calls.length
+  const pending = service.refresh()
+  for (let i = 0; i < 10; i++) {
+    void service.refresh()
+  }
+  service.setVisible(true, null)
+  gate.resolve({ ok: true, value: [] })
+  await pending
+  expect(harness.client.recent.mock.calls.length).toBe(count + 2)
+  expect(timer).toHaveBeenLastCalledWith(expect.any(Function), 5_000)
+  service.stop()
+})
+
+it('ignores old-session recent results and post failures after a reset', async () => {
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  const recent = deferred<{ ok: true; value: MegamindChatMessage[] }>()
+  const post = deferred<{ ok: false; reason: 'login' }>()
+  harness.client.recent.mockReturnValueOnce(recent.promise)
+  harness.client.post.mockReturnValueOnce(post.promise)
+  const refresh = harness.service.refresh()
+  const sending = harness.service.post('arca', 'sent')
+  harness.service.resetSession()
+  recent.resolve({ ok: true, value: [message({ channel: DM })] })
+  await refresh
+  expect(harness.alerts).toEqual([])
+  expect(latest().channels.every((channel) => channel.unread === 0)).toBe(true)
+  post.resolve({ ok: false, reason: 'login' })
+  expect(await sending).toEqual({ status: 'login' })
+  expect(latest().availability).toBe('ready')
+  harness.client.recent.mockResolvedValue({ ok: true, value: [message({ channel: DM })] })
+  await harness.service.refresh()
+  expect(harness.alerts).toHaveLength(1)
+})
+
+it('preserves requested reading across session resets without retaining private history', async () => {
+  harness.service.setVisible(true, 'arca')
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().historyLoading).toBe(false))
+  harness.service.resetSession()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.client.recent.mockResolvedValue({ ok: true, value: [message({ mentions: ['biel'] })] })
+  await harness.service.refresh()
+  expect(harness.alerts).toEqual([])
+  expect(latest().channels[0].unread).toBe(0)
+})
+
+it('keeps switched history loading and unread until a matching successful fetch', async () => {
+  harness.service.setVisible(true, null)
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().historyLoading).toBe(false))
+  harness.client.recent.mockResolvedValue({ ok: true, value: [message({ channel: DM })] })
+  await harness.service.refresh()
+  harness.client.recent.mockResolvedValue({ ok: true, value: [] })
+  harness.client.history.mockResolvedValue({ ok: false, reason: 'error' })
+  await harness.service.setActiveChannel(DM)
+  harness.service.setVisible(true, DM)
+  await harness.service.refresh()
+  expect(latest()).toMatchObject({ availability: 'ready', historyLoading: true, messages: [] })
+  expect(latest().channels.find((channel) => channel.channel === DM)?.unread).toBe(1)
+  harness.client.history.mockRejectedValueOnce(new Error('offline'))
+  await harness.service.refresh()
+  expect(latest().historyLoading).toBe(true)
+  harness.client.history.mockResolvedValue({ ok: true, value: [message({ channel: DM })] })
+  await harness.service.refresh()
+  await vi.waitFor(() => expect(latest().historyLoading).toBe(false))
+  expect(latest().channels.find((channel) => channel.channel === DM)?.unread).toBe(0)
+})
+
+it('does not publish or consume a history response after stop', async () => {
+  harness.service.setVisible(true, 'arca')
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().historyLoading).toBe(false))
+  const gate = deferred<{ ok: true; value: MegamindChatMessage[] }>()
+  harness.client.history.mockReturnValueOnce(gate.promise)
+  const calls = harness.client.history.mock.calls.length
+  const pending = harness.service.refresh()
+  await vi.waitFor(() => expect(harness.client.history.mock.calls.length).toBe(calls + 1))
+  harness.service.stop()
+  const count = harness.states.length
+  gate.resolve({ ok: true, value: [message({})] })
+  await pending
+  expect(harness.states).toHaveLength(count)
+})
+
+it('shows fallback messages after history fails without treating them as read', async () => {
+  harness.service.setVisible(true, null)
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  const dm = message({ id: 'fallbackmessage1', channel: DM })
+  harness.client.recent.mockResolvedValue({ ok: true, value: [dm] })
+  await harness.service.refresh()
+  harness.client.history.mockResolvedValue({ ok: false, reason: 'error' })
+  await harness.service.setActiveChannel(DM)
+  harness.service.setVisible(true, DM)
+  expect(latest()).toMatchObject({ historyLoading: false, messages: [dm] })
+  expect(latest().channels.find((channel) => channel.channel === DM)?.unread).toBe(1)
+})
+
+it('uses the background interval after an availability error even while visible', async () => {
+  const timer = vi.fn(() => () => {})
+  harness.client.channels.mockResolvedValue({ ok: false, reason: 'error' })
+  const service = new MegamindChatService({
+    client: harness.client,
+    publish: () => {},
+    alert: () => {},
+    setTimer: timer
+  })
+  service.setVisible(true, 'arca')
+  service.start()
+  await vi.waitFor(() => expect(timer).toHaveBeenLastCalledWith(expect.any(Function), 30_000))
+  service.stop()
+})
+
+it('adds a read-only unread row for a DM missing from the directory', async () => {
+  harness.client.channels.mockResolvedValue({ ok: true, value: [] })
+  harness.service.start()
+  await vi.waitFor(() => expect(latest().availability).toBe('ready'))
+  harness.client.recent.mockResolvedValue({
+    ok: true,
+    value: [
+      message({ channel: DM, authorKind: 'agent', authorName: 'enzo-pi', authorLabel: 'Enzo' })
+    ]
+  })
+  await harness.service.refresh()
+  expect(latest().channels).toEqual([
+    expect.objectContaining({ channel: DM, kind: 'dm', handle: '', name: 'Enzo', unread: 1 })
+  ])
+
+  harness.client.channels.mockResolvedValue({
+    ok: true,
+    value: [
+      {
+        channel: DM,
+        kind: 'dm',
+        handle: 'enzo',
+        name: 'Canonical',
+        lastMessageAt: '',
+        lastMessageBody: '',
+        unread: 0
+      }
+    ]
+  })
+  harness.client.recent.mockResolvedValue({ ok: true, value: [] })
+  await harness.service.refresh()
+  expect(latest().channels).toEqual([
+    expect.objectContaining({ channel: DM, handle: 'enzo', name: 'Canonical', unread: 1 })
+  ])
 })

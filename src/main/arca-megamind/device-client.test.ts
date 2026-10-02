@@ -7,11 +7,15 @@ import type * as Gateway from './gateway'
 import type * as Credentials from './credentials'
 
 const callTool = vi.fn()
+const events = vi.fn()
 
 vi.mock('./gateway', async (importOriginal) => ({
   ...(await importOriginal<typeof Gateway>()),
   callTool: (...args: unknown[]) => callTool(...args),
-  startMegamindEvents: () => () => {}
+  startMegamindEvents: (...args: unknown[]) => {
+    events(...args)
+    return () => {}
+  }
 }))
 vi.mock('./credentials', async (importOriginal) => ({
   ...(await importOriginal<typeof Credentials>()),
@@ -31,6 +35,7 @@ beforeEach(async () => {
   notified = []
   sessionPath = join(await mkdtemp(join(tmpdir(), 'megamind-')), 'sessions.json')
   callTool.mockReset()
+  events.mockReset()
 })
 afterEach(() => vi.restoreAllMocks())
 
@@ -110,4 +115,33 @@ it('leaves chat traffic in the inbox to the chat service', async () => {
   device.stop()
   expect(notified.map((item) => item.id)).toEqual(['ccccccccccccccc'])
   expect(calls.find((call) => call.name === 'acknowledge')?.args.ids).toEqual(['ccccccccccccccc'])
+})
+
+it('invalidates chat only for chat/message SSE hints and reconnects', async () => {
+  callTool.mockResolvedValue({})
+  const changed = vi.fn()
+  const device = new MegamindDeviceClient(
+    'unused',
+    true,
+    sessionPath,
+    () => true,
+    () => {},
+    changed
+  )
+  let hint: Parameters<typeof Gateway.startMegamindEvents>[2] = () => {}
+  events.mockImplementation((_credential, _development, callback) => {
+    hint = callback
+  })
+  device.start()
+  await vi.waitFor(() => expect(events).toHaveBeenCalled())
+  hint({ kind: 'priority_changed' })
+  hint({ kind: 'approval_decision' })
+  expect(changed).not.toHaveBeenCalled()
+  hint({ kind: 'chat' })
+  hint({ kind: 'message' })
+  hint()
+  expect(changed).toHaveBeenCalledTimes(3)
+  device.stop()
+  hint()
+  expect(changed).toHaveBeenCalledTimes(3)
 })

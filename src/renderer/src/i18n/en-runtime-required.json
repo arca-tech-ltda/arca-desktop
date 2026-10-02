@@ -12,6 +12,9 @@
     }
   },
   "arca": {
+    "megamind": {
+      "you": "you"
+    },
     "updater": {
       "readOnly": "The app cannot be replaced in this location. The download requires device authentication."
     }
@@ -68,6 +71,7 @@
       },
       "Landing": {
         "16e9e3df89": "starred",
+        "520304a067": "ARCA logo",
         "ce44fad849": "Missing dependencies",
         "f05d237049": "Add a project first"
       },
@@ -1896,9 +1900,7 @@
           "dcaa645da5": "ok"
         },
         "SidebarHeader": {
-          "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
-          "a30e34eb5c": "Close workspace board",
           "projects": "Projects",
           "spaces": "Spaces",
           "views": "Sidebar view"
@@ -1923,9 +1925,6 @@
           "680043342f": "compact",
           "bc96dbd041": "Workspace options ({{value0}})",
           "c7591b6014": "repo"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "b45b350eb0": "Move {{value0}} left"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "Set {{value0}} color to {{value1}}"

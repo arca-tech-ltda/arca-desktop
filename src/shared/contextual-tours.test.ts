@@ -9,7 +9,6 @@ import {
 describe('contextual tour definitions', () => {
   it('defines the required tours with concise visible steps', () => {
     const expectedIds: ContextualTourId[] = [
-      'workspace-board',
       'workspace-agent-sessions',
       'browser',
       'client-hosted-browser',
@@ -74,27 +73,6 @@ describe('contextual tour definitions', () => {
     expect(tour?.steps[1]?.targetSelector).toContain('workspace-create-control')
     expect(tour?.steps[1]?.primaryAction).toBeUndefined()
     expect(tour?.steps[1]?.secondaryAction).toBeUndefined()
-  })
-
-  it('points the workspace board tour at the board center and done lane', () => {
-    const tour = CONTEXTUAL_TOURS.find((entry) => entry.id === 'workspace-board') as
-      | ContextualTour
-      | undefined
-
-    expect(tour?.steps.map((step) => step.title)).toEqual([
-      'Plan work on the board',
-      'Move work through lanes'
-    ])
-    expect(tour?.steps[0]).toMatchObject({
-      targetSelector: '[data-contextual-tour-target="workspace-board-center"]',
-      requiredForStart: true,
-      preferredPlacement: 'bottom'
-    })
-    expect(tour?.steps[1]).toMatchObject({
-      body: 'Drag workspaces between lanes as their status changes.',
-      targetSelector:
-        '[data-contextual-tour-target="workspace-board-done-lane"], [data-contextual-tour-target="workspace-board-lanes"]'
-    })
   })
 
   it('orders the browser tour as grab, annotate, then import cookies', () => {
@@ -194,17 +172,24 @@ describe('contextual tour definitions', () => {
     expect(modalTours[0]?.allowedActiveModals).toEqual(['new-workspace-composer'])
   })
 
-  it('normalizes persisted ids by removing unknowns and duplicates', () => {
+  it('normalizes persisted ids without dropping legacy completions', () => {
     expect(
       normalizeContextualTourIds([
         'tasks',
         'unknown',
+        'workspace-board',
         'workspace-agent-sessions',
         'browser',
         'tasks',
         null,
         'workspace-creation'
       ])
-    ).toEqual(['tasks', 'workspace-agent-sessions', 'browser', 'workspace-creation'])
+    ).toEqual([
+      'tasks',
+      'workspace-board',
+      'workspace-agent-sessions',
+      'browser',
+      'workspace-creation'
+    ])
   })
 })

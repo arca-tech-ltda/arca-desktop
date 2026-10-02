@@ -294,7 +294,6 @@ export function WorktreeCardHeader({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  data-workspace-board-preserve-open=""
                   onPointerDown={stopQuickActionPointerPropagation}
                   onClick={handleWorkspaceQuickAction}
                   className={cn(

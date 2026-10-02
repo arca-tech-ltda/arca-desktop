@@ -16,7 +16,6 @@ import { translate } from '@/i18n/i18n'
 type SidebarHostScopeMenuSectionProps = {
   hostVisibilityLabel: string
   hostOptions: readonly SidebarHostOption[]
-  preserveWorkspaceBoardOpen: boolean
   setWorkspaceHostScope: (scope: WorkspaceHostScope) => void
   visibleWorkspaceHostIds: VisibleWorkspaceHostIds
   setVisibleWorkspaceHostIds: (ids: VisibleWorkspaceHostIds) => void
@@ -56,7 +55,6 @@ function getHostMetadata(host: SidebarHostOption): string {
 export function SidebarHostScopeMenuSection({
   hostVisibilityLabel,
   hostOptions,
-  preserveWorkspaceBoardOpen,
   setWorkspaceHostScope,
   visibleWorkspaceHostIds,
   setVisibleWorkspaceHostIds
@@ -106,10 +104,7 @@ export function SidebarHostScopeMenuSection({
           </span>
         </span>
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent
-        className="w-56"
-        data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
-      >
+      <DropdownMenuSubContent className="w-56">
         <DropdownMenuCheckboxItem
           checked={allVisible}
           onCheckedChange={toggleAllHosts}

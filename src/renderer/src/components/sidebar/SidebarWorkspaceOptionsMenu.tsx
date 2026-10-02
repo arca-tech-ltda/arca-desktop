@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,29 +12,13 @@ import {
   useWorkspaceOptionsFilterBadge,
   WorkspaceOptionsMenuItems
 } from './workspace-options-menu-items'
+import { keepMenuOpenForStatusAppearancePopover } from './workspace-status-appearance-dismiss'
 
-type SidebarWorkspaceOptionsMenuProps = {
-  preserveWorkspaceBoardOpen?: boolean
-  onMenuOpenChange?: (open: boolean) => void
-}
-
-const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsMenu({
-  preserveWorkspaceBoardOpen = false,
-  onMenuOpenChange
-}: SidebarWorkspaceOptionsMenuProps) {
-  const [open, setOpen] = useState(false)
+const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsMenu() {
   const { hasAnyFilter, activeFilterCount, activeFilterLabel } = useWorkspaceOptionsFilterBadge()
 
-  const handleOpenChange = useCallback(
-    (next: boolean) => {
-      setOpen(next)
-      onMenuOpenChange?.(next)
-    },
-    [onMenuOpenChange]
-  )
-
   return (
-    <DropdownMenu modal={false} open={open} onOpenChange={handleOpenChange}>
+    <DropdownMenu modal={false}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
@@ -55,7 +39,6 @@ const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsM
                       'Workspace options'
                     )
               }
-              data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
             >
               <SlidersHorizontal className="size-3.5" strokeWidth={2.25} />
               {hasAnyFilter && (
@@ -89,9 +72,9 @@ const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsM
         align="start"
         sideOffset={8}
         className="w-72 pb-2"
-        data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
+        onInteractOutside={keepMenuOpenForStatusAppearancePopover}
       >
-        <WorkspaceOptionsMenuItems preserveWorkspaceBoardOpen={preserveWorkspaceBoardOpen} />
+        <WorkspaceOptionsMenuItems />
       </DropdownMenuContent>
     </DropdownMenu>
   )

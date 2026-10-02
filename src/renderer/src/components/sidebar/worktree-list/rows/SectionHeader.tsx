@@ -65,7 +65,6 @@ export type SectionHeaderRowContext = {
     worktree: Worktree
   ) => readonly Worktree[]
   onImmediateActivate: (worktreeId: string, rowKey: string | undefined) => void
-  onWorktreeCardClick?: () => void
   highlightedRevealRowKey: string | null
   dragOverStatus: WorkspaceStatus | null
   pinDragOver: boolean
@@ -140,7 +139,6 @@ export function renderWorktreeSectionHeaderRow(args: {
       row,
       tree: ctx.tree,
       activeWorktreeId: ctx.activeWorktreeId,
-      onWorktreeCardClick: ctx.onWorktreeCardClick,
       onImmediateActivate: ctx.onImmediateActivate
     })
   // Why: repo/project/status/pinned share compact section chrome; flat "All" stays a simple label.

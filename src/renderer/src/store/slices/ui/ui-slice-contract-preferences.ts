@@ -89,12 +89,6 @@ export type UISlicePreferences = {
   setAgentActivityDisplayMode: (mode: AgentActivityDisplayMode) => void
   workspaceStatuses: WorkspaceStatusDefinition[]
   setWorkspaceStatuses: (statuses: WorkspaceStatusDefinition[]) => void
-  workspaceBoardOpacity: number
-  setWorkspaceBoardOpacity: (opacity: number) => void
-  workspaceBoardColumnWidth: number
-  setWorkspaceBoardColumnWidth: (width: number) => void
-  syncTaskStatusFromWorkspaceBoard: boolean
-  setSyncTaskStatusFromWorkspaceBoard: (enabled: boolean) => void
   /** Transient: the in-window Agent Dashboard companion drawer is open. Not persisted. */
   agentDashboardDrawerOpen: boolean
   setAgentDashboardDrawerOpen: (open: boolean) => void

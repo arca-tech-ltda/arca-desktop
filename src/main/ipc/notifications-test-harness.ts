@@ -24,7 +24,7 @@ export const notificationCtorMock: NotificationSpy = vi.fn(function () {
   }
 })
 export const notificationIsSupportedMock = vi.fn(() => true)
-export const getAllWindowsMock = vi.fn(() => [])
+export const getAllWindowsMock: NotificationSpy = vi.fn(() => [])
 export const getTrustedUIRendererWindowMock: NotificationSpy = vi.fn()
 export const shellOpenExternalMock: NotificationSpy = vi.fn()
 export const setTrayAttentionMock: NotificationSpy = vi.fn()

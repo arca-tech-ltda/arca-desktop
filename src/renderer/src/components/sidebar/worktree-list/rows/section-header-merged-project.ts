@@ -18,7 +18,6 @@ export function resolveMergedProjectHeader(args: {
   row: GroupHeaderRow
   tree: SidebarTreeModel
   activeWorktreeId: string | null
-  onWorktreeCardClick?: () => void
   onImmediateActivate: (worktreeId: string, rowKey: string | undefined) => void
 }): MergedProjectHeader {
   const { row } = args
@@ -38,7 +37,6 @@ export function resolveMergedProjectHeader(args: {
       if (!mergedWorktree) {
         return
       }
-      args.onWorktreeCardClick?.()
       args.onImmediateActivate(mergedWorktree.id, undefined)
       void activateWorktreeFromSidebar(
         mergedWorktree.id,

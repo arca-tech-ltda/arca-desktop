@@ -31,11 +31,8 @@ import {
   toPersistedAutomationHostFilter
 } from '../../../../../shared/automation-host-filter'
 import {
-  clampWorkspaceBoardColumnWidth,
-  clampWorkspaceBoardOpacity,
   cloneDefaultWorkspaceStatuses,
-  normalizeWorkspaceStatuses,
-  WORKSPACE_BOARD_COLUMN_WIDTH_DEFAULT
+  normalizeWorkspaceStatuses
 } from '../../../../../shared/workspace-statuses'
 
 export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
@@ -240,26 +237,6 @@ export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Par
       const normalized = normalizeWorkspaceStatuses(statuses)
       window.api.ui.set({ workspaceStatuses: normalized }).catch(console.error)
       set({ workspaceStatuses: normalized })
-    },
-
-    workspaceBoardOpacity: 1,
-    setWorkspaceBoardOpacity: (opacity) => {
-      const clamped = clampWorkspaceBoardOpacity(opacity)
-      window.api.ui.set({ workspaceBoardOpacity: clamped }).catch(console.error)
-      set({ workspaceBoardOpacity: clamped })
-    },
-
-    workspaceBoardColumnWidth: WORKSPACE_BOARD_COLUMN_WIDTH_DEFAULT,
-    setWorkspaceBoardColumnWidth: (width) => {
-      const clamped = clampWorkspaceBoardColumnWidth(width)
-      window.api.ui.set({ workspaceBoardColumnWidth: clamped }).catch(console.error)
-      set({ workspaceBoardColumnWidth: clamped })
-    },
-
-    syncTaskStatusFromWorkspaceBoard: false,
-    setSyncTaskStatusFromWorkspaceBoard: (enabled) => {
-      window.api.ui.set({ syncTaskStatusFromWorkspaceBoard: enabled }).catch(console.error)
-      set({ syncTaskStatusFromWorkspaceBoard: enabled })
     },
 
     statusBarItems: [...DEFAULT_STATUS_BAR_ITEMS],

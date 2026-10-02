@@ -45,7 +45,7 @@ export function RightSidebarPanelContent({
         {(megamindOpened || effectiveTab === 'megamind') && (
           <div hidden={effectiveTab !== 'megamind'} className="min-h-0 flex-1 overflow-hidden">
             <div className="flex h-full min-h-0 flex-col">
-              <MegamindPanel isVisible={effectiveTab === 'megamind'} />
+              <MegamindPanel isVisible={rightSidebarOpen && effectiveTab === 'megamind'} />
             </div>
           </div>
         )}

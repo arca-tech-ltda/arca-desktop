@@ -17,7 +17,8 @@ export const arcaMegamindApi: ArcaMegamindApi = {
   approvals: () => ipcRenderer.invoke('arcaMegamind:approvals'),
   decide: (id, decision) => ipcRenderer.invoke('arcaMegamind:decide', id, decision),
   chatState: () => ipcRenderer.invoke('arcaMegamind:chatState'),
-  chatSetVisible: (visible) => ipcRenderer.invoke('arcaMegamind:chatSetVisible', visible),
+  chatSetVisible: (visible, readChannel) =>
+    ipcRenderer.invoke('arcaMegamind:chatSetVisible', visible, readChannel),
   chatSelectChannel: (channel) => ipcRenderer.invoke('arcaMegamind:chatSelectChannel', channel),
   chatMarkRead: (channel) => ipcRenderer.invoke('arcaMegamind:chatMarkRead', channel),
   chatPost: (target, body) => ipcRenderer.invoke('arcaMegamind:chatPost', target, body),

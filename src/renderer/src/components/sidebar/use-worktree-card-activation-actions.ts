@@ -19,7 +19,6 @@ export function useWorktreeCardActivationActions({
   isActive,
   activationRowKey,
   onActivate,
-  onWorktreeCardClick,
   onImmediateActivate,
   isDeleting,
   isSshDisconnected,
@@ -34,7 +33,6 @@ export function useWorktreeCardActivationActions({
   | 'isActive'
   | 'activationRowKey'
   | 'onActivate'
-  | 'onWorktreeCardClick'
   | 'onImmediateActivate'
 > &
   Pick<Foundation, 'isSshDisconnected' | 'updateWorktreeMeta' | 'openModal'> &
@@ -75,7 +73,6 @@ export function useWorktreeCardActivationActions({
         event.stopPropagation()
         return
       }
-      onWorktreeCardClick?.()
       // Why: route sidebar clicks through the shared activation path so the back/forward stack stays complete.
       recordRendererCrashBreadcrumb('sidebar_worktree_activate', {
         worktreeId: worktree.id,
@@ -101,7 +98,6 @@ export function useWorktreeCardActivationActions({
       activationRowKey,
       isSshDisconnected,
       onActivate,
-      onWorktreeCardClick,
       onImmediateActivate,
       onSelectionGesture
     ]

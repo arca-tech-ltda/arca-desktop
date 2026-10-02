@@ -1,5 +1,4 @@
 import { TOGGLE_QUICK_COMMANDS_MENU_EVENT } from '@/lib/quick-commands-menu-events'
-import { TOGGLE_WORKSPACE_BOARD_EVENT } from '@/components/sidebar/useWorkspaceBoardPanel'
 import { activateTabNumberShortcut } from '@/lib/tab-number-shortcuts'
 import { emitCmdJRowIndexJump } from '@/lib/cmd-j-row-index-jump'
 import { getVisibleWorktreeShortcutTargets } from '@/components/sidebar/visible-worktrees'
@@ -41,19 +40,6 @@ export function registerWorkspaceShortcutIpcBridge(unsubs: (() => void)[]): void
           return
         }
         deleteHoveredWorkspaceImmediately(useAppStore.getState())
-      })
-    )
-  }
-
-  if (window.api.ui.onOpenWorkspaceBoard) {
-    unsubs.push(
-      window.api.ui.onOpenWorkspaceBoard(() => {
-        const store = useAppStore.getState()
-        if (store.activeView === 'settings') {
-          return
-        }
-        store.setSidebarOpen(true)
-        window.dispatchEvent(new CustomEvent(TOGGLE_WORKSPACE_BOARD_EVENT))
       })
     )
   }

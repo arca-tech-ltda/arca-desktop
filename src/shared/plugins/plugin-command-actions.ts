@@ -10,7 +10,6 @@ export const PLUGIN_COMMAND_ALIAS_ACTION_IDS = [
   'floatingWorkspace.maximize',
   'tab.rename',
   'workspace.rename',
-  'workspace.openBoard',
   'view.tasks',
   'sidebar.right.toggle',
   'sidebar.explorer.toggle',
@@ -20,12 +19,15 @@ export const PLUGIN_COMMAND_ALIAS_ACTION_IDS = [
   'sidebar.ports.toggle'
 ] as const satisfies readonly KeybindingActionId[]
 
-export type PluginCommandAliasActionId = (typeof PLUGIN_COMMAND_ALIAS_ACTION_IDS)[number]
+// Accept retired aliases in manifests without registering a UI command.
+export type PluginCommandAliasActionId =
+  | (typeof PLUGIN_COMMAND_ALIAS_ACTION_IDS)[number]
+  | 'workspace.openBoard'
 
 const PLUGIN_COMMAND_ALIAS_ACTION_ID_SET = new Set<string>(PLUGIN_COMMAND_ALIAS_ACTION_IDS)
 
 export function isPluginCommandAliasActionId(value: string): value is PluginCommandAliasActionId {
-  return PLUGIN_COMMAND_ALIAS_ACTION_ID_SET.has(value)
+  return value === 'workspace.openBoard' || PLUGIN_COMMAND_ALIAS_ACTION_ID_SET.has(value)
 }
 
 export function pluginCommandKeybindingActionId(

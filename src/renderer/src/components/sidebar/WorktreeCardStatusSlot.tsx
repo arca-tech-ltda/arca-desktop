@@ -198,7 +198,6 @@ export function WorktreeCardStatusSlot({
         <TooltipTrigger asChild>
           <button
             type="button"
-            data-workspace-board-preserve-open=""
             onPointerDown={onPointerDown}
             onClick={onToggleUnread}
             className={cn(

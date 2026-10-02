@@ -52,7 +52,6 @@ export type WorktreeItemRowContext = {
   getActiveSurfaceVariant: (row: WorktreeItemRow) => ActiveSurfaceVariant
   getLineageToggleHandler: (groupKey: string) => LineageToggleHandler
   onSelectionGesture: (event: React.MouseEvent<HTMLElement>, worktree: Worktree) => boolean
-  onWorktreeCardClick?: () => void
   onContextMenuSelect: (
     event: React.MouseEvent<HTMLElement>,
     worktree: Worktree
@@ -252,7 +251,6 @@ export function renderWorktreeItemRow(
           activationRowKey={itemRow.rowKey}
           onImmediateActivate={ctx.onImmediateActivate}
           onSelectionGesture={ctx.onSelectionGesture}
-          onWorktreeCardClick={ctx.onWorktreeCardClick}
           onContextMenuSelect={ctx.onContextMenuSelect}
           onCardDragStart={ctx.onCardDragStart}
           onCardDragEnd={ctx.onCardDragEnd}

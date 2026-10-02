@@ -1,4 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Loader2, Send } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
@@ -12,8 +14,17 @@ import {
 import type { MegamindMember } from '../../../../../shared/arca-megamind-chat'
 import { MegamindPresenceDot } from './MegamindPresenceDot'
 import { megamindSessionState } from './megamind-presence-state'
+import {
+  clearMegamindComposerDraftIfCurrent,
+  megamindComposerDraft,
+  megamindComposerDraftRevision,
+  setMegamindComposerDraft,
+  subscribeMegamindComposerDrafts
+} from './megamind-composer-drafts'
 
 type MegamindComposerProps = {
+  channel: string
+  draftScope: string
   members: readonly MegamindMember[]
   placeholder: string
   disabled: boolean
@@ -22,17 +33,74 @@ type MegamindComposerProps = {
 }
 
 export function MegamindComposer({
+  channel,
+  draftScope,
   members,
   placeholder,
   disabled,
   onSend
 }: MegamindComposerProps): React.JSX.Element {
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
-  const [body, setBody] = useState('')
+  const channelRef = useRef(channel)
+  const channelRevisionRef = useRef(0)
+  const pendingChannelsRef = useRef(new Set<string>())
+  const focusRestoreRef = useRef<{ channel: string; revision: number } | null>(null)
   const [candidates, setCandidates] = useState<MentionCandidate[]>([])
   const [highlighted, setHighlighted] = useState(0)
-  const [sending, setSending] = useState(false)
+  const [pendingChannels, setPendingChannels] = useState<ReadonlySet<string>>(
+    () => new Set<string>()
+  )
+  const [showSendingFeedback, setShowSendingFeedback] = useState(false)
   const ime = useImeEnterGestureOwnership()
+  const body = useSyncExternalStore(
+    subscribeMegamindComposerDrafts,
+    () => megamindComposerDraft(draftScope, channel),
+    () => ''
+  )
+  const sending = pendingChannels.has(channel)
+
+  useEffect(() => {
+    channelRef.current = channel
+    channelRevisionRef.current += 1
+    setCandidates([])
+    setHighlighted(0)
+  }, [channel])
+
+  useEffect(() => {
+    if (!sending) {
+      setShowSendingFeedback(false)
+      return
+    }
+    const timer = window.setTimeout(() => setShowSendingFeedback(true), 200)
+    return () => window.clearTimeout(timer)
+  }, [sending])
+
+  useEffect(() => {
+    const pendingFocus = focusRestoreRef.current
+    if (
+      sending ||
+      !pendingFocus ||
+      pendingFocus.channel !== channel ||
+      pendingFocus.revision !== channelRevisionRef.current
+    ) {
+      return
+    }
+    const frame = requestAnimationFrame(() => {
+      const activeElement = document.activeElement
+      if (
+        focusRestoreRef.current === pendingFocus &&
+        channelRef.current === pendingFocus.channel &&
+        channelRevisionRef.current === pendingFocus.revision &&
+        (activeElement === document.body || activeElement === inputRef.current)
+      ) {
+        inputRef.current?.focus()
+      }
+      if (focusRestoreRef.current === pendingFocus) {
+        focusRestoreRef.current = null
+      }
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [channel, sending])
 
   const refreshCandidates = useCallback(
     (text: string, caret: number) => {
@@ -48,31 +116,45 @@ export function MegamindComposer({
       const input = inputRef.current
       const caret = input?.selectionStart ?? body.length
       const next = applyMentionCompletion(body, caret, handle)
-      setBody(next.text)
+      setMegamindComposerDraft(draftScope, channel, next.text)
       setCandidates([])
       requestAnimationFrame(() => {
         input?.focus()
         input?.setSelectionRange(next.caret, next.caret)
       })
     },
-    [body]
+    [body, channel, draftScope]
   )
 
-  const send = useCallback(async () => {
-    const text = body.trim()
-    if (!text || sending || disabled) {
-      return
-    }
-    setSending(true)
-    try {
-      if (await onSend(text)) {
-        setBody('')
-        setCandidates([])
+  const send = useCallback(
+    async (submitOwnsFocus = inputRef.current === document.activeElement) => {
+      const text = body.trim()
+      const draftAtSend = body
+      const draftRevision = megamindComposerDraftRevision(draftScope, channel)
+      const channelRevision = channelRevisionRef.current
+      if (!text || pendingChannelsRef.current.has(channel) || disabled) {
+        return
       }
-    } finally {
-      setSending(false)
-    }
-  }, [body, disabled, onSend, sending])
+      pendingChannelsRef.current.add(channel)
+      setPendingChannels(new Set(pendingChannelsRef.current))
+      try {
+        if (await onSend(text)) {
+          clearMegamindComposerDraftIfCurrent(draftScope, channel, draftAtSend, draftRevision)
+        }
+      } finally {
+        pendingChannelsRef.current.delete(channel)
+        setPendingChannels(new Set(pendingChannelsRef.current))
+        if (
+          submitOwnsFocus &&
+          channelRef.current === channel &&
+          channelRevisionRef.current === channelRevision
+        ) {
+          focusRestoreRef.current = { channel, revision: channelRevision }
+        }
+      }
+    },
+    [body, channel, disabled, draftScope, onSend]
+  )
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (candidates.length > 0) {
@@ -98,7 +180,7 @@ export function MegamindComposer({
     }
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      void send()
+      void send(true)
     }
   }
 
@@ -154,7 +236,7 @@ export function MegamindComposer({
         ref={inputRef}
         rows={2}
         value={body}
-        disabled={disabled}
+        disabled={disabled || sending}
         placeholder={placeholder}
         aria-label={placeholder}
         className="min-h-14 resize-none"
@@ -163,13 +245,40 @@ export function MegamindComposer({
         onKeyUp={ime.onKeyUp}
         onKeyDown={onKeyDown}
         onChange={(event) => {
-          setBody(event.target.value)
-          refreshCandidates(event.target.value, event.target.selectionStart)
+          const nextBody = event.target.value
+          setMegamindComposerDraft(draftScope, channel, nextBody)
+          refreshCandidates(nextBody, event.target.selectionStart)
         }}
       />
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        {translate('arca.megamind.composerHint', 'Enter sends · Shift+Enter adds a line')}
-      </p>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-muted-foreground">
+          {translate('arca.megamind.composerHint', 'Enter sends · Shift+Enter adds a line')}
+        </p>
+        <Button
+          type="button"
+          size="default"
+          disabled={disabled || sending || !body.trim()}
+          className="w-28"
+          aria-label={
+            sending && showSendingFeedback
+              ? translate('arca.megamind.chatSending', 'Sending…')
+              : translate('arca.megamind.chatSend', 'Send')
+          }
+          onClick={() => void send()}
+        >
+          {sending && showSendingFeedback ? (
+            <>
+              <Loader2 className="motion-safe:animate-spin" aria-hidden="true" />
+              {translate('arca.megamind.chatSending', 'Sending…')}
+            </>
+          ) : (
+            <>
+              <Send aria-hidden="true" />
+              {translate('arca.megamind.chatSend', 'Send')}
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   )
 }

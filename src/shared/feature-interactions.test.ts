@@ -199,9 +199,13 @@ describe('feature interactions', () => {
     })
   })
 
-  it('keeps every catalog id wired to a production writer', () => {
+  it('keeps every active catalog id wired to a production writer', () => {
     const productionText = collectProductionSourceText()
     const missingWriters = FEATURE_INTERACTIONS.map((feature) => feature.id).filter((id) => {
+      // Retired ids remain accepted by the wire decoder, not produced by the UI.
+      if (id === 'workspace-board' || id === 'workspace-board-actions') {
+        return false
+      }
       const escaped = escapeRegex(id)
       const directRecord = new RegExp(
         `recordFeatureInteraction(?:\\?\\.)?\\(\\s*['"]${escaped}['"]`

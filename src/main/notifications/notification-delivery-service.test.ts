@@ -64,6 +64,7 @@ function makeHarness(settings: NotificationSettings, windowVisible = false): Har
     deps: {
       readNotificationSettings: () => settings,
       findActiveWindow: () => null,
+      findChatWindow: () => null,
       isWindowVisible: () => windowVisible,
       setTrayAttention,
       isNotificationSupported: () => true,
@@ -149,10 +150,10 @@ describe('createNotificationDeliveryService', () => {
     )
   })
 
-  it('does not interrupt a focused window with a chat message it can already see', () => {
-    const harness = makeHarness(makeSettings({ suppressWhenFocused: true }))
+  it('keeps focused chat in-app regardless of the global focus setting', () => {
+    const harness = makeHarness(makeSettings({ suppressWhenFocused: false }))
     const focusedWindow = makeFocusedWindowStub()
-    harness.deps.findActiveWindow = () => focusedWindow
+    harness.deps.findChatWindow = () => focusedWindow
     const request = makeRequest({
       source: 'megamind-chat',
       worktreeId: undefined,
@@ -163,8 +164,10 @@ describe('createNotificationDeliveryService', () => {
       delivered: false,
       reason: 'suppressed-focus'
     })
+    expect(harness.deliverNative).not.toHaveBeenCalled()
+    expect(harness.dispatchMobileNotification).toHaveBeenCalledTimes(1)
 
-    const unfocused = makeHarness(makeSettings({ suppressWhenFocused: true }))
+    const unfocused = makeHarness(makeSettings({ suppressWhenFocused: false }))
     expect(createNotificationDeliveryService(unfocused.deps).dispatch(request)).toEqual({
       delivered: true
     })

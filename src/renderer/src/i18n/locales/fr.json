@@ -1370,7 +1370,9 @@
         "0d0ace8861": "Mettre une étoile sur GitHub",
         "ec43b38ba7": "Étoile ajoutée sur GitHub",
         "157bb5ecbb": "Ouvrir GitHub",
-        "preflightDismiss": "Ignorer"
+        "preflightDismiss": "Ignorer",
+        "openRecentProject": "Ouvrir un projet récent",
+        "connectViaSsh": "Se connecter via SSH"
       },
       "LinearIssueMarkdownDescriptionEditor": {
         "d9c47069ef": "Markdown",
@@ -5058,9 +5060,7 @@
         },
         "SidebarHeader": {
           "92154beb7e": "Nouvel espace de travail",
-          "49f62c5665": "Tableau des espaces de travail",
           "5c9c7c16aa": "Ajoutez un projet pour créer des espaces de travail",
-          "a30e34eb5c": "Fermer le tableau des espaces de travail",
           "addProject": "Ajouter un projet"
         },
         "SidebarNav": {
@@ -5107,9 +5107,6 @@
           "c4f8e1b72a": "X"
         },
         "SidebarToolbar": {
-          "87d0064026": "Tableau des espaces de travail déplacé dans la barre inférieure",
-          "a30e34eb5c": "Fermer le tableau des espaces de travail",
-          "49f62c5665": "Tableau des espaces de travail",
           "19e32d0e5f": "Ouvrir le sélecteur de dossiers pour ajouter un projet",
           "abc62b6328": "Ajouter un projet"
         },
@@ -5190,40 +5187,12 @@
           "65a9820bd1": "Statuts des agents",
           "219ebf1961": "Nom de branche",
           "folderPathIdentity": "Branche / chemin de dossier",
-          "cli": "ARCA CLI"
+          "cli": "ARCA CLI",
+          "statuses": "Statuts"
         },
         "SshTargetRow": {
           "4677394048": "Connexion…",
           "75ad429b5d": "Se connecter"
-        },
-        "WorkspaceKanbanCard": {
-          "cefae8983e": "Épinglés"
-        },
-        "WorkspaceKanbanDrawerHeader": {
-          "f369f5c5a3": "Fermer",
-          "e1a34450fc": "Organisez les espaces de travail par statut et ouvrez les cartes d'espace de travail.",
-          "81870af08f": "sélectionnés",
-          "c6a77ab0f4": "Tableau des espaces de travail"
-        },
-        "WorkspaceKanbanPinDropTarget": {
-          "c30151c5ee": "Déposez ici pour épingler sans changer de statut.",
-          "8fae2d0862": "Épinglés"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "79eb990aa4": "Ajouter un statut",
-          "054cb50df7": "Supprimer {{value0}}",
-          "b45b350eb0": "Déplacer {{value0}} vers la gauche",
-          "8ce44af9a8": "Renommer {{value0}}",
-          "395e541d5d": "Statuts",
-          "34f03eb0de": "Paramètres du tableau",
-          "26cbc92150": "Paramètres du tableau des espaces de travail",
-          "87d24a0c2f": "Synchroniser le tableau et le statut des issues",
-          "4c2eaa78cc": "Déplacer un espace de travail lié met à jour le statut de son issue Linear quand un état de workflow correspondant existe."
-        },
-        "WorkspaceKanbanStatusLane": {
-          "8ad104642b": "Vide",
-          "3611d1ae7f": "Redimensionner les colonnes du tableau des espaces de travail",
-          "2df01a03ff": "Aucun résultat"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "Définir la couleur de {{value0}} sur {{value1}}",
@@ -5768,19 +5737,6 @@
           "b7e3a91c4f": "Faites glisser les en-têtes de projets pour les réordonner, ou passez à",
           "e8c1f4a2b9": "dans les options de l'espace de travail."
         },
-        "WorkspaceKanbanDrawer": {
-          "1975a4e480": "Échec de la synchronisation du statut des tâches",
-          "e02b0d92ff": "Synchronisation du statut des tâches ignorée",
-          "c1d2e3f4a5": "L'issue Linear {{value0}} n'a pas pu être lue.",
-          "d2e3f4a5b6": "Aucun état de workflow Linear ne correspond à {{value0}}.",
-          "e3f4a5b6c7": "Plusieurs états de workflow Linear correspondent à {{value0}}.",
-          "f4a5b6c7d8": "Impossible de mettre à jour l'issue Linear {{value0}}.",
-          "a5b6c7d8e9": "Impossible de synchroniser l'issue Linear {{value0}}.",
-          "b6c7d8e9f0": "La synchronisation du statut des tâches n'a pas pu aboutir.",
-          "c7d8e9f0a1": "{{value0}} mis à jour",
-          "d8e9f0a1b2": "{{value0}} ignoré",
-          "e9f0a1b2c3": "{{value0}} a échoué"
-        },
         "WorktreeParentPickerPopover": {
           "failedSetParent": "Échec de la définition du worktree parent",
           "current": "Actuel",
@@ -5916,14 +5872,6 @@
           "attachImages": "Joindre",
           "removeImage": "Supprimer {{fileName}}"
         },
-        "WorkspaceKanbanSearchField": {
-          "bdb753c78d": "Aucun espace de travail correspondant",
-          "4d96c209d6": "{{value0}} espaces de travail sur {{value1}} correspondent",
-          "c0cd6bdf6c": "Rechercher des espaces de travail",
-          "3b7ea51793": "Effacer la recherche",
-          "7f1c2e94a5": "Texte de recherche trop long — le tableau n'est pas filtré",
-          "9a4d0f6b21": "Trop long"
-        },
         "WorktreeIssueLinkField": {
           "25852bfc59": "Linear",
           "5b440069e6": "GitHub",
@@ -6050,6 +5998,11 @@
           "collapseLabel": "Réduire les worktrees des agents de {{value0}}",
           "expandLabel": "Développer les worktrees des agents de {{value0}}",
           "listLabel": "Worktrees des agents"
+        },
+        "WorkspaceStatusListEditor": {
+          "renameStatus": "Renommer {{value0}}",
+          "removeStatus": "Supprimer {{value0}}",
+          "addStatus": "Ajouter un statut"
         }
       },
       "shared": {
@@ -14992,6 +14945,9 @@
           "f915168c8e": "non lu",
           "d6a8de3934": "agents",
           "dc708f3eff": "Fermer les agents"
+        },
+        "ActivityThreadListToolbar": {
+          "clearSearch": "Effacer la recherche"
         }
       },
       "confirmation": {

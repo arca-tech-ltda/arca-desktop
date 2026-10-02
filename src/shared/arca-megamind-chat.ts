@@ -43,6 +43,8 @@ export type MegamindChatAvailability = 'loading' | 'ready' | 'login' | 'unsuppor
 
 export type MegamindChatState = {
   availability: MegamindChatAvailability
+  /** Active-channel history has not yet been fetched successfully. */
+  historyLoading?: boolean
   /** Handle of the signed-in human, used for mention highlighting and self-checks. */
   viewerHandle: string
   activeChannel: string
@@ -116,6 +118,7 @@ export type MegamindChatPostResult =
 
 export const emptyMegamindChatState = (): MegamindChatState => ({
   availability: 'loading',
+  historyLoading: true,
   viewerHandle: '',
   activeChannel: MEGAMIND_GROUP_CHANNEL,
   channels: [],

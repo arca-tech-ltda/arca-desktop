@@ -30,7 +30,6 @@ const HOVER_REVEAL_FILES = [
   resolve(__dirname, 'settings/VoiceSpeechModelSection.tsx'),
   resolve(__dirname, 'sidebar/HostSectionHeaderMenu.tsx'),
   resolve(__dirname, 'sidebar/PendingWorktreeRow.tsx'),
-  resolve(__dirname, 'sidebar/WorkspaceKanbanStatusLane.tsx'),
   resolve(__dirname, 'sidebar/WorktreeCardPorts.tsx'),
   resolve(__dirname, 'sidebar/WorktreeList.tsx'),
   resolve(__dirname, 'sidebar/worktree-list/rows/HostSectionHeader.tsx'),

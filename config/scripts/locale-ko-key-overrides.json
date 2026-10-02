@@ -4142,9 +4142,6 @@
   "auto.components.sidebar.SidebarWorkspaceOptionsMenu.projectSshHost": {
     "ko": "프로젝트 SSH"
   },
-  "auto.components.sidebar.WorkspaceKanbanStatusLane.8ad104642b": {
-    "ko": "비어 있음"
-  },
   "auto.components.sidebar.WorkspaceStatusAppearancePopover.8be427206b": {
     "ko": "아이콘"
   },

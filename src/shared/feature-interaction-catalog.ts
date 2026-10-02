@@ -1,6 +1,8 @@
 export type FeatureInteractionId =
+  // Legacy wire/persisted id retained for older client ui.set payloads.
   | 'workspace-board'
   | 'workspace-agent-sessions'
+  // Legacy wire/persisted id retained for older client ui.set payloads.
   | 'workspace-board-actions'
   | 'cmd-j'
   | 'cmd-j-workspace-open'
@@ -62,11 +64,13 @@ export type FeatureInteractionDefinition = {
 // Why: these ids become persisted product state; changing them breaks
 // feature-discovery interaction tracking.
 export const FEATURE_INTERACTIONS = [
+  // Legacy definitions keep older client ui.set payloads valid.
   { id: 'workspace-board', interaction: 'workspace board opened' },
   {
     id: 'workspace-agent-sessions',
     interaction: 'workspace agent-session surface opened'
   },
+  // Legacy definition keeps older client ui.set payloads valid.
   {
     id: 'workspace-board-actions',
     interaction: 'workspace board card, lane, density, or status action used'

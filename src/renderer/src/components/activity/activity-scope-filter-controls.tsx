@@ -54,7 +54,6 @@ export function ActivityScopeFilterMenuItems(): React.JSX.Element | null {
         <SidebarHostScopeMenuSection
           hostVisibilityLabel={getSidebarHostVisibilityLabel(agentsVisibleHostIds, hostOptions)}
           hostOptions={hostOptions}
-          preserveWorkspaceBoardOpen={false}
           // Why: the section only calls this to reset to "all hosts".
           setWorkspaceHostScope={() => setAgentsVisibleHostIds(null)}
           visibleWorkspaceHostIds={agentsVisibleHostIds}

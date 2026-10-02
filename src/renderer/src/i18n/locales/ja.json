@@ -1247,7 +1247,9 @@
         "0d0ace8861": "GitHub でスターを付ける",
         "ec43b38ba7": "GitHub でスター済み",
         "157bb5ecbb": "GitHub を開く",
-        "preflightDismiss": "閉じる"
+        "preflightDismiss": "閉じる",
+        "openRecentProject": "最近のプロジェクトを開く",
+        "connectViaSsh": "SSHで接続"
       },
       "LinearIssueMarkdownDescriptionEditor": {
         "d9c47069ef": "Markdown",
@@ -4496,9 +4498,7 @@
         "SidebarHeader": {
           "projects": "プロジェクト",
           "92154beb7e": "新規ワークスペース",
-          "49f62c5665": "ワークスペースボード",
           "5c9c7c16aa": "プロジェクトを追加してワークスペースを作成する",
-          "a30e34eb5c": "ワークスペースボードを閉じる",
           "spaces": "スペース",
           "views": "サイドバービュー",
           "addProject": "プロジェクトを追加"
@@ -4547,10 +4547,7 @@
         },
         "SidebarToolbar": {
           "19e32d0e5f": "フォルダーピッカーを開いてプロジェクトを追加します",
-          "abc62b6328": "プロジェクトを追加",
-          "87d0064026": "ワークスペースボードは下部バーに移動しました",
-          "a30e34eb5c": "ワークスペースボードを閉じる",
-          "49f62c5665": "ワークスペースボード"
+          "abc62b6328": "プロジェクトを追加"
         },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "デフォルトのブランチを非表示にする",
@@ -4619,40 +4616,12 @@
           "219ebf1961": "ブランチ名",
           "automation": "オートメーション",
           "folderPathIdentity": "ブランチ / フォルダーパス",
-          "cli": "ARCA CLI"
+          "cli": "ARCA CLI",
+          "statuses": "ステータス"
         },
         "SshTargetRow": {
           "4677394048": "接続中…",
           "75ad429b5d": "接続"
-        },
-        "WorkspaceKanbanCard": {
-          "cefae8983e": "ピン留め済み"
-        },
-        "WorkspaceKanbanDrawerHeader": {
-          "f369f5c5a3": "閉じる",
-          "e1a34450fc": "ワークスペースをステータスごとに整理し、ワークスペースカードを開きます。",
-          "81870af08f": "選択中",
-          "c6a77ab0f4": "ワークスペースボード"
-        },
-        "WorkspaceKanbanPinDropTarget": {
-          "c30151c5ee": "ここにドロップすると、ステータスを変更せずにピンを固定できます。",
-          "8fae2d0862": "ピン留め済み"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "79eb990aa4": "ステータスの追加",
-          "054cb50df7": "{{value0}} を削除",
-          "b45b350eb0": "{{value0}} を左に移動",
-          "8ce44af9a8": "{{value0}} の名前を変更",
-          "395e541d5d": "ステータス",
-          "34f03eb0de": "ボード設定",
-          "26cbc92150": "ワークスペースボードの設定",
-          "87d24a0c2f": "ボードと Issue のステータスを同期",
-          "4c2eaa78cc": "リンク済みワークスペースを移動すると、一致するワークフロー状態がある場合に Linear Issue のステータスが更新されます。"
-        },
-        "WorkspaceKanbanStatusLane": {
-          "8ad104642b": "空の",
-          "3611d1ae7f": "ワークスペースボードの列のサイズを変更する",
-          "2df01a03ff": "一致なし"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "{{value0}} の色を {{value1}} に設定します",
@@ -5256,19 +5225,6 @@
           "3c4d5e6f7a": "ホストを管理…",
           "6e7f8a9b0c": "ホストを削除…"
         },
-        "WorkspaceKanbanDrawer": {
-          "1975a4e480": "タスクステータスの同期に失敗しました",
-          "e02b0d92ff": "タスクステータスの同期をスキップしました",
-          "c1d2e3f4a5": "Linear Issue {{value0}} を読み取れませんでした。",
-          "d2e3f4a5b6": "{{value0}} に一致する Linear ワークフロー状態がありません。",
-          "e3f4a5b6c7": "{{value0}} に一致する Linear ワークフロー状態が複数あります。",
-          "f4a5b6c7d8": "Linear Issue {{value0}} を更新できませんでした。",
-          "a5b6c7d8e9": "Linear Issue {{value0}} を同期できませんでした。",
-          "b6c7d8e9f0": "タスクステータスの同期を完了できませんでした。",
-          "c7d8e9f0a1": "{{value0}} 件更新",
-          "d8e9f0a1b2": "{{value0}} 件スキップ",
-          "e9f0a1b2c3": "{{value0}} 件失敗"
-        },
         "WorktreeParentPickerPopover": {
           "failedSetParent": "親ワークツリーを設定できませんでした",
           "current": "現在",
@@ -5372,14 +5328,6 @@
           "attachImages": "Attach",
           "removeImage": "{{fileName}} を削除"
         },
-        "WorkspaceKanbanSearchField": {
-          "bdb753c78d": "一致するワークスペースはありません",
-          "4d96c209d6": "{{value1}} 件中 {{value0}} 件のワークスペースが一致します",
-          "c0cd6bdf6c": "ワークスペースの検索",
-          "3b7ea51793": "検索をクリア",
-          "7f1c2e94a5": "検索テキストが長すぎます — ボードは絞り込まれていません",
-          "9a4d0f6b21": "長すぎます"
-        },
         "AgentWorktreeGroupRow": {
           "started": "{{value0}}に開始",
           "updated": "{{value0}}に更新",
@@ -5405,6 +5353,11 @@
           "collapseLabel": "{{value0}} の Agent ワークツリーを折りたたむ",
           "expandLabel": "{{value0}} の Agent ワークツリーを展開",
           "listLabel": "Agent のワークツリー"
+        },
+        "WorkspaceStatusListEditor": {
+          "renameStatus": "{{value0}} の名前を変更",
+          "removeStatus": "{{value0}} を削除",
+          "addStatus": "ステータスの追加"
         }
       },
       "shared": {
@@ -13975,6 +13928,9 @@
           "f915168c8e": "未読",
           "d6a8de3934": "Agent",
           "dc708f3eff": "Agent を閉じる"
+        },
+        "ActivityThreadListToolbar": {
+          "clearSearch": "検索をクリア"
         }
       },
       "confirmation": {

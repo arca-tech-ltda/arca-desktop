@@ -22,13 +22,7 @@ import {
 import { PROPERTY_OPTIONS } from './worktree-card-display-property-options'
 import { translate } from '@/i18n/i18n'
 
-type WorktreeCardDisplayMenuSectionProps = {
-  preserveWorkspaceBoardOpen: boolean
-}
-
-export function WorktreeCardDisplayMenuSection({
-  preserveWorkspaceBoardOpen
-}: WorktreeCardDisplayMenuSectionProps): React.JSX.Element {
+export function WorktreeCardDisplayMenuSection(): React.JSX.Element {
   const worktreeCardProperties = useAppStore((s) => s.worktreeCardProperties)
   const setWorktreeCardProperties = useAppStore((s) => s.setWorktreeCardProperties)
   const settings = useAppStore((s) => s.settings)
@@ -69,10 +63,7 @@ export function WorktreeCardDisplayMenuSection({
             )}
           </span>
         </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent
-          className="w-56"
-          data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
-        >
+        <DropdownMenuSubContent className="w-56">
           {worktreeCardPropertyOptions.map((opt) => (
             <DropdownMenuCheckboxItem
               key={opt.id}
@@ -106,10 +97,7 @@ export function WorktreeCardDisplayMenuSection({
             <span className="text-[11px] font-medium text-muted-foreground">{cardLayoutLabel}</span>
           </span>
         </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent
-          className="w-44"
-          data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
-        >
+        <DropdownMenuSubContent className="w-44">
           <DropdownMenuRadioGroup
             value={cardLayout}
             onValueChange={(value) => {
@@ -154,10 +142,7 @@ export function WorktreeCardDisplayMenuSection({
             ) : null}
           </span>
         </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent
-          className="w-48"
-          data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
-        >
+        <DropdownMenuSubContent className="w-48">
           {PROPERTY_OPTIONS.map((opt) => (
             <DropdownMenuCheckboxItem
               key={opt.id}

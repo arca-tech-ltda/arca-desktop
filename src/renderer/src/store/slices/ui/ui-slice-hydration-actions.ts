@@ -24,11 +24,7 @@ import {
   normalizeActivityGroupBy,
   normalizeThreadReadFilter
 } from '../../../../../shared/agents-view-thread-filters'
-import {
-  clampWorkspaceBoardColumnWidth,
-  clampWorkspaceBoardOpacity,
-  normalizeWorkspaceStatuses
-} from '../../../../../shared/workspace-statuses'
+import { normalizeWorkspaceStatuses } from '../../../../../shared/workspace-statuses'
 import { PET_SIZE_DEFAULT, PET_SIZE_MAX, PET_SIZE_MIN } from '../../../../../shared/pet-types'
 import { clampMarkdownTocPanelWidth } from '../../../../../shared/markdown-toc-panel-width'
 import { clampCombinedDiffFileTreeWidth } from '../../../../../shared/combined-diff-file-tree-width'
@@ -197,9 +193,6 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
           _worktreeCardModeDefaulted: ui._worktreeCardModeDefaulted === true,
           agentActivityDisplayMode: normalizeAgentActivityDisplayMode(ui.agentActivityDisplayMode),
           workspaceStatuses: normalizeWorkspaceStatuses(ui.workspaceStatuses),
-          workspaceBoardOpacity: clampWorkspaceBoardOpacity(ui.workspaceBoardOpacity),
-          workspaceBoardColumnWidth: clampWorkspaceBoardColumnWidth(ui.workspaceBoardColumnWidth),
-          syncTaskStatusFromWorkspaceBoard: ui.syncTaskStatusFromWorkspaceBoard === true,
           statusBarItems: statusBarItemsWithGrok,
           statusBarVisible: ui.statusBarVisible ?? true,
           priorityCardVisible: ui.priorityCardVisible ?? true,

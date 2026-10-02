@@ -19,6 +19,8 @@ export type NotificationDeliveryDependencies = {
   readNotificationSettings: () => NotificationSettings
   /** The window the user would see the banner on, or null when none is open. */
   findActiveWindow: () => BrowserWindow | null
+  /** The trusted app UI that owns chat, independently of other Electron windows. */
+  findChatWindow?: () => BrowserWindow | null
   isWindowVisible: (window: BrowserWindow | null) => boolean
   setTrayAttention: (attention: boolean) => void
   isNotificationSupported: () => boolean
@@ -126,15 +128,12 @@ export function createNotificationDeliveryService(
       }
 
       const browserWindow = deps.findActiveWindow()
-      // A chat message is addressed to the person, not to a worktree: the inbox is the window
-      // itself, so having it in front is the whole reason not to interrupt.
-      const focusSubject = request.source === 'megamind-chat' || request.isActiveWorktree
-      if (
-        settings.suppressWhenFocused &&
-        focusSubject &&
-        browserWindow &&
-        browserWindow.isFocused()
-      ) {
+      // Chat belongs to the trusted app UI, not whichever guest/popout happens to sort first.
+      const chatFocused =
+        request.source === 'megamind-chat' && deps.findChatWindow?.()?.isFocused() === true
+      const focusedActiveWorktree =
+        settings.suppressWhenFocused && request.isActiveWorktree && browserWindow?.isFocused()
+      if (chatFocused || focusedActiveWorktree) {
         return { delivered: false, reason: 'suppressed-focus' }
       }
 

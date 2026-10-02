@@ -5,9 +5,9 @@ import { revealDashboardAgent } from './reveal-dashboard-agent'
 import { AgentKanbanBoard } from '../dashboard-popout/AgentKanbanBoard'
 import type { AgentRevealArgs } from '../dashboard-popout/AgentTerminalDialog'
 import {
-  isWorkspaceBoardKeepOpenTarget,
-  useWorkspaceKanbanOutsideDismiss
-} from '../sidebar/use-workspace-kanban-outside-dismiss'
+  isDashboardDrawerKeepOpenTarget,
+  useDashboardDrawerOutsideDismiss
+} from './use-dashboard-drawer-outside-dismiss'
 import {
   STATUS_BAR_RESERVE_HEIGHT,
   WORKSPACE_TOP_CHROME_HEIGHT
@@ -53,8 +53,8 @@ function AgentDashboardDrawerBody({
     [onClose]
   )
 
-  // Switching to pop-out from the board hands the surface over rather than
-  // leaving an in-window board that the setting says should be a window.
+  // Switching to pop-out hands the surface over rather than leaving an
+  // in-window board that the setting says should be a window.
   const handleSwitchToPopout = useCallback(() => {
     onClose()
     void window.api.dashboard.openPopout?.()
@@ -64,7 +64,7 @@ function AgentDashboardDrawerBody({
     <AgentKanbanBoard
       snapshot={snapshot}
       // Why: bg-transparent lets the sheet's worktree-sidebar surface through
-      // so the board reads as the same companion panel as the workspace board.
+      // so the board reads as one companion panel beside the sidebar.
       containerClassName="h-full w-full bg-transparent"
       onAckAgent={handleAckAgent}
       onRevealAgent={handleRevealAgent}
@@ -86,8 +86,8 @@ type AgentDashboardDrawerProps = {
 
 /**
  * The in-window Agent Dashboard surface: the same board as the pop-out window,
- * presented like the workspace kanban board — a non-modal companion sheet that
- * expands from the sidebar edge and keeps the rest of the app interactive.
+ * a non-modal companion sheet that expands from the sidebar edge and keeps the
+ * rest of the app interactive.
  */
 export function AgentDashboardDrawer({
   leftSidebarStyle,
@@ -98,16 +98,14 @@ export function AgentDashboardDrawer({
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
   const sidebarWidth = useAppStore((s) => s.sidebarWidth)
   const [menuOpen, setMenuOpen] = useState(false)
-  // Why: like closeWorkspaceBoard, reset the menu flag on close — Radix never
-  // reports close for a menu unmounted with the sheet (e.g. the pop-out
-  // hand-off), and a stale true would block outside-dismiss on reopen.
+  // Radix does not report close for an unmounted menu; reset it so reopening can dismiss.
   const close = useCallback(() => {
     setMenuOpen(false)
     setOpen(false)
   }, [setOpen])
-  // Why: sidebar collapse (Cmd+B) and workspace-board exclusivity close the
-  // drawer through the store setter, bypassing close(); sync the flag so a
-  // menu unmounted that way can't block outside-dismiss on the next open.
+  // Why: sidebar collapse (Cmd+B) closes the drawer through the store setter,
+  // bypassing close(); sync the flag so a menu unmounted that way can't block
+  // outside-dismiss on the next open.
   useEffect(() => {
     if (!open) {
       setMenuOpen(false)
@@ -116,19 +114,19 @@ export function AgentDashboardDrawer({
   const handleSheetOpenChange = useCallback(
     (nextOpen: boolean) => {
       // Why: Radix also requests dismissal for unguardable interactions (focus
-      // moving outside has no pointer coordinates), so like the workspace board
-      // only the drawer's own escape/outside/close paths may close it.
+      // moving outside has no pointer coordinates), so only the drawer's own
+      // escape/outside/close paths may close it.
       if (nextOpen) {
         setOpen(true)
       }
     },
     [setOpen]
   )
-  const boardRef = useRef<HTMLDivElement | null>(null)
+  const drawerRef = useRef<HTMLDivElement | null>(null)
 
-  useWorkspaceKanbanOutsideDismiss({
+  useDashboardDrawerOutsideDismiss({
     open,
-    boardRef,
+    drawerRef,
     preserveOpenForMenu: menuOpen,
     onOpenChange: setOpen
   })
@@ -165,15 +163,16 @@ export function AgentDashboardDrawer({
     event: CustomEvent<{ originalEvent: PointerEvent | FocusEvent }>
   ): void => {
     const originalEvent = event.detail.originalEvent
-    if (menuOpen || isWorkspaceBoardKeepOpenTarget(originalEvent.target)) {
-      // Why: the first outside click should close a board menu, not also
-      // dismiss the board that owns it.
+    if (menuOpen || isDashboardDrawerKeepOpenTarget(originalEvent.target)) {
+      // Why: the first outside click should close a drawer menu, not also
+      // dismiss the drawer that owns it.
       event.preventDefault()
       return
     }
     const liveDrawerLeft =
-      boardRef.current?.closest<HTMLElement>('[data-slot="sheet-content"]')?.getBoundingClientRect()
-        .left ?? drawerLeft
+      drawerRef.current
+        ?.closest<HTMLElement>('[data-slot="sheet-content"]')
+        ?.getBoundingClientRect().left ?? drawerLeft
     const pointerX =
       'clientX' in originalEvent && typeof originalEvent.clientX === 'number'
         ? originalEvent.clientX
@@ -221,7 +220,7 @@ export function AgentDashboardDrawer({
         <SheetTitle className="sr-only">{translate('dashboardPopout.title', 'Agents')}</SheetTitle>
         {/* Radix unmounts SheetContent while closed, so the live snapshot
             derivation in the body stays off the closed path. */}
-        <div ref={boardRef} className="flex min-h-0 flex-1 flex-col">
+        <div ref={drawerRef} className="flex min-h-0 flex-1 flex-col">
           <AgentDashboardDrawerBody onClose={close} onMenuOpenChange={setMenuOpen} />
         </div>
       </SheetContent>

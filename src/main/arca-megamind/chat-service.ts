@@ -1,16 +1,15 @@
 import {
   emptyMegamindChatState,
   type MegamindChatAvailability,
-  type MegamindChatChannel,
   type MegamindChatMessage,
   type MegamindChatPostResult,
   type MegamindChatState
 } from '../../shared/arca-megamind-chat'
-import {
-  classifyMegamindChatAlert,
-  type MegamindChatAlert
-} from '../../shared/arca-megamind-notifications'
-import type { ChatFailure, ChatResult, MegamindChatClient } from './chat-client'
+import type { MegamindChatAlert } from '../../shared/arca-megamind-notifications'
+import type { ChatFailure, MegamindChatClient } from './chat-client'
+import { mergeMegamindChatChannels } from './chat-channel-directory'
+import { applyMegamindChatActivity } from './chat-message-activity'
+import { loadMegamindChatHistory } from './chat-history-loader'
 
 /** What the service needs from the client, so a test can stand in without the transport. */
 export type MegamindChatTransport = Pick<
@@ -40,6 +39,10 @@ export class MegamindChatService {
   /** The first poll after a login only establishes what already exists; it never notifies. */
   private seeded = false
   private visible = false
+  private readChannel: string | null | undefined
+  private historyReady = false
+  private generation = 0
+  private channelGeneration = 0
   private running = false
   private busy = false
   /** A refresh asked for while one was in flight (a channel switch): run once the current ends. */
@@ -76,6 +79,9 @@ export class MegamindChatService {
   private fail(reason: ChatFailure): void {
     const availability: MegamindChatAvailability =
       reason === 'login' ? 'login' : reason === 'unsupported' ? 'unsupported' : 'error'
+    if (reason === 'login') {
+      this.clearSession()
+    }
     // A signed-out session must be re-read after the next login, not kept from the old one.
     const viewerHandle = reason === 'login' ? '' : this.state.viewerHandle
     if (this.state.availability !== availability || this.state.viewerHandle !== viewerHandle) {
@@ -94,55 +100,83 @@ export class MegamindChatService {
 
   stop(): void {
     this.running = false
+    this.generation += 1
     this.cancelTimer?.()
   }
 
   /** Called by the panel: only a visible chat tab earns the fast poll. */
-  setVisible(visible: boolean): void {
-    if (this.visible === visible) {
+  setVisible(visible: boolean, readChannel?: string | null): void {
+    if (this.visible === visible && this.readChannel === readChannel) {
       return
     }
     this.visible = visible
+    this.readChannel = readChannel
+    this.markRead(this.state.activeChannel)
     if (visible) {
       void this.refresh()
     }
   }
 
+  private isReading(channel: string): boolean {
+    return (
+      this.visible &&
+      this.historyReady &&
+      channel === this.state.activeChannel &&
+      (this.readChannel === undefined || this.readChannel === channel)
+    )
+  }
+
   async setActiveChannel(channel: string): Promise<void> {
     if (this.state.activeChannel !== channel) {
-      this.state = { ...this.state, activeChannel: channel, messages: [] }
+      this.channelGeneration += 1
+      this.historyReady = false
+      this.state = { ...this.state, activeChannel: channel, messages: [], historyLoading: true }
       this.publish()
     }
-    this.markRead(channel)
     await this.refresh()
   }
 
   markRead(channel: string): void {
-    if (this.unread.get(channel)) {
+    if (this.isReading(channel) && this.unread.get(channel)) {
       this.unread.delete(channel)
       this.publish()
     }
   }
 
   async post(target: string, body: string): Promise<MegamindChatPostResult> {
+    const generation = this.generation
     const result = await this.options.client.post(target, body)
     if (!result.ok) {
       // A rejected write says nothing about whether the chat is readable; only a session fact does.
-      if (result.reason === 'login' || result.reason === 'unsupported') {
+      if (
+        generation === this.generation &&
+        (result.reason === 'login' || result.reason === 'unsupported')
+      ) {
         this.fail(result.reason)
       }
       return { status: result.reason }
     }
-    await this.refresh()
+    if (generation === this.generation) {
+      void this.refresh()
+    }
     return { status: 'ok', woken: result.value }
   }
 
   /** Signing in or out invalidates the viewer, so the next poll re-reads it and re-seeds. */
   resetSession(): void {
-    this.state = { ...this.state, viewerHandle: '', availability: 'loading' }
+    this.clearSession()
+    this.publish()
+    void this.refresh()
+  }
+
+  private clearSession(): void {
+    this.generation += 1
+    this.state = emptyMegamindChatState()
+    this.unread.clear()
+    this.seen.clear()
+    this.historyReady = false
     this.seeded = false
     this.since = ''
-    void this.refresh()
   }
 
   private schedule(): void {
@@ -153,9 +187,11 @@ export class MegamindChatService {
     const delay =
       this.state.availability === 'unsupported'
         ? BACKGROUND_INTERVAL * 10
-        : this.visible
-          ? VISIBLE_INTERVAL
-          : BACKGROUND_INTERVAL
+        : this.state.availability === 'error'
+          ? BACKGROUND_INTERVAL
+          : this.visible
+            ? VISIBLE_INTERVAL
+            : BACKGROUND_INTERVAL
     this.cancelTimer = this.setTimer(() => void this.refresh(), delay)
   }
 
@@ -182,93 +218,71 @@ export class MegamindChatService {
   }
 
   private async poll(): Promise<void> {
+    const generation = this.generation
+    const channelGeneration = this.channelGeneration
+    const channel = this.state.activeChannel
+    const current = (): boolean =>
+      this.running && generation === this.generation && channelGeneration === this.channelGeneration
     if (!this.state.viewerHandle) {
       const identity = await this.options.client.identity()
+      if (!current()) {
+        return
+      }
       if (!identity.ok) {
         this.fail(identity.reason)
         return
       }
       this.state = { ...this.state, viewerHandle: identity.value.handle }
     }
-    const channels = await this.options.client.channels()
+    const [channels, recent] = await Promise.all([
+      this.options.client.channels(),
+      this.options.client.recent(this.since)
+    ])
+    if (!current()) {
+      return
+    }
     if (!channels.ok) {
       this.fail(channels.reason)
       return
     }
-    const recent = await this.options.client.recent(this.since)
     if (!recent.ok) {
       this.fail(recent.reason)
       return
     }
-    this.applyRecent(recent.value)
-    const messages = this.visible
-      ? await this.historyOfActiveChannel(recent.value)
-      : this.state.messages
+    const history = this.visible
+      ? await loadMegamindChatHistory(channel, recent.value, this.state.messages, (activeChannel) =>
+          this.options.client.history(activeChannel)
+        )
+      : { messages: this.state.messages, loaded: false }
+    if (!current()) {
+      return
+    }
+    this.historyReady = history.loaded
+    const activity = applyMegamindChatActivity(
+      recent.value,
+      { seen: this.seen, seeded: this.seeded, since: this.since },
+      this.unread,
+      this.state.viewerHandle,
+      (activeChannel) => this.isReading(activeChannel),
+      (message, alert) => this.options.alert(message, alert)
+    )
+    this.seen = activity.seen
+    this.seeded = activity.seeded
+    this.since = activity.since
     this.state = {
       ...this.state,
       availability: 'ready',
-      channels: this.mergeChannels(channels.value),
-      messages
+      channels: mergeMegamindChatChannels(
+        channels.value,
+        recent.value,
+        this.state.channels,
+        this.unread
+      ),
+      messages: history.messages,
+      historyLoading:
+        history.loaded || history.messages.length > 0 ? false : this.state.historyLoading
     }
+    this.markRead(channel)
     this.publish()
-  }
-
-  private async historyOfActiveChannel(
-    recent: readonly MegamindChatMessage[]
-  ): Promise<MegamindChatMessage[]> {
-    const history: ChatResult<MegamindChatMessage[]> = await this.options.client.history(
-      this.state.activeChannel
-    )
-    if (history.ok) {
-      return history.value
-    }
-    // A failed history poll keeps the panel readable with what is already shown plus the feed.
-    const known = new Set(this.state.messages.map((message) => message.id))
-    return [
-      ...this.state.messages,
-      ...recent.filter(
-        (message) => message.channel === this.state.activeChannel && !known.has(message.id)
-      )
-    ]
-  }
-
-  /** Channels the directory does not list yet (a brand-new DM) still deserve their unread badge. */
-  private mergeChannels(channels: MegamindChatChannel[]): MegamindChatChannel[] {
-    const known = new Set(channels.map((channel) => channel.channel))
-    const extra = [...this.unread.keys()]
-      .filter((channel) => !known.has(channel))
-      .map((channel) => this.state.channels.find((item) => item.channel === channel))
-      .filter((channel): channel is MegamindChatChannel => channel !== undefined)
-    return [...channels, ...extra].map((channel) => ({
-      ...channel,
-      unread: this.unread.get(channel.channel) ?? 0
-    }))
-  }
-
-  private applyRecent(messages: readonly MegamindChatMessage[]): void {
-    for (const message of messages) {
-      if (message.createdAt > this.since) {
-        this.since = message.createdAt
-      }
-      if (this.seen.has(message.id)) {
-        continue
-      }
-      this.seen.add(message.id)
-      if (!this.seeded) {
-        continue
-      }
-      const alert = classifyMegamindChatAlert(message, this.state.viewerHandle)
-      const read = this.visible && message.channel === this.state.activeChannel
-      if (!message.mine && !read) {
-        this.unread.set(message.channel, (this.unread.get(message.channel) ?? 0) + 1)
-      }
-      if (alert && !read) {
-        this.options.alert(message, alert)
-      }
-    }
-    if (this.seen.size > 4000) {
-      this.seen = new Set([...this.seen].slice(-2000))
-    }
-    this.seeded = true
   }
 }

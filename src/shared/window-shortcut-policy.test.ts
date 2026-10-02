@@ -343,7 +343,7 @@ describe('resolveWindowShortcutAction', () => {
   it('applies custom keybinding overrides to main-process shortcuts', () => {
     const overrides: KeybindingOverrides = {
       'worktree.quickOpen': ['Mod+Shift+O'],
-      'workspace.openBoard': ['Mod+Alt+B'],
+      'dashboard.toggle': ['Mod+Alt+B'],
       'view.tasks': ['Mod+Alt+K']
     }
 
@@ -367,7 +367,7 @@ describe('resolveWindowShortcutAction', () => {
         'linux',
         overrides
       )
-    ).toEqual({ type: 'openWorkspaceBoard' })
+    ).toEqual({ type: 'toggleAgentDashboard' })
     expect(
       resolveWindowShortcutAction(
         { code: 'KeyK', key: 'k', meta: false, control: true, alt: true, shift: false },

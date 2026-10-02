@@ -1,6 +1,7 @@
 import type { FeatureInteractionId } from './feature-interactions'
 
 export type ContextualTourId =
+  // Legacy persisted/wire id; no active tour definition remains.
   | 'workspace-board'
   | 'workspace-agent-sessions'
   | 'browser'
@@ -55,24 +56,6 @@ export type ContextualTour = {
 }
 
 export const CONTEXTUAL_TOURS = [
-  {
-    id: 'workspace-board',
-    steps: [
-      {
-        title: 'Plan work on the board',
-        body: 'Use the board when you want to see workspaces by status instead of by project.',
-        targetSelector: '[data-contextual-tour-target="workspace-board-center"]',
-        requiredForStart: true,
-        preferredPlacement: 'bottom'
-      },
-      {
-        title: 'Move work through lanes',
-        body: 'Drag workspaces between lanes as their status changes.',
-        targetSelector:
-          '[data-contextual-tour-target="workspace-board-done-lane"], [data-contextual-tour-target="workspace-board-lanes"]'
-      }
-    ]
-  },
   {
     id: 'workspace-agent-sessions',
     steps: [
@@ -228,8 +211,14 @@ export const CONTEXTUAL_TOURS = [
 
 export const CONTEXTUAL_TOUR_IDS = CONTEXTUAL_TOURS.map((tour) => tour.id)
 
+const LEGACY_CONTEXTUAL_TOUR_IDS = ['workspace-board'] as const
+const PERSISTED_CONTEXTUAL_TOUR_IDS = new Set<string>([
+  ...LEGACY_CONTEXTUAL_TOUR_IDS,
+  ...CONTEXTUAL_TOUR_IDS
+])
+
 export function isContextualTourId(value: unknown): value is ContextualTourId {
-  return typeof value === 'string' && CONTEXTUAL_TOUR_IDS.includes(value as ContextualTourId)
+  return typeof value === 'string' && PERSISTED_CONTEXTUAL_TOUR_IDS.has(value)
 }
 
 export function getContextualTour(id: ContextualTourId): ContextualTour {

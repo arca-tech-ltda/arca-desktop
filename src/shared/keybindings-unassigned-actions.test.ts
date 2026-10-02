@@ -1,6 +1,8 @@
 // Actions that ship unbound until a user assigns them.
 import { describe, expect, it } from 'vitest'
 import {
+  isKeybindingActionId,
+  KEYBINDING_DEFINITIONS,
   getKeybindingDefinition,
   getEffectiveKeybindingsForAction,
   keybindingMatchesAction
@@ -90,29 +92,10 @@ describe('keybindings', () => {
     ).toBe(false)
   })
 
-  it('keeps workspace board unassigned until users customize it', () => {
-    const binding = {
-      key: 'k',
-      code: 'KeyK',
-      control: true,
-      meta: false,
-      alt: true,
-      shift: false
-    }
-
-    expect(getEffectiveKeybindingsForAction('workspace.openBoard', 'linux')).toEqual([])
-    expect(keybindingMatchesAction('workspace.openBoard', binding, 'linux')).toBe(false)
-    expect(
-      keybindingMatchesAction('workspace.openBoard', binding, 'linux', {
-        'workspace.openBoard': ['Mod+Alt+K']
-      })
-    ).toBe(true)
-
-    const definition = getKeybindingDefinition('workspace.openBoard')
-    expect(definition?.title).toBe('Toggle Workspace Board')
-    expect(definition?.searchKeywords).toEqual(
-      expect.arrayContaining(['workspace', 'board', 'kanban', 'toggle', 'open', 'close'])
-    )
+  it('removes workspace board from the current shortcut registry', () => {
+    expect(isKeybindingActionId('workspace.openBoard')).toBe(false)
+    expect(KEYBINDING_DEFINITIONS.map(({ id }) => id)).not.toContain('workspace.openBoard')
+    expect(isKeybindingActionId('dashboard.toggle')).toBe(true)
   })
 
   it('keeps the agent dashboard toggle unassigned until users customize it', () => {

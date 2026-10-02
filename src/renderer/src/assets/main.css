@@ -1858,9 +1858,9 @@ html.native-shell .app-layout {
   overflow: hidden;
 }
 
-/* Why: the workspace board is offset to the sidebar edge. The generic left
-   sheet translates by its full width, which makes an offset board fly in from
-   far offscreen; this reveals it from the sidebar boundary instead. */
+/* Why: the agent dashboard drawer is offset to the sidebar edge. The generic
+   left sheet translates by its full width, which makes an offset panel fly in
+   from far offscreen; this reveals it from the sidebar boundary instead. */
 .workspace-kanban-sheet-content[data-state='open'] {
   animation-name: workspace-kanban-sheet-in;
   animation-duration: 300ms;
@@ -1873,47 +1873,11 @@ html.native-shell .app-layout {
   animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
 }
 
-/* Why: this board is attached to the worktree sidebar, not floating above it;
+/* Why: this panel is attached to the worktree sidebar, not floating above it;
    the generic Sheet elevation casts a haze over the sidebar when left open. */
 .workspace-kanban-sheet-content {
   box-shadow: inset 1px 0 0 color-mix(in srgb, var(--worktree-sidebar-border) 80%, transparent);
   backdrop-filter: none;
-}
-
-/* Why: a sidebar-card drag should advertise the board as a possible drop
-   surface without fully committing the companion panel until the pointer enters it. */
-.workspace-kanban-sheet-content[data-workspace-board-drag-preview='true'] {
-  background: color-mix(in srgb, var(--worktree-sidebar) 88%, var(--background));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 58%, transparent),
-    0 10px 24px color-mix(in srgb, var(--foreground) 12%, transparent);
-}
-
-.workspace-kanban-sheet-content[data-workspace-board-drag-preview='true'] > * {
-  opacity: 0.42;
-}
-
-/* Why: while a card drag previews the board, pulse the toolbar trigger with the
-   same ring the drawer uses so it reads as another way to open the board. */
-@keyframes workspace-board-trigger-preview-pulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sidebar-ring) 55%, transparent);
-  }
-
-  70%,
-  100% {
-    box-shadow: 0 0 0 5px color-mix(in srgb, var(--sidebar-ring) 0%, transparent);
-  }
-}
-
-[data-workspace-board-trigger][data-workspace-board-preview='true'] {
-  animation: workspace-board-trigger-preview-pulse 1.4s ease-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-workspace-board-trigger][data-workspace-board-preview='true'] {
-    animation: none;
-  }
 }
 
 @keyframes workspace-kanban-sheet-in {
@@ -1934,69 +1898,6 @@ html.native-shell .app-layout {
   to {
     clip-path: inset(0 100% 0 0);
   }
-}
-
-/* Why: board-origin cards use pointer drag so Shift+scroll can keep firing;
-   these replace the native drag cursor and ghost affordance. */
-[data-workspace-board-pointer-draggable='true'] {
-  cursor: grab;
-}
-
-[data-workspace-board-card-pointer-dragging='true'] {
-  outline: 1px solid var(--sidebar-ring);
-  outline-offset: 1px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 36%, transparent);
-}
-
-[data-workspace-board-card-pointer-dragging='true'],
-[data-workspace-board-card-pointer-dragging='true'] *,
-:root[data-workspace-board-pointer-dragging] * {
-  cursor: grabbing !important;
-}
-
-[data-workspace-board-card-drag-preview='true'] {
-  z-index: 2147483647;
-  overflow: visible;
-  border-radius: var(--radius);
-  outline: 1px solid var(--sidebar-ring);
-  outline-offset: 1px;
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--foreground) 16%, transparent);
-  opacity: 0.96;
-  will-change: transform;
-}
-
-[data-workspace-board-card-drag-preview='true'][data-workspace-board-card-drag-stack='true'] {
-  isolation: isolate;
-}
-
-[data-workspace-board-card-drag-card='true'] {
-  width: 100%;
-  height: 100%;
-}
-
-[data-workspace-board-card-drag-preview='true'][data-workspace-board-card-drag-stack='true']::before,
-[data-workspace-board-card-drag-preview='true'][data-workspace-board-card-drag-stack='true']::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--sidebar-ring) 44%, transparent);
-  background: var(--sidebar);
-}
-
-[data-workspace-board-card-drag-preview='true'][data-workspace-board-card-drag-stack='true']::before {
-  transform: translate(4px, 4px);
-  opacity: 0.72;
-}
-
-[data-workspace-board-card-drag-preview='true'][data-workspace-board-card-drag-stack='true']::after {
-  transform: translate(8px, 8px);
-  opacity: 0.44;
-}
-
-[data-workspace-board-card-drag-preview='true'] * {
-  cursor: grabbing !important;
 }
 
 [data-worktree-sidebar-drag-preview='true'] {
@@ -2028,63 +1929,6 @@ html.native-shell .app-layout {
   font-size: 10px;
   font-weight: 700;
   box-shadow: 0 0 0 2px var(--sidebar);
-}
-
-[data-workspace-board-card-drop-indicator='true'] {
-  z-index: 2147483646;
-  height: 3px;
-  border-radius: 9999px;
-  background: var(--sidebar-ring);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 24%, transparent),
-    0 8px 20px color-mix(in srgb, var(--sidebar-ring) 36%, transparent);
-  opacity: 0;
-  transition:
-    transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 80ms ease-out;
-  /* Why no `width`: it is not compositable, so hinting it only pins a layer that
-     has to be re-rastered every frame of the transition anyway. */
-  will-change: transform, opacity;
-}
-
-[data-workspace-board-card-drop-indicator='true']::before,
-[data-workspace-board-card-drop-indicator='true']::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  border-radius: 9999px;
-  background: var(--sidebar-ring);
-  transform: translateY(-50%);
-}
-
-[data-workspace-board-card-drop-indicator='true']::before {
-  left: -1px;
-}
-
-[data-workspace-board-card-drop-indicator='true']::after {
-  right: -1px;
-}
-
-[data-workspace-board-card-drag-count='true'] {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  z-index: 2;
-  display: flex;
-  min-width: 18px;
-  height: 18px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid var(--sidebar-border);
-  background: var(--foreground);
-  color: var(--background);
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1;
 }
 
 .sidebar-header {

@@ -10,12 +10,10 @@ import { Sparkles, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type SidebarHeaderProps = {
-  onWorkspaceBoardMenuOpenChange: (open: boolean) => void
   activityOptionsTarget?: React.Ref<HTMLDivElement>
 }
 
 const SidebarHeader = React.memo(function SidebarHeader({
-  onWorkspaceBoardMenuOpenChange,
   activityOptionsTarget
 }: SidebarHeaderProps) {
   // Subscribe this memoized header to locale changes before using translate().
@@ -125,10 +123,7 @@ const SidebarHeader = React.memo(function SidebarHeader({
         {agentsViewActive ? (
           <div ref={activityOptionsTarget} className="flex items-center" />
         ) : null}
-        <SidebarHeaderActions
-          onWorkspaceBoardMenuOpenChange={onWorkspaceBoardMenuOpenChange}
-          agentsViewActive={agentsViewActive}
-        />
+        <SidebarHeaderActions agentsViewActive={agentsViewActive} />
       </div>
     </div>
   )

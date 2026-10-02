@@ -1252,7 +1252,9 @@
         "0d0ace8861": "GitHub에서 별표 주기",
         "ec43b38ba7": "GitHub에 별표 표시됨",
         "157bb5ecbb": "GitHub 열기",
-        "preflightDismiss": "닫기"
+        "preflightDismiss": "닫기",
+        "openRecentProject": "최근 프로젝트 열기",
+        "connectViaSsh": "SSH로 연결"
       },
       "LinearIssueMarkdownDescriptionEditor": {
         "d9c47069ef": "Markdown",
@@ -4501,9 +4503,7 @@
         "SidebarHeader": {
           "projects": "프로젝트",
           "92154beb7e": "새로운 워크스페이스",
-          "49f62c5665": "워크스페이스 보드",
           "5c9c7c16aa": "워크스페이스를 만들려면 프로젝트를 추가하세요.",
-          "a30e34eb5c": "워크스페이스 보드 닫기",
           "spaces": "스페이스",
           "views": "사이드바 보기",
           "addProject": "프로젝트 추가"
@@ -4552,10 +4552,7 @@
         },
         "SidebarToolbar": {
           "19e32d0e5f": "폴더 선택기를 열어 프로젝트를 추가하세요.",
-          "abc62b6328": "프로젝트 추가",
-          "87d0064026": "워크스페이스 보드가 하단 바로 옮겨졌습니다",
-          "a30e34eb5c": "워크스페이스 보드 닫기",
-          "49f62c5665": "워크스페이스 보드"
+          "abc62b6328": "프로젝트 추가"
         },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "기본 브랜치 숨기기",
@@ -4624,40 +4621,12 @@
           "219ebf1961": "브랜치 이름",
           "automation": "자동화",
           "folderPathIdentity": "브랜치 / 폴더 경로",
-          "cli": "ARCA CLI"
+          "cli": "ARCA CLI",
+          "statuses": "상태"
         },
         "SshTargetRow": {
           "4677394048": "연결 중…",
           "75ad429b5d": "연결"
-        },
-        "WorkspaceKanbanCard": {
-          "cefae8983e": "고정됨"
-        },
-        "WorkspaceKanbanDrawerHeader": {
-          "f369f5c5a3": "닫기",
-          "e1a34450fc": "상태별로 워크스페이스를 구성하고 워크스페이스 카드를 엽니다.",
-          "81870af08f": "선택된",
-          "c6a77ab0f4": "워크스페이스 보드"
-        },
-        "WorkspaceKanbanPinDropTarget": {
-          "c30151c5ee": "상태를 변경하지 않고 고정하려면 여기에 드롭하세요.",
-          "8fae2d0862": "고정됨"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "79eb990aa4": "상태 추가",
-          "054cb50df7": "{{value0}} 제거",
-          "b45b350eb0": "{{value0}} 왼쪽으로 이동",
-          "8ce44af9a8": "{{value0}} 이름 바꾸기",
-          "395e541d5d": "상태",
-          "34f03eb0de": "보드 설정",
-          "26cbc92150": "워크스페이스 보드 설정",
-          "87d24a0c2f": "보드와 이슈 상태 동기화",
-          "4c2eaa78cc": "연결된 워크스페이스를 이동하면 일치하는 워크플로 상태가 있을 때 Linear 이슈 상태가 업데이트됩니다."
-        },
-        "WorkspaceKanbanStatusLane": {
-          "8ad104642b": "비어 있음",
-          "3611d1ae7f": "워크스페이스 보드 열 크기 조정",
-          "2df01a03ff": "일치하는 항목 없음"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "{{value0}} 색상을 {{value1}}로 설정",
@@ -5261,19 +5230,6 @@
           "3c4d5e6f7a": "호스트 관리…",
           "6e7f8a9b0c": "호스트 제거…"
         },
-        "WorkspaceKanbanDrawer": {
-          "1975a4e480": "작업 상태 동기화 실패",
-          "e02b0d92ff": "작업 상태 동기화 건너뜀",
-          "c1d2e3f4a5": "Linear 이슈 {{value0}}을(를) 읽을 수 없습니다.",
-          "d2e3f4a5b6": "{{value0}}에 일치하는 Linear 워크플로 상태가 없습니다.",
-          "e3f4a5b6c7": "{{value0}}에 일치하는 Linear 워크플로 상태가 여러 개입니다.",
-          "f4a5b6c7d8": "Linear 이슈 {{value0}}을(를) 업데이트할 수 없습니다.",
-          "a5b6c7d8e9": "Linear 이슈 {{value0}}을(를) 동기화할 수 없습니다.",
-          "b6c7d8e9f0": "작업 상태 동기화를 완료할 수 없습니다.",
-          "c7d8e9f0a1": "{{value0}}개 업데이트됨",
-          "d8e9f0a1b2": "{{value0}}개 건너뜀",
-          "e9f0a1b2c3": "{{value0}}개 실패"
-        },
         "WorktreeParentPickerPopover": {
           "failedSetParent": "상위 워크트리를 설정하지 못했습니다",
           "current": "현재",
@@ -5377,14 +5333,6 @@
           "attachImages": "Attach",
           "removeImage": "Remove {{fileName}}"
         },
-        "WorkspaceKanbanSearchField": {
-          "bdb753c78d": "일치하는 워크스페이스가 없습니다",
-          "4d96c209d6": "워크스페이스 {{value1}}개 중 {{value0}}개 일치",
-          "c0cd6bdf6c": "워크스페이스 검색",
-          "3b7ea51793": "검색 지우기",
-          "7f1c2e94a5": "검색어가 너무 깁니다 — 보드가 필터링되지 않았습니다",
-          "9a4d0f6b21": "너무 김"
-        },
         "AgentWorktreeGroupRow": {
           "started": "{{value0}} 시작됨",
           "updated": "{{value0}} 업데이트됨",
@@ -5410,6 +5358,11 @@
           "collapseLabel": "{{value0}}의 에이전트 worktree 접기",
           "expandLabel": "{{value0}}의 에이전트 worktree 펼치기",
           "listLabel": "에이전트 worktree"
+        },
+        "WorkspaceStatusListEditor": {
+          "renameStatus": "{{value0}} 이름 바꾸기",
+          "removeStatus": "{{value0}} 제거",
+          "addStatus": "상태 추가"
         }
       },
       "shared": {
@@ -14029,6 +13982,9 @@
           "f915168c8e": "읽지 않음",
           "d6a8de3934": "에이전트",
           "dc708f3eff": "agents 닫기"
+        },
+        "ActivityThreadListToolbar": {
+          "clearSearch": "검색 지우기"
         }
       },
       "confirmation": {

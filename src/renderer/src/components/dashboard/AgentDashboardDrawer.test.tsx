@@ -35,9 +35,9 @@ vi.mock('./AgentDashboardSettingsMenu', () => ({
   AgentDashboardSettingsMenu: () => null
 }))
 
-vi.mock('../sidebar/use-workspace-kanban-outside-dismiss', () => ({
-  isWorkspaceBoardKeepOpenTarget: () => false,
-  useWorkspaceKanbanOutsideDismiss: () => undefined
+vi.mock('./use-dashboard-drawer-outside-dismiss', () => ({
+  isDashboardDrawerKeepOpenTarget: () => false,
+  useDashboardDrawerOutsideDismiss: () => undefined
 }))
 
 import { AgentDashboardDrawer } from './AgentDashboardDrawer'

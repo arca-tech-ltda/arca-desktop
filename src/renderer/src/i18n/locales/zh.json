@@ -1250,7 +1250,9 @@
         "0d0ace8861": "在 GitHub 上加星标",
         "ec43b38ba7": "已在 GitHub 上加星标",
         "157bb5ecbb": "打开 GitHub",
-        "preflightDismiss": "关闭"
+        "preflightDismiss": "关闭",
+        "openRecentProject": "打开最近的项目",
+        "connectViaSsh": "通过 SSH 连接"
       },
       "LinearIssueMarkdownDescriptionEditor": {
         "d9c47069ef": "Markdown",
@@ -4544,9 +4546,7 @@
         "SidebarHeader": {
           "projects": "项目",
           "92154beb7e": "新工作区",
-          "49f62c5665": "工作区板",
           "5c9c7c16aa": "添加项目以创建工作区",
-          "a30e34eb5c": "关闭工作区板",
           "spaces": "空间",
           "views": "侧边栏视图",
           "addProject": "添加项目"
@@ -4595,10 +4595,7 @@
         },
         "SidebarToolbar": {
           "19e32d0e5f": "打开文件夹选择器以添加项目",
-          "abc62b6328": "添加项目",
-          "87d0064026": "工作区板已移到底部栏",
-          "a30e34eb5c": "关闭工作区板",
-          "49f62c5665": "工作区板"
+          "abc62b6328": "添加项目"
         },
         "SidebarWorkspaceFilterSection": {
           "c3fa13dc2e": "隐藏默认分支",
@@ -4667,40 +4664,12 @@
           "219ebf1961": "分支名称",
           "automation": "自动化",
           "folderPathIdentity": "分支 / 文件夹路径",
-          "cli": "ARCA CLI"
+          "cli": "ARCA CLI",
+          "statuses": "状态"
         },
         "SshTargetRow": {
           "4677394048": "正在连接…",
           "75ad429b5d": "连接"
-        },
-        "WorkspaceKanbanCard": {
-          "cefae8983e": "已固定"
-        },
-        "WorkspaceKanbanDrawerHeader": {
-          "f369f5c5a3": "关闭",
-          "e1a34450fc": "按状态组织工作区并打开工作区卡。",
-          "81870af08f": "已选择",
-          "c6a77ab0f4": "工作区板"
-        },
-        "WorkspaceKanbanPinDropTarget": {
-          "c30151c5ee": "拖放到此处即可固定，无需更改状态。",
-          "8fae2d0862": "已固定"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "79eb990aa4": "添加状态",
-          "054cb50df7": "删除 {{value0}}",
-          "b45b350eb0": "向左手机 {{value0}}",
-          "8ce44af9a8": "重命名 {{value0}}",
-          "395e541d5d": "状态",
-          "34f03eb0de": "董事会设置",
-          "26cbc92150": "工作区板设置",
-          "87d24a0c2f": "同步看板和议题状态",
-          "4c2eaa78cc": "移动已关联的工作区时，如果存在匹配的工作流状态，将更新其 Linear 议题状态。"
-        },
-        "WorkspaceKanbanStatusLane": {
-          "8ad104642b": "空的",
-          "3611d1ae7f": "调整工作区板列的大小",
-          "2df01a03ff": "没有匹配项"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "将 {{value0}} 颜色设置为 {{value1}}",
@@ -5304,19 +5273,6 @@
           "3c4d5e6f7a": "管理主机…",
           "6e7f8a9b0c": "删除主机..."
         },
-        "WorkspaceKanbanDrawer": {
-          "1975a4e480": "任务状态同步失败",
-          "e02b0d92ff": "任务状态同步已跳过",
-          "c1d2e3f4a5": "无法读取 Linear 议题 {{value0}}。",
-          "d2e3f4a5b6": "没有与 {{value0}} 匹配的 Linear 工作流状态。",
-          "e3f4a5b6c7": "有多个 Linear 工作流状态与 {{value0}} 匹配。",
-          "f4a5b6c7d8": "无法更新 Linear 议题 {{value0}}。",
-          "a5b6c7d8e9": "无法同步 Linear 议题 {{value0}}。",
-          "b6c7d8e9f0": "无法完成任务状态同步。",
-          "c7d8e9f0a1": "已更新 {{value0}} 个",
-          "d8e9f0a1b2": "已跳过 {{value0}} 个",
-          "e9f0a1b2c3": "失败 {{value0}} 个"
-        },
         "WorktreeParentPickerPopover": {
           "failedSetParent": "无法设置父工作树",
           "current": "当前",
@@ -5420,14 +5376,6 @@
           "attachImages": "Attach",
           "removeImage": "Remove {{fileName}}"
         },
-        "WorkspaceKanbanSearchField": {
-          "bdb753c78d": "没有匹配的工作区",
-          "4d96c209d6": "{{value1}} 个工作区中有 {{value0}} 个匹配",
-          "c0cd6bdf6c": "搜索工作区",
-          "3b7ea51793": "清除搜索",
-          "7f1c2e94a5": "搜索文本过长 — 看板未被筛选",
-          "9a4d0f6b21": "过长"
-        },
         "AgentWorktreeGroupRow": {
           "started": "{{value0}}开始",
           "updated": "{{value0}}更新",
@@ -5453,6 +5401,11 @@
           "collapseLabel": "折叠 {{value0}} 的代理 worktree",
           "expandLabel": "展开 {{value0}} 的代理 worktree",
           "listLabel": "代理 worktree"
+        },
+        "WorkspaceStatusListEditor": {
+          "renameStatus": "重命名 {{value0}}",
+          "removeStatus": "删除 {{value0}}",
+          "addStatus": "添加状态"
         }
       },
       "shared": {
@@ -14055,6 +14008,9 @@
           "f915168c8e": "未读",
           "d6a8de3934": "智能体",
           "dc708f3eff": "紧密智能体"
+        },
+        "ActivityThreadListToolbar": {
+          "clearSearch": "清除搜索"
         }
       },
       "confirmation": {

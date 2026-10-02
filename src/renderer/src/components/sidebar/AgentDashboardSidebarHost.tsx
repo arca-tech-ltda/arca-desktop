@@ -4,8 +4,6 @@ import { AgentDashboardDrawer } from '@/components/dashboard/AgentDashboardDrawe
 
 type AgentDashboardSidebarHostProps = {
   sidebarOpen: boolean
-  workspaceBoardOpen: boolean
-  closeWorkspaceBoard: () => void
   leftSidebarStyle?: React.CSSProperties
   statusBarVisible: boolean
 }
@@ -13,8 +11,6 @@ type AgentDashboardSidebarHostProps = {
 /** Opt-in dashboard coordination stays outside the normal sidebar path. */
 export default function AgentDashboardSidebarHost({
   sidebarOpen,
-  workspaceBoardOpen,
-  closeWorkspaceBoard,
   leftSidebarStyle,
   statusBarVisible
 }: AgentDashboardSidebarHostProps): React.JSX.Element | null {
@@ -26,16 +22,6 @@ export default function AgentDashboardSidebarHost({
       setDrawerOpen(false)
     }
   }, [drawerOpen, setDrawerOpen, sidebarOpen])
-  useEffect(() => {
-    if (drawerOpen) {
-      closeWorkspaceBoard()
-    }
-  }, [closeWorkspaceBoard, drawerOpen])
-  useEffect(() => {
-    if (workspaceBoardOpen) {
-      setDrawerOpen(false)
-    }
-  }, [setDrawerOpen, workspaceBoardOpen])
 
   return sidebarOpen ? (
     <AgentDashboardDrawer leftSidebarStyle={leftSidebarStyle} statusBarVisible={statusBarVisible} />

@@ -54,7 +54,7 @@ export type ArcaMegamindApi = {
   approvals(): Promise<MegamindApprovalsResult>
   decide(id: string, decision: 'approved' | 'denied'): Promise<MegamindDecision>
   chatState(): Promise<MegamindChatState>
-  chatSetVisible(visible: boolean): Promise<void>
+  chatSetVisible(visible: boolean, readChannel?: string | null): Promise<void>
   chatSelectChannel(channel: string): Promise<void>
   chatMarkRead(channel: string): Promise<void>
   chatPost(target: string, body: string): Promise<MegamindChatPostResult>

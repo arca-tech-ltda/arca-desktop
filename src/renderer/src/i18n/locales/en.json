@@ -74,7 +74,7 @@
       "chatPostTooLong": "The Mainframe rejected this message: it is too long.",
       "chatPostForbidden": "You cannot post in this channel.",
       "chatPostUnsupported": "This Mainframe has no chat.",
-      "chatPostFailed": "The message was not sent. Check your connection and try again.",
+      "chatPostFailed": "Could not confirm delivery. Check the conversation before retrying.",
       "chatAgentWoken": "Agent of {{handle}} woken",
       "chatAgentAsleep": "No active agent for {{handle}}",
       "composerDm": "Message @{{handle}}",
@@ -89,7 +89,14 @@
       "notifyChatDescription": "A partner sends you a direct message or mentions your handle.",
       "searchKeywordChat": "chat",
       "searchKeywordMegamind": "megamind",
-      "searchKeywordMention": "mention"
+      "searchKeywordMention": "mention",
+      "openConversation": "Open conversation",
+      "unreadCount": "{{count}} unread",
+      "chatSending": "Sending…",
+      "chatSend": "Send",
+      "chatNewMessages": "New messages",
+      "unreadSidebarLabel": "Megamind: {{count}} unread",
+      "chatResolvingRecipient": "Resolving conversation…"
     },
     "updater": {
       "connect": "Connect to Megamind to receive updates",
@@ -1637,7 +1644,9 @@
         "0d0ace8861": "Star on GitHub",
         "ec43b38ba7": "Starred on GitHub",
         "157bb5ecbb": "Open GitHub",
-        "preflightDismiss": "Dismiss"
+        "preflightDismiss": "Dismiss",
+        "openRecentProject": "Open recent project",
+        "connectViaSsh": "Connect via SSH"
       },
       "LinearIssueMarkdownDescriptionEditor": {
         "d9c47069ef": "Markdown",
@@ -5438,9 +5447,7 @@
           "projects": "Projects",
           "spaces": "Spaces",
           "92154beb7e": "New workspace",
-          "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
-          "a30e34eb5c": "Close workspace board",
           "views": "Sidebar view",
           "addProject": "Add project"
         },
@@ -5488,9 +5495,6 @@
           "c4f8e1b72a": "X"
         },
         "SidebarToolbar": {
-          "87d0064026": "Workspace board moved to the bottom bar",
-          "a30e34eb5c": "Close workspace board",
-          "49f62c5665": "Workspace board",
           "19e32d0e5f": "Open folder picker to add a project",
           "abc62b6328": "Add Project"
         },
@@ -5572,40 +5576,12 @@
           "219ebf1961": "Branch name",
           "folderPathIdentity": "Branch / folder path",
           "cli": "ARCA CLI",
-          "workspaceOptions": "Workspace options"
+          "workspaceOptions": "Workspace options",
+          "statuses": "Statuses"
         },
         "SshTargetRow": {
           "4677394048": "Connecting…",
           "75ad429b5d": "Connect"
-        },
-        "WorkspaceKanbanCard": {
-          "cefae8983e": "Pinned"
-        },
-        "WorkspaceKanbanDrawerHeader": {
-          "f369f5c5a3": "Close",
-          "e1a34450fc": "Organize workspaces by status and open workspace cards.",
-          "81870af08f": "selected",
-          "c6a77ab0f4": "Workspace board"
-        },
-        "WorkspaceKanbanPinDropTarget": {
-          "c30151c5ee": "Drop here to pin without changing status.",
-          "8fae2d0862": "Pinned"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "79eb990aa4": "Add status",
-          "054cb50df7": "Remove {{value0}}",
-          "b45b350eb0": "Move {{value0}} left",
-          "8ce44af9a8": "Rename {{value0}}",
-          "395e541d5d": "Statuses",
-          "34f03eb0de": "Board settings",
-          "26cbc92150": "Workspace board settings",
-          "87d24a0c2f": "Sync board and issue status",
-          "4c2eaa78cc": "Moving a linked workspace updates its Linear issue status when a matching workflow state exists."
-        },
-        "WorkspaceKanbanStatusLane": {
-          "8ad104642b": "Empty",
-          "3611d1ae7f": "Resize workspace board columns",
-          "2df01a03ff": "No matches"
         },
         "WorkspaceStatusAppearancePopover": {
           "514be2f569": "Set {{value0}} color to {{value1}}",
@@ -6162,19 +6138,6 @@
           "b7e3a91c4f": "Drag project headers to reorder, or switch to",
           "e8c1f4a2b9": "in workspace options."
         },
-        "WorkspaceKanbanDrawer": {
-          "1975a4e480": "Task status sync failed",
-          "e02b0d92ff": "Task status sync skipped",
-          "c1d2e3f4a5": "Linear issue {{value0}} could not be read.",
-          "d2e3f4a5b6": "No matching Linear workflow state for {{value0}}.",
-          "e3f4a5b6c7": "Multiple Linear workflow states match {{value0}}.",
-          "f4a5b6c7d8": "Could not update Linear issue {{value0}}.",
-          "a5b6c7d8e9": "Could not sync Linear issue {{value0}}.",
-          "b6c7d8e9f0": "Task status sync could not finish.",
-          "c7d8e9f0a1": "{{value0}} updated",
-          "d8e9f0a1b2": "{{value0}} skipped",
-          "e9f0a1b2c3": "{{value0}} failed"
-        },
         "WorktreeParentPickerPopover": {
           "failedSetParent": "Failed to set parent worktree",
           "current": "Current",
@@ -6310,14 +6273,6 @@
           "screenshotsHint": "Attach up to {count} screenshots",
           "attachImages": "Attach",
           "removeImage": "Remove {{fileName}}"
-        },
-        "WorkspaceKanbanSearchField": {
-          "bdb753c78d": "No workspaces match",
-          "4d96c209d6": "{{value0}} of {{value1}} workspaces match",
-          "c0cd6bdf6c": "Search workspaces",
-          "3b7ea51793": "Clear search",
-          "7f1c2e94a5": "Search text is too long — the board is unfiltered",
-          "9a4d0f6b21": "Too long"
         },
         "WorktreeIssueLinkField": {
           "25852bfc59": "Linear",
@@ -6455,6 +6410,13 @@
           "collapseLabel": "Collapse agent worktrees for {{value0}}",
           "expandLabel": "Expand agent worktrees for {{value0}}",
           "listLabel": "Agent worktrees"
+        },
+        "WorkspaceStatusListEditor": {
+          "renameStatus": "Rename {{value0}}",
+          "removeStatus": "Remove {{value0}}",
+          "addStatus": "Add status",
+          "moveStatusUp": "Move {{value0}} up",
+          "moveStatusDown": "Move {{value0}} down"
         }
       },
       "shared": {
@@ -16048,6 +16010,9 @@
         },
         "ActivityThreadRow": {
           "clearNotification": "Clear notification"
+        },
+        "ActivityThreadListToolbar": {
+          "clearSearch": "Clear search"
         }
       },
       "confirmation": {

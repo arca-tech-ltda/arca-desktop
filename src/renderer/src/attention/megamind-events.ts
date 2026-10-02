@@ -5,6 +5,8 @@ import type { ArcaDeepLink } from '../../../shared/arca-deep-link'
 import { MegamindNotificationDedup } from '../../../shared/arca-megamind-notifications'
 import type { MegamindPanelRoute, MegamindRecord } from '../../../shared/arca-megamind'
 import { routeMegamindPanel } from './megamind-panel-route'
+import { showMegamindChatToast } from './megamind-chat-toast'
+import { startMegamindUnreadMirror } from './megamind-unread-store'
 import {
   megamindApprovalsSnapshot,
   startMegamindApprovalsPolling,
@@ -46,7 +48,10 @@ function notificationRoute(item: MegamindRecord): MegamindPanelRoute {
 }
 
 export function announceMegamind(item: MegamindRecord): void {
-  if (!dedup.accept(item)) {
+  if (
+    (item.kind === 'chat' && item.alert !== 'dm' && item.alert !== 'mention') ||
+    !dedup.accept(item)
+  ) {
     return
   }
   const title =
@@ -69,13 +74,25 @@ export function announceMegamind(item: MegamindRecord): void {
         : typeof item.summary === 'string'
           ? item.summary
           : ''
-  void window.api.notifications
-    .dispatch({
+  void Promise.resolve(
+    window.api.notifications.dispatch({
       // Chat has its own switch and its own focus rule: the window is the inbox.
       source: item.kind === 'chat' ? 'megamind-chat' : 'agent-task-complete',
       notificationId: `megamind:${item.kind}:${item.id}:${item.status ?? ''}`,
       worktreeLabel: `megamind:${item.id}`,
       megamind: { title, body, route: notificationRoute(item) }
+    })
+  )
+    .then((result) => {
+      if (
+        item.kind === 'chat' &&
+        document.hasFocus() &&
+        (result.reason === 'suppressed-focus' ||
+          result.reason === 'blocked-by-system' ||
+          result.reason === 'not-supported')
+      ) {
+        showMegamindChatToast(item, title)
+      }
     })
     .catch(() => {})
 }
@@ -158,6 +175,7 @@ export function registerMegamindEvents(): () => void {
   }
   const offLinks = api.onDeepLink(consume)
   const offNotifications = api.onNotification(announceMegamind)
+  const stopUnreadMirror = startMegamindUnreadMirror(api)
   // Approvals are polled app-wide so the notification does not wait for the panel to be opened.
   const offApprovals = subscribeMegamindApprovals(() => {
     for (const approval of megamindApprovalsSnapshot().items) {
@@ -173,6 +191,7 @@ export function registerMegamindEvents(): () => void {
     clearPending()
     offLinks()
     offNotifications()
+    stopUnreadMirror()
     offApprovals()
     stopApprovalsPolling()
   }

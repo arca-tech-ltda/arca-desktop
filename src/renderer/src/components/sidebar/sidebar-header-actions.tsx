@@ -8,11 +8,7 @@ import { translate } from '@/i18n/i18n'
 import { openWorkspaceCreationComposerWithTourHandoff } from '../contextual-tours/workspace-creation-tour-handoff'
 import SidebarWorkspaceOptionsMenu from './SidebarWorkspaceOptionsMenu'
 
-function AddProjectButton({
-  preserveWorkspaceBoardOpen
-}: {
-  preserveWorkspaceBoardOpen: boolean
-}): React.JSX.Element {
+function AddProjectButton(): React.JSX.Element {
   const openModal = useAppStore((s) => s.openModal)
   const label = translate('auto.components.sidebar.SidebarHeader.addProject', 'Add project')
 
@@ -25,7 +21,6 @@ function AddProjectButton({
           type="button"
           className="text-muted-foreground"
           aria-label={label}
-          data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
           onClick={() => openModal('add-repo')}
         >
           <FolderPlus className="size-3.5" strokeWidth={2.25} />
@@ -38,11 +33,7 @@ function AddProjectButton({
   )
 }
 
-function NewWorkspaceButton({
-  preserveWorkspaceBoardOpen
-}: {
-  preserveWorkspaceBoardOpen: boolean
-}): React.JSX.Element {
+function NewWorkspaceButton(): React.JSX.Element {
   const keybindings = useAppStore((s) => s.keybindings)
   // Why primary: workspace.create binds both Mod+N and Mod+Shift+N, and listing
   // every alias in a one-line tooltip reads as noise rather than help.
@@ -64,7 +55,6 @@ function NewWorkspaceButton({
           type="button"
           className="text-muted-foreground"
           aria-label={label}
-          data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
           data-contextual-tour-target="workspace-create-control"
           onClick={handleCreateWorkspace}
         >
@@ -80,10 +70,8 @@ function NewWorkspaceButton({
 }
 
 export function SidebarHeaderActions({
-  onWorkspaceBoardMenuOpenChange,
   agentsViewActive = false
 }: {
-  onWorkspaceBoardMenuOpenChange: (open: boolean) => void
   agentsViewActive?: boolean
 }): React.JSX.Element {
   return (
@@ -91,14 +79,11 @@ export function SidebarHeaderActions({
       {/* Why both hidden in the agents view: it lists activity, not projects. */}
       {agentsViewActive ? null : (
         <>
-          <SidebarWorkspaceOptionsMenu
-            preserveWorkspaceBoardOpen
-            onMenuOpenChange={onWorkspaceBoardMenuOpenChange}
-          />
-          <AddProjectButton preserveWorkspaceBoardOpen />
+          <SidebarWorkspaceOptionsMenu />
+          <AddProjectButton />
         </>
       )}
-      <NewWorkspaceButton preserveWorkspaceBoardOpen />
+      <NewWorkspaceButton />
     </div>
   )
 }

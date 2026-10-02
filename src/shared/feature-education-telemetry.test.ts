@@ -7,11 +7,17 @@ import {
 } from './feature-education-telemetry'
 
 describe('feature education telemetry constants', () => {
-  it('keeps contextual tour telemetry ids aligned with tour definitions', () => {
-    expect(FEATURE_EDUCATION_CONTEXTUAL_TOUR_IDS).toEqual(CONTEXTUAL_TOUR_IDS)
+  it('accepts active tour ids and the legacy workspace board wire value', () => {
+    expect(FEATURE_EDUCATION_CONTEXTUAL_TOUR_IDS).toEqual([
+      'workspace-board',
+      ...CONTEXTUAL_TOUR_IDS
+    ])
   })
 
   it('normalizes unknown telemetry sources to a bounded fallback', () => {
+    expect(normalizeFeatureEducationSource('workspace_board_visible')).toBe(
+      'workspace_board_visible'
+    )
     expect(normalizeFeatureEducationSource('tasks_open')).toBe('tasks_open')
     expect(normalizeFeatureEducationSource('workspace_agent_sessions_visible')).toBe(
       'workspace_agent_sessions_visible'

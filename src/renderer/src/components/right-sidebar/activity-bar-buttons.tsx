@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useSyncExternalStore } from 'react'
 import { MoreHorizontal } from 'lucide-react'
 import type { ActiveRightSidebarTab } from '@/store/slices/editor'
 import type { CheckStatus } from '../../../../shared/github/pull-request-types'
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { translate } from '@/i18n/i18n'
+import { Badge } from '@/components/ui/badge'
+import { megamindUnreadSnapshot, subscribeMegamindUnread } from '@/attention/megamind-unread-store'
 
 export type ActivityBarItem = {
   id: ActiveRightSidebarTab
@@ -36,11 +38,26 @@ const STATUS_DOT_COLOR: Record<CheckStatus, string> = {
   neutral: 'bg-muted-foreground'
 }
 
-function activityItemAriaLabel(item: ActivityBarItem, status?: CheckStatus | null): string {
+function unreadLabel(count: number): string {
+  return translate('arca.megamind.unreadCount', '{{count}} unread', { count })
+}
+
+function activityItemAriaLabel(
+  item: ActivityBarItem,
+  status?: CheckStatus | null,
+  unreadCount = 0
+): string {
   const base = item.shortcut ? `${item.title} (${item.shortcut})` : item.title
+  if (item.id === 'megamind' && unreadCount > 0) {
+    return `${base} — ${unreadLabel(unreadCount)}`
+  }
   return status === 'failure'
     ? `${base} — ${translate('auto.components.right.sidebar.activityBar.error', 'Error')}`
     : base
+}
+
+function unreadDisplay(count: number): string {
+  return count > 99 ? '99+' : String(count)
 }
 
 export function TopActivityOverflowMenu({
@@ -54,6 +71,12 @@ export function TopActivityOverflowMenu({
   onSelect: (tab: ActiveRightSidebarTab) => void
   checksStatus?: CheckStatus | null
 }): React.JSX.Element {
+  const unreadCount = useSyncExternalStore(
+    subscribeMegamindUnread,
+    megamindUnreadSnapshot,
+    megamindUnreadSnapshot
+  )
+  const hiddenMegamindUnread = items.some((item) => item.id === 'megamind') ? unreadCount : 0
   const hiddenChecksStatus =
     checksStatus && checksStatus !== 'neutral' && items.some((item) => item.id === 'checks')
       ? checksStatus
@@ -65,6 +88,15 @@ export function TopActivityOverflowMenu({
     'auto.components.right.sidebar.activity.bar.buttons.1fd284e931',
     'More sidebar tabs'
   )
+  const moreTabsAriaLabel = [
+    moreTabsLabel,
+    hiddenItemStatus === 'failure'
+      ? translate('auto.components.right.sidebar.activityBar.error', 'Error')
+      : null,
+    hiddenMegamindUnread > 0 ? unreadLabel(hiddenMegamindUnread) : null
+  ]
+    .filter(Boolean)
+    .join(' — ')
 
   return (
     <DropdownMenu>
@@ -75,13 +107,19 @@ export function TopActivityOverflowMenu({
             'relative flex h-[36px] w-8 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
             RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME
           )}
-          aria-label={
-            hiddenItemStatus === 'failure'
-              ? `${moreTabsLabel} — ${translate('auto.components.right.sidebar.activityBar.error', 'Error')}`
-              : moreTabsLabel
-          }
+          aria-label={moreTabsAriaLabel}
         >
           <MoreHorizontal size={16} />
+          {hiddenMegamindUnread > 0 ? (
+            <Badge
+              variant="secondary"
+              size="compact"
+              className="absolute top-0 right-0"
+              aria-hidden="true"
+            >
+              {unreadDisplay(hiddenMegamindUnread)}
+            </Badge>
+          ) : null}
           {hiddenItemStatus && (
             <div
               className={cn(
@@ -102,10 +140,15 @@ export function TopActivityOverflowMenu({
               onSelect={() => onSelect(item.id)}
               className={cn(active && 'bg-accent text-accent-foreground')}
               aria-current={active ? 'page' : undefined}
-              aria-label={activityItemAriaLabel(item, item.statusIndicator)}
+              aria-label={activityItemAriaLabel(item, item.statusIndicator, unreadCount)}
             >
               <Icon size={14} />
               <span>{item.title}</span>
+              {item.id === 'megamind' && unreadCount > 0 ? (
+                <Badge variant="secondary" className="ml-auto">
+                  {unreadDisplay(unreadCount)}
+                </Badge>
+              ) : null}
               {item.statusIndicator === 'failure' ? (
                 <span
                   className={cn('ml-auto size-2 rounded-full', STATUS_DOT_COLOR.failure)}
@@ -134,6 +177,11 @@ export function ActivityBarButton({
   layout: 'top' | 'side'
   statusIndicator?: CheckStatus | null
 }): React.JSX.Element {
+  const unreadCount = useSyncExternalStore(
+    subscribeMegamindUnread,
+    megamindUnreadSnapshot,
+    megamindUnreadSnapshot
+  )
   const Icon = item.icon
   const isTop = layout === 'top'
   const effectiveStatus = item.statusIndicator ?? statusIndicator
@@ -150,9 +198,20 @@ export function ActivityBarButton({
             active ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
           )}
           onClick={onClick}
-          aria-label={activityItemAriaLabel(item, effectiveStatus)}
+          aria-label={activityItemAriaLabel(item, effectiveStatus, unreadCount)}
         >
           <Icon size={isTop ? 16 : 18} />
+
+          {item.id === 'megamind' && unreadCount > 0 ? (
+            <Badge
+              variant="secondary"
+              size="compact"
+              className="absolute top-0 right-0"
+              aria-hidden="true"
+            >
+              {unreadDisplay(unreadCount)}
+            </Badge>
+          ) : null}
 
           {effectiveStatus && effectiveStatus !== 'neutral' && (
             <div
@@ -173,7 +232,7 @@ export function ActivityBarButton({
         </button>
       </TooltipTrigger>
       <TooltipContent side={isTop ? 'bottom' : 'left'} sideOffset={6}>
-        {item.shortcut ? `${item.title} (${item.shortcut})` : item.title}
+        {activityItemAriaLabel(item, null, unreadCount)}
       </TooltipContent>
     </Tooltip>
   )

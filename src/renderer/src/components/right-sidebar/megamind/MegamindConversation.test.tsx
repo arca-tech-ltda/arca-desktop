@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { MegamindConversation } from './MegamindConversation'
+import { clearMegamindComposerDrafts } from './megamind-composer-drafts'
 import {
   emptyMegamindChatState,
   type MegamindChatPostResult,
@@ -58,7 +59,10 @@ const state = (channel = 'arca'): MegamindChatState => ({
   ]
 })
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  clearMegamindComposerDrafts('biel')
+})
 
 function chat(
   post: (target: string, body: string) => Promise<MegamindChatPostResult>,
@@ -89,7 +93,7 @@ it.each([
   ['rate', 'Too many messages at once. Wait a moment and send again.'],
   ['tooLong', 'The Mainframe rejected this message: it is too long.'],
   ['login', 'Your Mainframe session expired. Sign in and send again.'],
-  ['error', 'The message was not sent. Check your connection and try again.']
+  ['error', 'Could not confirm delivery. Check the conversation before retrying.']
 ] as const)('keeps the draft and explains a %s failure', async (status, message) => {
   const post = vi.fn().mockResolvedValue({ status })
   const { input } = chat(post)
@@ -133,12 +137,38 @@ it('addresses a DM by the partner handle and shows their sessions', async () => 
   await waitFor(() => expect(post).toHaveBeenCalledWith('enzo', 'consegue olhar o deploy?'))
 })
 
-it('waits for main before showing another conversation’s history', () => {
+it('restores a draft after leaving and reopening a conversation', () => {
+  const view = render(
+    <MegamindConversation
+      channel="arca"
+      state={state()}
+      members={members}
+      post={vi.fn()}
+      onBack={() => {}}
+    />
+  )
+  const input = screen.getByLabelText('Message # arca')
+  fireEvent.change(input, { target: { value: 'guardar para depois', selectionStart: 20 } })
+  view.unmount()
+  render(
+    <MegamindConversation
+      channel="arca"
+      state={state()}
+      members={members}
+      post={vi.fn()}
+      onBack={() => {}}
+    />
+  )
+  expect(screen.getByLabelText('Message # arca')).toHaveProperty('value', 'guardar para depois')
+})
+
+it('waits for main historyLoading before showing another conversation’s history', () => {
   render(
     <MegamindConversation
       channel={DM}
       state={{
         ...state('arca'),
+        historyLoading: true,
         messages: [
           {
             id: 'abcdefghijklmno',
@@ -160,4 +190,40 @@ it('waits for main before showing another conversation’s history', () => {
   )
   expect(screen.queryByText('o logo da WGS tá no drive')).toBeNull()
   expect(screen.getByText('Loading chat…')).toBeTruthy()
+})
+
+it('disables the retained composer while its conversation is hidden', () => {
+  render(
+    <MegamindConversation
+      channel="arca"
+      isVisible={false}
+      state={state()}
+      members={members}
+      post={vi.fn()}
+      onBack={() => {}}
+    />
+  )
+  expect(screen.getByLabelText('Message # arca')).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: 'Send' })).toHaveProperty('disabled', true)
+})
+
+it('keeps an unresolved DM read-only without inventing a recipient', () => {
+  const post = vi.fn()
+  const snapshot = state(DM)
+  render(
+    <MegamindConversation
+      channel={DM}
+      state={{
+        ...snapshot,
+        channels: snapshot.channels.map((channel) =>
+          channel.channel === DM ? { ...channel, handle: '' } : channel
+        )
+      }}
+      members={members}
+      post={post}
+      onBack={() => {}}
+    />
+  )
+  expect(screen.getByLabelText('Resolving conversation…')).toHaveProperty('disabled', true)
+  expect(post).not.toHaveBeenCalled()
 })

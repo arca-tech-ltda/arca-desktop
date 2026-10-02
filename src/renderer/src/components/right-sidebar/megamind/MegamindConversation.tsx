@@ -45,7 +45,7 @@ function postFailureMessage(reason: MegamindChatPostFailure): string {
     case 'error':
       return translate(
         'arca.megamind.chatPostFailed',
-        'The message was not sent. Check your connection and try again.'
+        'Could not confirm delivery. Check the conversation before retrying.'
       )
   }
 }
@@ -94,6 +94,7 @@ type ComposerNotice = { channel: string; tone: 'error' | 'info'; text: string }
 
 export function MegamindConversation({
   channel: openChannel,
+  isVisible = true,
   state,
   members,
   post,
@@ -101,6 +102,7 @@ export function MegamindConversation({
 }: {
   /** The conversation the user opened, which leads what main echoes back. */
   channel: string
+  isVisible?: boolean
   state: MegamindChatState
   members: readonly MegamindMember[]
   post: (target: string, body: string) => Promise<MegamindChatPostResult>
@@ -111,16 +113,21 @@ export function MegamindConversation({
   const active = state.channels.find((channel) => channel.channel === openChannel)
   const partner = members.find((member) => member.handle === active?.handle)
   // Main clears the history while it loads the new channel; until then the old one is not ours.
-  const loading = state.activeChannel !== openChannel || state.availability === 'loading'
+  const loading =
+    state.activeChannel !== openChannel ||
+    state.availability === 'loading' ||
+    state.historyLoading === true
   // The post route addresses the group by name and a DM by the partner's handle, never by channel
-  // id. Until the directory resolves the active DM there is no safe target: sending anyway would
-  // put a private message in the group.
+  // id. Until the directory resolves the active channel, there is no safe target: sending anyway
+  // would put a private message in the group.
   const target =
-    active?.kind === 'dm'
-      ? active.handle
-      : openChannel === MEGAMIND_GROUP_CHANNEL
-        ? MEGAMIND_GROUP_CHANNEL
-        : null
+    active?.channel !== openChannel
+      ? null
+      : active.kind === 'dm'
+        ? active.handle || null
+        : active.kind === 'group' && openChannel === MEGAMIND_GROUP_CHANNEL
+          ? MEGAMIND_GROUP_CHANNEL
+          : null
   const send = useCallback(
     async (body: string): Promise<boolean> => {
       if (!target) {
@@ -168,24 +175,28 @@ export function MegamindConversation({
       </div>
       {partner && <SessionChips sessions={partner.sessions} />}
       {state.availability === 'error' && (
-        <p role="alert" className="shrink-0 px-3 pb-1 text-[11px] text-destructive">
+        <p role="alert" className="shrink-0 px-3 pb-1 text-xs text-destructive">
           {translate('arca.megamind.chatOffline', 'Chat is out of contact. Retrying.')}
         </p>
       )}
-      <MegamindMessageList
-        messages={loading ? [] : state.messages}
-        viewerHandle={state.viewerHandle}
-        emptyText={
-          loading
-            ? translate('arca.megamind.chatLoading', 'Loading chat…')
-            : translate('arca.megamind.chatEmpty', 'No messages in this channel yet.')
-        }
-      />
+      {/* Keep the composer alive, but measure history only with a visible viewport. */}
+      {isVisible && (
+        <MegamindMessageList
+          channel={openChannel}
+          messages={loading ? [] : state.messages}
+          viewerHandle={state.viewerHandle}
+          emptyText={
+            loading
+              ? translate('arca.megamind.chatLoading', 'Loading chat…')
+              : translate('arca.megamind.chatEmpty', 'No messages in this channel yet.')
+          }
+        />
+      )}
       {notice && (
         <p
           role={notice.tone === 'error' ? 'alert' : 'status'}
           className={cn(
-            'shrink-0 px-3 pt-1 text-[11px]',
+            'shrink-0 px-3 pt-1 text-xs',
             notice.tone === 'error' ? 'text-destructive' : 'text-muted-foreground'
           )}
         >
@@ -193,14 +204,18 @@ export function MegamindConversation({
         </p>
       )}
       <MegamindComposer
+        channel={openChannel}
+        draftScope={state.viewerHandle}
         members={members}
-        disabled={state.availability !== 'ready' || target === null}
+        disabled={!isVisible || state.availability !== 'ready' || target === null}
         placeholder={
-          active?.kind === 'dm'
-            ? translate('arca.megamind.composerDm', 'Message @{{handle}}', {
-                handle: active.handle
-              })
-            : translate('arca.megamind.composerGroup', 'Message # arca')
+          target === null
+            ? translate('arca.megamind.chatResolvingRecipient', 'Resolving conversation…')
+            : active?.kind === 'dm'
+              ? translate('arca.megamind.composerDm', 'Message @{{handle}}', {
+                  handle: active.handle
+                })
+              : translate('arca.megamind.composerGroup', 'Message # arca')
         }
         onSend={send}
       />

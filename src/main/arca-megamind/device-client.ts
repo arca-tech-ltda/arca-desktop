@@ -25,7 +25,8 @@ export class MegamindDeviceClient {
     private readonly development: boolean,
     private readonly sessionPath: string,
     private readonly notify: (item: MegamindRecord) => boolean,
-    private readonly connectionChanged: (connected: boolean) => void
+    private readonly connectionChanged: (connected: boolean) => void,
+    private readonly chatChanged?: () => void
   ) {}
 
   private loadSessions(): Promise<void> {
@@ -174,6 +175,12 @@ export class MegamindDeviceClient {
       }
       if (!this.closeEvents && this.credential && this.running) {
         this.closeEvents = startMegamindEvents(this.credential, this.development, (event) => {
+          if (!this.running) {
+            return
+          }
+          if (!event || event.kind === 'chat' || event.kind === 'message') {
+            this.chatChanged?.()
+          }
           if (
             event?.kind === 'approval_decision' ||
             (typeof event?.kind === 'string' && event.kind.toLowerCase().includes('priority'))

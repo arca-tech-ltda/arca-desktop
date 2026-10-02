@@ -11,6 +11,8 @@ import {
   subscribeMegamindPanelRoute
 } from '@/attention/megamind-panel-route'
 import { MegamindApprovalCards } from './megamind/MegamindApprovalCards'
+import { cn } from '@/lib/utils'
+import { clearMegamindComposerDrafts } from './megamind/megamind-composer-drafts'
 import { MegamindConversation } from './megamind/MegamindConversation'
 import { MegamindConversationList } from './megamind/MegamindConversationList'
 import { MegamindPeopleStrip } from './megamind/MegamindPeopleStrip'
@@ -75,16 +77,23 @@ export default function MegamindPanel({
   isVisible?: boolean
 }): React.JSX.Element {
   const route = useSyncExternalStore(subscribeMegamindPanelRoute, megamindPanelRoute)
-  const { state, selectChannel, post } = useMegamindChat(isVisible)
+  const [openChannel, setOpenChannel] = useState<string | null>(null)
+  const [rememberedChannel, setRememberedChannel] = useState<string | null>(null)
+  const { state, selectChannel, post } = useMegamindChat(isVisible, openChannel)
   const { members, degraded } = useMegamindMembers(isVisible)
   const connection = useMegamindConnection()
-  const [openChannel, setOpenChannel] = useState<string | null>(null)
+  const [previousViewer, setPreviousViewer] = useState(state.viewerHandle)
+  useEffect(() => {
+    const viewer = state.viewerHandle
+    return () => clearMegamindComposerDrafts(viewer)
+  }, [state.viewerHandle])
   const [setupOpen, setSetupOpen] = useState(false)
   const [panelUrl, setPanelUrl] = useState<string | null>(null)
   const open = useCallback(
     (channel: string) => {
       selectChannel(channel)
       setOpenChannel(channel)
+      setRememberedChannel(channel)
     },
     [selectChannel]
   )
@@ -107,6 +116,15 @@ export default function MegamindPanel({
       consumeMegamindRequestedChannel()
     }
   }, [isVisible, open, route])
+
+  if (previousViewer !== state.viewerHandle) {
+    setPreviousViewer(state.viewerHandle)
+    if (previousViewer) {
+      // Reset private navigation before the new identity can be painted.
+      setOpenChannel(null)
+      setRememberedChannel(null)
+    }
+  }
 
   if (isWebClientLocation()) {
     return (
@@ -178,42 +196,54 @@ export default function MegamindPanel({
             run: () => void window.api.arcaMegamind.openMainframeLogin()
           }}
         />
-      ) : openChannel ? (
-        <MegamindConversation
-          channel={openChannel}
-          state={state}
-          members={members}
-          post={post}
-          onBack={() => setOpenChannel(null)}
-        />
       ) : (
-        <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-2">
-          <MegamindPeopleStrip
-            members={members}
-            channels={state.channels}
-            viewerHandle={state.viewerHandle}
-            onOpenConversation={open}
-          />
-          {degraded && (
-            <p className="px-3 pb-2 text-[11px] text-muted-foreground">
-              {translate(
-                'arca.megamind.presenceDegraded',
-                'This Mainframe predates per-person presence; app and agent are told apart by session.'
-              )}
-            </p>
+        <>
+          {rememberedChannel && (
+            <div
+              className={cn('min-h-0 flex-1 flex-col', openChannel ? 'flex' : 'hidden')}
+              hidden={!openChannel}
+              inert={!openChannel || !isVisible}
+            >
+              <MegamindConversation
+                channel={rememberedChannel}
+                isVisible={openChannel !== null && isVisible}
+                state={state}
+                members={members}
+                post={post}
+                onBack={() => setOpenChannel(null)}
+              />
+            </div>
           )}
-          <MegamindApprovalCards />
-          <MegamindConversationList
-            channels={state.channels}
-            members={members}
-            emptyText={
-              state.availability === 'loading'
-                ? translate('arca.megamind.chatLoading', 'Loading chat…')
-                : translate('arca.megamind.chatOffline', 'Chat is out of contact. Retrying.')
-            }
-            onOpen={open}
-          />
-        </div>
+          {!openChannel && (
+            <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-2">
+              <MegamindPeopleStrip
+                members={members}
+                channels={state.channels}
+                viewerHandle={state.viewerHandle}
+                onOpenConversation={open}
+              />
+              {degraded && (
+                <p className="px-3 pb-2 text-[11px] text-muted-foreground">
+                  {translate(
+                    'arca.megamind.presenceDegraded',
+                    'This Mainframe predates per-person presence; app and agent are told apart by session.'
+                  )}
+                </p>
+              )}
+              <MegamindApprovalCards />
+              <MegamindConversationList
+                channels={state.channels}
+                members={members}
+                emptyText={
+                  state.availability === 'loading'
+                    ? translate('arca.megamind.chatLoading', 'Loading chat…')
+                    : translate('arca.megamind.chatOffline', 'Chat is out of contact. Retrying.')
+                }
+                onOpen={open}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   )

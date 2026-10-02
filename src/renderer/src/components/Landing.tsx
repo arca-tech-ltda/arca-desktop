@@ -1,6 +1,15 @@
 import { STAR_PROMPTS_ENABLED } from '@/lib/arca-product-features'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, ExternalLink, FolderPlus, GitBranchPlus, Star, X } from 'lucide-react'
+import {
+  AlertTriangle,
+  Cable,
+  ExternalLink,
+  FolderPlus,
+  GitBranchPlus,
+  History,
+  Star,
+  X
+} from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useAppStore } from '../store'
 import { isGitRepoKind } from '../../../shared/repo-kind'
@@ -13,11 +22,12 @@ import {
 import { ShortcutKeyCombo } from './ShortcutKeyCombo'
 import { useShortcutKeyDetails, type ShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
 import { useMountedRef } from '@/hooks/useMountedRef'
-import logo from '../../../../resources/logo.svg'
+import logoOutline from '../../../../resources/logo-outline.svg'
 import { translate } from '@/i18n/i18n'
 import { hasGitHubBackedProject, type PreflightIssue } from './landing-preflight-issues'
 import { useLandingPreflightRuntime } from './landing-preflight-runtime'
 import { useLandingOrcaStarState, type LandingStarState } from './landing-github-star-state'
+import { Button } from '@/components/ui/button'
 
 type ShortcutItem = {
   id: string
@@ -226,10 +236,11 @@ function PreflightBanner({
 export default function Landing(): React.JSX.Element {
   const repos = useAppStore((s) => s.repos)
   const openModal = useAppStore((s) => s.openModal)
+  const openSettingsPage = useAppStore((s) => s.openSettingsPage)
+  const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
 
   const createTargetLabel =
     repos.length > 0 && repos.every((repo) => isGitRepoKind(repo)) ? 'Worktree' : 'Workspace'
-  const hasProjects = repos.length > 0
   const hasGitHubProject = useMemo(() => hasGitHubBackedProject(repos), [repos])
   const showGitHubSupportFooter = repos.length === 0 || hasGitHubProject
 
@@ -254,56 +265,53 @@ export default function Landing(): React.JSX.Element {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-background">
-      {/* Symbol as a mask so it follows the theme's foreground color; the URL is quoted because an
-          inlined SVG data URI is not a valid unquoted url() and the declaration would be dropped. */}
-      <div
+      <img
+        src={logoOutline}
+        alt=""
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[min(110vh,110vw)] -translate-x-1/2 -translate-y-1/2 bg-foreground opacity-[0.06]"
-        style={{
-          maskImage: `url(${JSON.stringify(logo)})`,
-          maskRepeat: 'no-repeat',
-          maskPosition: 'center',
-          maskSize: 'contain',
-          WebkitMaskImage: `url(${JSON.stringify(logo)})`,
-          WebkitMaskRepeat: 'no-repeat',
-          WebkitMaskPosition: 'center',
-          WebkitMaskSize: 'contain'
-        }}
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[min(110vh,110vw)] w-[min(110vh,110vw)] -translate-x-1/2 -translate-y-1/2 object-contain opacity-[0.08] invert dark:invert-0"
       />
       <div className="relative w-full max-w-lg px-6">
         <div className="flex flex-col items-center gap-4 py-8">
-          <h1 className="text-4xl font-bold text-foreground tracking-tight">
-            {translate('auto.components.Landing.6ca6ff404e', 'ARCA')}
-          </h1>
-
           {preflightIssues.length > 0 && <PreflightBanner issues={preflightIssues} repos={repos} />}
 
-          <p className="text-sm text-muted-foreground text-center">
-            {hasProjects
-              ? translate(
-                  'auto.components.Landing.9c00bd4adf',
-                  'Select a workspace from the sidebar to begin.'
-                )
-              : translate('auto.components.Landing.cd21242762', 'Add a project to get started.')}
-          </p>
-
           <div className="flex items-center justify-center gap-2.5 flex-wrap">
-            <button
-              className="inline-flex items-center gap-1.5 bg-secondary/70 border border-border/80 text-foreground font-medium text-sm px-4 py-2 rounded-md cursor-pointer hover:bg-accent transition-colors"
-              onClick={() => openModal('add-repo')}
-            >
-              <FolderPlus className="size-3.5" />
+            <Button variant="outline" onClick={() => openModal('add-repo')}>
+              <FolderPlus />
               {translate('auto.components.Landing.f9eaa9e12d', 'Add project')}
-            </button>
+            </Button>
 
-            <button
-              className="inline-flex items-center gap-1.5 bg-secondary/70 border border-border/80 text-foreground font-medium text-sm px-4 py-2 rounded-md cursor-pointer hover:bg-accent transition-colors"
+            <Button
+              variant="outline"
               onClick={() => openModal('new-workspace-composer', { telemetrySource: 'unknown' })}
             >
-              <GitBranchPlus className="size-3.5" />
+              <GitBranchPlus />
               {translate('auto.components.Landing.76a95f7f47', 'Create')}{' '}
               {createTargetLabel.toLowerCase()}
-            </button>
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-center gap-2.5 flex-wrap">
+            <Button variant="outline" onClick={() => openModal('worktree-palette')}>
+              <History />
+              {translate('auto.components.Landing.openRecentProject', 'Open recent project')}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                openSettingsTarget({
+                  pane: 'ssh',
+                  repoId: null,
+                  sectionId: 'ssh',
+                  intent: 'add-ssh-host'
+                })
+                openSettingsPage()
+              }}
+            >
+              <Cable />
+              {translate('auto.components.Landing.connectViaSsh', 'Connect via SSH')}
+            </Button>
           </div>
 
           <div className="mt-6 w-full max-w-xs space-y-2">

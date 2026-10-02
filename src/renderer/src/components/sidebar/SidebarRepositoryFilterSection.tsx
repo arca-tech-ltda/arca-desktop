@@ -33,7 +33,6 @@ function getProjectFilterVisibilityLabel({
 }
 
 type SidebarRepositoryFilterSectionProps = {
-  preserveWorkspaceBoardOpen?: boolean
   // Why: the Agents view reuses this section with its own persisted filter;
   // absent props fall back to the workspace-nav filter state.
   filterRepoIds?: readonly string[]
@@ -41,7 +40,6 @@ type SidebarRepositoryFilterSectionProps = {
 }
 
 const SidebarRepositoryFilterSection = React.memo(function SidebarRepositoryFilterSection({
-  preserveWorkspaceBoardOpen = false,
   filterRepoIds: filterRepoIdsProp,
   setFilterRepoIds: setFilterRepoIdsProp
 }: SidebarRepositoryFilterSectionProps) {
@@ -98,10 +96,7 @@ const SidebarRepositoryFilterSection = React.memo(function SidebarRepositoryFilt
           </span>
         </span>
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent
-        className="w-64"
-        data-workspace-board-preserve-open={preserveWorkspaceBoardOpen ? '' : undefined}
-      >
+      <DropdownMenuSubContent className="w-64">
         <div className="flex items-center justify-between px-2 py-1">
           <span className="text-[11px] font-semibold text-muted-foreground">
             {translate(

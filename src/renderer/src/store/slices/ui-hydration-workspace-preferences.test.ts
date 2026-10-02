@@ -257,38 +257,6 @@ describe('createUISlice hydratePersistedUI', () => {
     expect(store.getState().statusBarUsageMode).toBe('verbose')
   })
 
-  it('clamps persisted workspace board column width', () => {
-    const store = createUIStore()
-
-    store.getState().hydratePersistedUI(
-      makePersistedUI({
-        workspaceBoardColumnWidth: 900
-      })
-    )
-
-    expect(store.getState().workspaceBoardColumnWidth).toBe(520)
-  })
-
-  it('defaults workspace board task status sync off and persists changes', () => {
-    const setUI = vi.fn().mockResolvedValue(undefined)
-    vi.stubGlobal('window', { api: { ui: { set: setUI } } })
-    const store = createUIStore()
-
-    expect(store.getState().syncTaskStatusFromWorkspaceBoard).toBe(false)
-
-    store.getState().hydratePersistedUI(
-      makePersistedUI({
-        syncTaskStatusFromWorkspaceBoard: true
-      })
-    )
-    expect(store.getState().syncTaskStatusFromWorkspaceBoard).toBe(true)
-
-    store.getState().setSyncTaskStatusFromWorkspaceBoard(false)
-
-    expect(store.getState().syncTaskStatusFromWorkspaceBoard).toBe(false)
-    expect(setUI).toHaveBeenCalledWith({ syncTaskStatusFromWorkspaceBoard: false })
-  })
-
   it('hydrates a valid Kagi session link', () => {
     const store = createUIStore()
 

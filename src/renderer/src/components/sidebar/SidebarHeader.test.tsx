@@ -133,7 +133,7 @@ afterEach(() => {
 describe('SidebarHeader', () => {
   it('keeps New workspace clickable with zero projects, since the composer adds the first one', async () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(createButton().disabled).toBe(false)
@@ -148,7 +148,7 @@ describe('SidebarHeader', () => {
   it('opens the composer the same way once projects exist', async () => {
     mockState.repos = [{ id: 'repo-a' }]
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     await act(async () => {
@@ -161,7 +161,7 @@ describe('SidebarHeader', () => {
 
   it('reaches Add project and New workspace in one click each, with no menu', async () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(headerButton('New workspace')).toBeTruthy()
@@ -178,7 +178,7 @@ describe('SidebarHeader', () => {
 
   it('keeps the create button rightmost so the frequent action stays where it was', () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     const labels = [...container.querySelectorAll<HTMLElement>('[aria-label]')]
@@ -189,20 +189,22 @@ describe('SidebarHeader', () => {
 
   it('advertises the workspace shortcut on the create tooltip, and omits it when unassigned', () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
     expect(container.textContent).toContain('⌘N')
 
     mocks.shortcutLabel.current = null
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      // Why keyed: the header is memoized and takes no props, so only a remount
+      // re-reads the changed mock state.
+      root.render(<SidebarHeader key="unassigned" />)
     })
     expect(container.textContent).not.toContain('⌘N')
   })
 
   it('opens agent activity from the bell button', () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     const activityButton = container.querySelector<HTMLButtonElement>(
@@ -220,7 +222,7 @@ describe('SidebarHeader', () => {
   it('shows the Agents introduction only for migrated users and never offers a hide action', () => {
     mockState.settings = { agentsSidebarMigratedFromExperimental: true }
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(container.querySelector('[data-intro-open]')).toBeTruthy()
@@ -229,7 +231,7 @@ describe('SidebarHeader', () => {
 
     mockState.settings = {}
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader key="not-migrated" />)
     })
     expect(container.querySelector('[data-intro-open]')).toBeNull()
   })
@@ -237,7 +239,7 @@ describe('SidebarHeader', () => {
   it('turns off agent activity from the active bell button', () => {
     mockState.sidebarBody = 'agents'
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     const activityButton = container.querySelector<HTMLButtonElement>(
@@ -254,7 +256,7 @@ describe('SidebarHeader', () => {
 
   it('uses the legacy title based on workspace grouping', () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(container.querySelector('[data-sidebar-section-title="projects"]')?.textContent).toBe(
@@ -263,7 +265,7 @@ describe('SidebarHeader', () => {
 
     mockState.groupBy = 'workspace-status'
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader key="workspace-status" />)
     })
     expect(container.querySelector('[data-sidebar-section-title="workspaces"]')?.textContent).toBe(
       'Workspaces'
@@ -273,7 +275,7 @@ describe('SidebarHeader', () => {
   it('drops both project actions in the agents view, which lists activity, not projects', () => {
     mockState.sidebarBody = 'agents'
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(container.querySelector('[aria-label="Turn off activity view"]')).toBeTruthy()
@@ -284,7 +286,7 @@ describe('SidebarHeader', () => {
 
   it('keeps the activity bell and actions on one row at the default sidebar width', () => {
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     const headerRow = container.querySelector('.mt-2')
@@ -299,7 +301,7 @@ describe('SidebarHeader', () => {
   it('keeps the same actions on one row at compact width', async () => {
     mockState.sidebarWidth = 220
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(container.querySelector('[aria-label="Add project"]')).toBeTruthy()
@@ -318,7 +320,7 @@ describe('SidebarHeader', () => {
     mockState.settings = undefined
     mockState.sidebarBody = 'agents'
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(mockState.setSidebarBody).not.toHaveBeenCalled()
@@ -328,7 +330,7 @@ describe('SidebarHeader', () => {
     mockState.settings = { agentsSidebarIntroShown: true }
     mockState.sidebarBody = 'agents'
     act(() => {
-      root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+      root.render(<SidebarHeader />)
     })
 
     expect(container.querySelector('[aria-label="Open full Agents view"]')).toBeNull()
@@ -340,7 +342,7 @@ describe('SidebarHeader', () => {
     for (const width of [234, 235]) {
       mockState.sidebarWidth = width
       act(() => {
-        root.render(<SidebarHeader onWorkspaceBoardMenuOpenChange={vi.fn()} />)
+        root.render(<SidebarHeader />)
       })
       expect(container.querySelector('[aria-label="More workspace actions"]')).toBeNull()
       expect(container.querySelector('[aria-label="Add project"]')).toBeTruthy()

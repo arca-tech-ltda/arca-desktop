@@ -89,7 +89,7 @@ export function ActivityThreadListToolbar({
                   size="icon-xs"
                   className="absolute right-0.5 top-1/2 -translate-y-1/2 size-5 p-0 text-muted-foreground hover:text-foreground"
                   aria-label={translate(
-                    'auto.components.sidebar.WorkspaceKanbanSearchField.3b7ea51793',
+                    'auto.components.activity.ActivityThreadListToolbar.clearSearch',
                     'Clear search'
                   )}
                   onClick={() => {

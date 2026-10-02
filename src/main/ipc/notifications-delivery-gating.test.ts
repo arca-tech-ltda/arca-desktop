@@ -4,6 +4,7 @@ import {
   getAllWindowsMock,
   getDispatchHandler,
   getOpenSystemSettingsHandler,
+  getTrustedUIRendererWindowMock,
   handleMock,
   notificationCtorMock,
   notificationIsSupportedMock,
@@ -131,6 +132,66 @@ describe('registerNotificationHandlers', () => {
       reason: 'disabled'
     })
     expect(notificationCtorMock).not.toHaveBeenCalled()
+  })
+
+  it('uses only the trusted app UI focus for Megamind chat', async () => {
+    const hiddenGuest = {
+      isDestroyed: () => false,
+      isFocused: () => true,
+      isVisible: () => false,
+      isMinimized: () => false
+    }
+    const mainWindow = {
+      isDestroyed: () => false,
+      isFocused: () => true,
+      isVisible: () => true,
+      isMinimized: () => false
+    }
+    getAllWindowsMock.mockReturnValue([hiddenGuest, mainWindow])
+    getTrustedUIRendererWindowMock.mockReturnValue(mainWindow)
+
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This dispatch-only fixture supplies the sole store read, getSettings.
+    registerNotificationHandlers({
+      getSettings: () => ({
+        notifications: {
+          enabled: true,
+          agentTaskComplete: true,
+          terminalBell: true,
+          megamindChat: true,
+          suppressWhenFocused: false
+        }
+      })
+    } as never)
+
+    expect(
+      await getDispatchHandler()({}, { source: 'megamind-chat', worktreeLabel: 'message-1' })
+    ).toEqual({ delivered: false, reason: 'suppressed-focus' })
+    expect(notificationCtorMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['an unfocused trusted app UI', { isDestroyed: () => false, isFocused: () => false }],
+    ['no trusted app UI', null]
+  ])('delivers Megamind chat natively with %s', async (_label, trustedWindow) => {
+    getAllWindowsMock.mockReturnValue([{ isDestroyed: () => false, isFocused: () => true }])
+    getTrustedUIRendererWindowMock.mockReturnValue(trustedWindow)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This dispatch-only fixture supplies the sole store read, getSettings.
+    registerNotificationHandlers({
+      getSettings: () => ({
+        notifications: {
+          enabled: true,
+          agentTaskComplete: true,
+          terminalBell: true,
+          megamindChat: true,
+          suppressWhenFocused: false
+        }
+      })
+    } as never)
+
+    expect(
+      await getDispatchHandler()({}, { source: 'megamind-chat', worktreeLabel: String(_label) })
+    ).toEqual({ delivered: true })
+    expect(notificationCtorMock).toHaveBeenCalledOnce()
   })
 
   it('suppresses active-worktree notifications while ARCA is focused', async () => {

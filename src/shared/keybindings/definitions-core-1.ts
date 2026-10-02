@@ -100,26 +100,6 @@ export const KEYBINDING_DEFINITION_CORE_1: readonly KeybindingDefinition[] = [
     allowInTerminal: true
   },
   {
-    id: 'workspace.openBoard',
-    title: 'Toggle Workspace Board',
-    group: 'Global',
-    scope: 'global',
-    searchKeywords: [
-      'shortcut',
-      'global',
-      'workspace',
-      'board',
-      'kanban',
-      'worktree',
-      'toggle',
-      'open',
-      'close'
-    ],
-    // Why: configurable but unbound by default, to not take a global chord from terminal/browser/editor users.
-    defaultBindings: platformBindings([]),
-    allowInTerminal: true
-  },
-  {
     id: 'dashboard.toggle',
     title: 'Toggle Agent Dashboard',
     group: 'Global',
@@ -136,8 +116,7 @@ export const KEYBINDING_DEFINITION_CORE_1: readonly KeybindingDefinition[] = [
       'open',
       'close'
     ],
-    // Why: configurable but unbound by default, matching workspace.openBoard — an
-    // experimental surface must not claim a global chord from terminal users.
+    // Unbound by default so the dashboard does not claim a global terminal shortcut.
     defaultBindings: platformBindings([]),
     allowInTerminal: true
   },

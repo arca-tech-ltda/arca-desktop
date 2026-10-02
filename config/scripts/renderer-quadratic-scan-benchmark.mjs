@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-// Benchmarks four renderer projections that scaled worse than linearly with user data, each on a
-// path that reruns per keystroke or per store write.
-//
-// Scenarios 1, 3 and 4 time the production export against a hand-written reproduction of the
-// pre-change shape and assert both agree first. Scenario 2 is MODELLED on both sides: the
-// projection lives inside the `useTabGroupItemProjections` React hook and cannot be imported
-// without a renderer, so it reproduces the before/after loops rather than driving production.
-import { spawnSync } from 'node:child_process'
+// Tab-group projections are modelled because their React hook needs a renderer; the other scenarios invoke production exports.
 import { transformSync } from 'esbuild'
 import { performance } from 'node:perf_hooks'
 import fs from 'node:fs'
@@ -14,15 +7,6 @@ import nodeModule from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-
-if (!process.execArgv.includes('--experimental-transform-types')) {
-  const result = spawnSync(
-    process.execPath,
-    ['--experimental-transform-types', '--no-warnings', import.meta.filename],
-    { stdio: 'inherit' }
-  )
-  process.exit(result.status ?? 1)
-}
 
 const ROOT = path.resolve(import.meta.dirname, '../..')
 const RENDERER = path.join(ROOT, 'src/renderer/src')
@@ -46,11 +30,15 @@ nodeModule.registerHooks({
       ? { url: pathToFileURL(resolved).href, shortCircuit: true }
       : nextResolve(specifier, context)
   },
-  // Node strips types from .ts but not .tsx; the sidebar row model transitively imports icons.
+  // Node's TypeScript flags vary by version; use the existing transpiler for both source formats.
   load(url, context, nextLoad) {
-    if (url.endsWith('.tsx')) {
+    if (url.endsWith('.ts') || url.endsWith('.tsx')) {
       const source = fs.readFileSync(fileURLToPath(url), 'utf8')
-      const { code } = transformSync(source, { loader: 'tsx', format: 'esm', jsx: 'automatic' })
+      const { code } = transformSync(source, {
+        loader: url.endsWith('.tsx') ? 'tsx' : 'ts',
+        format: 'esm',
+        jsx: 'automatic'
+      })
       return { format: 'module', source: code, shortCircuit: true }
     }
     if (url.endsWith('.json') && !url.includes('/node_modules/')) {
@@ -72,8 +60,6 @@ function envInt(name, fallback) {
   return value
 }
 
-const KEYSTROKES = envInt('ORCA_QUADRATIC_BENCH_KEYSTROKES', 12)
-const WORKTREES = envInt('ORCA_QUADRATIC_BENCH_WORKTREES', 300)
 const TABS = envInt('ORCA_QUADRATIC_BENCH_TABS', 60)
 const OPEN_FILES = envInt('ORCA_QUADRATIC_BENCH_OPEN_FILES', 120)
 const CHANGED_FILES = envInt('ORCA_QUADRATIC_BENCH_CHANGED_FILES', 5000)
@@ -113,40 +99,7 @@ function compare({ label, scale, drives, before, after }) {
   results.push({ label, scale, drives, beforeMs: timeRounds(before), afterMs: timeRounds(after) })
 }
 
-// ------------------------------------------------- 1. workspace board search index
-
-const { buildWorkspaceBoardPaletteDocuments, matchWorkspaceBoardWorktrees } = await importRenderer(
-  'components/sidebar/workspace-kanban-search.ts'
-)
-
-const repoMap = new Map([
-  ['repo-1', { id: 'repo-1', name: 'orca', path: '/tmp/orca', branch: 'main' }]
-])
-const boardWorktrees = Array.from({ length: WORKTREES }, (_, index) => ({
-  id: `repo-1::/tmp/worktree-${index}`,
-  repoId: 'repo-1',
-  path: `/tmp/worktree-${index}`,
-  branch: `feature/search-target-${index}`,
-  title: `Workspace ${index} search target`,
-  isMain: false
-}))
-const queries = Array.from({ length: KEYSTROKES }, (_, index) => 'search'.slice(0, (index % 6) + 1))
-const matchAll = (documents) =>
-  queries.map((query) => [
-    ...matchWorkspaceBoardWorktrees({ worktrees: boardWorktrees, query, repoMap, documents })
-  ])
-
-compare({
-  label: 'workspace board filter (per keystroke burst)',
-  scale: `${WORKTREES} worktrees x ${KEYSTROKES} keystrokes`,
-  drives: 'production',
-  // Omitting `documents` is the pre-change shape: the index is rebuilt inside every match.
-  before: () => matchAll(undefined),
-  // The hook memoizes the index on [worktrees, repoMap]; only the match reruns per keystroke.
-  after: () => matchAll(buildWorkspaceBoardPaletteDocuments({ worktrees: boardWorktrees, repoMap }))
-})
-
-// ------------------------------------------------- 2. tab-group projections (modelled)
+// ------------------------------------------------- 1. tab-group projections (modelled)
 
 const groupTabs = Array.from({ length: TABS }, (_, index) => ({
   id: `tab-${index}`,
@@ -189,7 +142,7 @@ compare({
   )
 })
 
-// ------------------------------------------------- 3. source-control tree build
+// ------------------------------------------------- 2. source-control tree build
 
 const { buildSourceControlTree } = await importRenderer(
   'components/right-sidebar/source-control-tree.ts'
@@ -269,7 +222,7 @@ compare({
   after: () => buildSourceControlTree('unstaged', changedEntries)
 })
 
-// ------------------------------------------------- 4. sidebar header boundaries
+// ------------------------------------------------- 3. sidebar header boundaries
 
 const { getRepoHeaderSectionEndByRepoId } = await importRenderer(
   'components/sidebar/worktree-header-section-boundaries.ts'

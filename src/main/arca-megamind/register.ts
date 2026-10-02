@@ -19,7 +19,11 @@ import type { MegamindRecord } from '../../shared/arca-megamind'
 import { takeArcaDeepLinks } from './deep-links'
 import { megamindPrerequisites } from './prerequisites'
 import { isTrustedUIRenderer } from '../ipc/ui'
-import { broadcastToTrustedRenderers, MegamindSubscribers } from './renderer-broadcast'
+import {
+  broadcastToTrustedRenderers,
+  MegamindChatVisibilityOwner,
+  MegamindSubscribers
+} from './renderer-broadcast'
 import { notifyMegamindPrioritiesChanged, setMegamindPriorityProvider } from './priorities'
 
 function requireRenderer(sender: WebContents): void {
@@ -32,14 +36,8 @@ export function registerMegamind(): void {
   configureMegamindPaneSessionIdStore(app.getPath('userData'))
   startMegamindAgentPresence(megamindConfigPath(), !app.isPackaged)
   const publish = broadcastToTrustedRenderers
-  const subscribers = new MegamindSubscribers()
-  ipcMain.on('arcaMegamind:subscribe', (event) => {
-    // Chat polls for the user's own DMs and mentions whether or not the panel is open.
-    if (subscribers.add(event.sender)) {
-      chat.start()
-    }
-  })
-  ipcMain.on('arcaMegamind:unsubscribe', (event) => subscribers.remove(event.sender))
+  let removeVisibilityOwner = (_sender: WebContents): void => {}
+  const subscribers = new MegamindSubscribers((sender) => removeVisibilityOwner(sender))
   const client = new MegamindDeviceClient(
     megamindConfigPath(),
     !app.isPackaged,
@@ -50,15 +48,19 @@ export function registerMegamind(): void {
       }
       return notifySubscriber(item)
     },
-    (connected) => enrollment.connectionChanged(connected)
+    (connected) => enrollment.connectionChanged(connected),
+    () => void chat.refresh()
   )
   setMegamindPriorityProvider(() => client.priorities())
   const notifySubscriber = (item: MegamindRecord): boolean => subscribers.notify(item)
   const chat = new MegamindChatService({
     client: new MegamindChatClient(runMainframeUserRequest),
-    publish: (state) => publish('arcaMegamind:chatState', state),
+    publish: (state) => {
+      subscribers.chatViewerChanged(state.viewerHandle)
+      publish('arcaMegamind:chatState', state)
+    },
     alert: (message, alert) =>
-      notifySubscriber({
+      subscribers.notifyChat({
         kind: 'chat',
         id: message.id,
         alert,
@@ -68,6 +70,17 @@ export function registerMegamind(): void {
         body: message.body
       })
   })
+  const visibilityOwner = new MegamindChatVisibilityOwner((visible, readChannel) =>
+    chat.setVisible(visible, readChannel)
+  )
+  removeVisibilityOwner = (sender) => visibilityOwner.remove(sender)
+  ipcMain.on('arcaMegamind:subscribe', (event) => {
+    // Chat polls for the user's own DMs and mentions whether or not the panel is open.
+    if (subscribers.add(event.sender)) {
+      chat.start()
+    }
+  })
+  ipcMain.on('arcaMegamind:unsubscribe', (event) => subscribers.remove(event.sender))
   const enrollment = new MegamindEnrollment({
     path: megamindConfigPath(),
     endpoint: new URL('/api/arca/mcp', getArcaMainframeEndpoint().origin).href,
@@ -116,10 +129,16 @@ export function registerMegamind(): void {
     chat.start()
     return chat.snapshot()
   })
-  ipcMain.handle('arcaMegamind:chatSetVisible', (event, visible: boolean) => {
-    requireRenderer(event.sender)
-    chat.setVisible(visible === true)
-  })
+  ipcMain.handle(
+    'arcaMegamind:chatSetVisible',
+    (event, visible: boolean, readChannel?: string | null) => {
+      requireRenderer(event.sender)
+      if (readChannel !== undefined && readChannel !== null && !isMegamindChannelId(readChannel)) {
+        throw new Error('Invalid chat read channel')
+      }
+      visibilityOwner.set(event.sender, visible === true, readChannel ?? null)
+    }
+  )
   ipcMain.handle('arcaMegamind:chatSelectChannel', (event, channel: string) => {
     requireRenderer(event.sender)
     if (!isMegamindChannelId(channel)) {
@@ -169,6 +188,7 @@ export function registerMegamind(): void {
   })
   app.once('before-quit', () => {
     setMegamindPriorityProvider(null)
+    subscribers.clearPendingChat()
     client.stop()
     chat.stop()
     closeMainframeUserGuest()

@@ -151,13 +151,12 @@ describe('WorktreeCard quick actions', () => {
     worktreesByRepo = {}
   })
 
-  it('marks the unread toggle as a workspace-board-preserving action', () => {
+  it('renders the unread toggle quick action', () => {
     const markup = renderToStaticMarkup(
       <WorktreeCard worktree={makeWorktree()} repo={makeRepo()} isActive={false} />
     )
 
     expect(markup).toContain('aria-label="Mark as read"')
-    expect(markup).toContain('data-workspace-board-preserve-open=""')
   })
 
   it('renders repo identity in the detailed metadata row', () => {
