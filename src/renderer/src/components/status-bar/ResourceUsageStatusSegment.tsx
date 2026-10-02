@@ -55,6 +55,8 @@ export function ResourceUsageStatusSegment({
     totalCpu,
     memBadgeLabel,
     commitToneClass,
+    hostPressureToneClass,
+    hostMemoryLabel,
     commitBadgeLabel,
     daemonUnreachable,
     sessionsOnlyError,
@@ -88,6 +90,7 @@ export function ResourceUsageStatusSegment({
         spaceScanReady,
         iconOnly,
         commitToneClass,
+        hostPressureToneClass,
         memBadgeLabel,
         triggerSessionCount,
         orphanCount,
@@ -115,6 +118,8 @@ export function ResourceUsageStatusSegment({
             commitBadgeLabel,
             commitMetricCopy,
             commitToneClass,
+            hostMemoryLabel,
+            hostPressureToneClass,
             orphanCount
           })}
         {/* Why: fixed 420px height so the popover doesn't jump as worktrees expand/collapse or sessions change; inner tree owns its scroll. */}

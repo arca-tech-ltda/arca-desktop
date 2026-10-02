@@ -135,6 +135,8 @@ export function renderResourceUsageSummary({
   commitBadgeLabel,
   commitMetricCopy,
   commitToneClass,
+  hostMemoryLabel,
+  hostPressureToneClass,
   orphanCount
 }: {
   totalCpu: number
@@ -143,6 +145,8 @@ export function renderResourceUsageSummary({
   commitBadgeLabel: string | null
   commitMetricCopy: ReturnType<typeof getResourceCommitMetricCopy> | null
   commitToneClass: string | null
+  hostMemoryLabel: string | null
+  hostPressureToneClass: string | null
   orphanCount: number
 }): React.JSX.Element {
   return (
@@ -201,6 +205,30 @@ export function renderResourceUsageSummary({
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
                 {commitMetricCopy.description}
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
+        {hostMemoryLabel && (
+          <>
+            <span className="text-muted-foreground/50">·</span>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <span
+                  tabIndex={0}
+                  className={cn(
+                    'font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded',
+                    hostPressureToneClass ?? 'text-foreground'
+                  )}
+                >
+                  {hostMemoryLabel}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
+                {translate(
+                  'auto.components.status.bar.resource.usage.popover.summary.hostMemoryDescription',
+                  'Memory in use across the whole machine, not just Orca. Everything else running competes for the same RAM, so this is what turns yellow or red first.'
+                )}
               </TooltipContent>
             </Tooltip>
           </>

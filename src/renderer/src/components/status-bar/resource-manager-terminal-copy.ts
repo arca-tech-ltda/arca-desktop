@@ -31,13 +31,27 @@ function spaceScanReadyLabel(): string {
  * unlike the translated text, which locales are free to duplicate across rows.
  */
 export type ResourceManagerTooltipLine = {
-  id: 'summary' | 'space-scan' | 'sessions-hint'
+  id: 'summary' | 'host' | 'space-scan' | 'sessions-hint'
   text: string
   emphasized: boolean
 }
 
+/** Host-wide memory, the pressure Orca's own sums cannot show. Percent is pre-rounded by the caller. */
+export function formatHostMemoryLine(args: {
+  usedLabel: string
+  totalLabel: string
+  usagePercent: number
+}): string {
+  return translate(
+    'auto.components.status.bar.resource.manager.terminal.copy.hostMemorySummary',
+    'Host: {{used}} / {{total}} ({{percent}}%)',
+    { used: args.usedLabel, total: args.totalLabel, percent: args.usagePercent }
+  )
+}
+
 export function getResourceManagerTooltipLines(args: {
   memoryLabel: string
+  hostLine?: string | null
   sessionCount: number
   spaceScanReady: boolean
 }): ResourceManagerTooltipLine[] {
@@ -62,6 +76,10 @@ export function getResourceManagerTooltipLines(args: {
       emphasized: false
     }
   ]
+
+  if (args.hostLine) {
+    lines.push({ id: 'host', text: args.hostLine, emphasized: false })
+  }
 
   if (args.spaceScanReady) {
     lines.push({ id: 'space-scan', text: spaceScanReadyLabel(), emphasized: true })

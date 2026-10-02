@@ -2,7 +2,11 @@
 import { cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { BrowserWorkspace } from '../../../../shared/browser-workspace-types'
-import type { MemorySnapshot, WorktreeMemory } from '../../../../shared/process-stats-types'
+import type {
+  HostMemory,
+  MemorySnapshot,
+  WorktreeMemory
+} from '../../../../shared/process-stats-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import type { ProjectGroup } from '../../../../shared/project-group-types'
 import type { DaemonSession } from './resource-usage-merge-types'
@@ -65,7 +69,91 @@ function derive(
   ).result.current.unifiedRepos
 }
 
+const idleUsage = { cpu: 0, memory: 0 }
+
+function hostMemory(fields: Pick<HostMemory, 'totalMemory' | 'usedMemory' | 'memoryUsagePercent'>) {
+  return {
+    ...fields,
+    freeMemory: fields.totalMemory - fields.usedMemory,
+    availableMemory: fields.totalMemory - fields.usedMemory,
+    availableMemorySource: 'memory-pressure',
+    cpuCoreCount: 8,
+    loadAverage1m: 1
+  } satisfies HostMemory
+}
+
+function deriveModel(host: HostMemory | null) {
+  const snapshot: MemorySnapshot | null = host
+    ? {
+        app: { ...idleUsage, main: idleUsage, renderer: idleUsage, other: idleUsage, history: [] },
+        worktrees: [sampled],
+        host,
+        totalMemory: 2048,
+        totalCpu: 2,
+        processMemoryMetric: 'rss',
+        collectedAt: 0
+      }
+    : null
+  return renderHook(() =>
+    useResourceUsageDerivedModel({
+      open: true,
+      resourceSnapshot: snapshot,
+      sessions: [],
+      resourceSessionBindings: {
+        tabsByWorktree: {},
+        ptyIdsByTabId: {},
+        workspaceSessionReady: true
+      },
+      runtimePaneTitlesByTabId: {},
+      repos: [],
+      allWorktrees: [local],
+      projectGroups: [group],
+      browserTabsByWorktree: {},
+      workspaceSessionReady: true,
+      sessionCount: 0,
+      sessionsError: false,
+      memorySnapshotError: null,
+      snapshot,
+      spaceScanReady: false
+    })
+  ).result.current
+}
+
 afterEach(cleanup)
+
+describe('host memory pressure', () => {
+  const gib = 1024 ** 3
+
+  it.each([
+    [50, null],
+    [65, 'text-yellow-500'],
+    [90, 'text-red-500']
+  ])('tints at %i%% host usage', (memoryUsagePercent, expected) => {
+    expect(
+      deriveModel(hostMemory({ totalMemory: 16 * gib, usedMemory: 8 * gib, memoryUsagePercent }))
+        .hostPressureToneClass
+    ).toBe(expected)
+  })
+
+  it('stays silent with no snapshot to read the host from', () => {
+    const model = deriveModel(null)
+    expect(model.hostPressureToneClass).toBeNull()
+    expect(model.hostMemoryLabel).toBeNull()
+  })
+
+  it('names the host total in the chip tooltip, not just Orca\u2019s own sum', () => {
+    const model = deriveModel(
+      hostMemory({ totalMemory: 16 * gib, usedMemory: 14.2 * gib, memoryUsagePercent: 88.75 })
+    )
+
+    expect(model.hostMemoryLabel).toBe('Host: 14.20 GB / 16.00 GB (89%)')
+    expect(model.resourceManagerTooltipLines).toContainEqual({
+      id: 'host',
+      text: 'Host: 14.20 GB / 16.00 GB (89%)',
+      emphasized: false
+    })
+  })
+})
 
 describe('Resource Manager folder ownership', () => {
   it.each(['ssh:box', 'runtime:paired'] as const)(

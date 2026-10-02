@@ -1,22 +1,23 @@
 import { spawn } from 'node:child_process'
 import { availableParallelism, totalmem } from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { acquireMemoryBudget, admissibleHeapGib } from './memory-budget.mjs'
 
-const BYTES_PER_GIB = 1024 ** 3
+export { admissibleHeapGib }
 
-// Peak heap per project, read from `tsc --extendedDiagnostics` and rounded up. node and
-// web are the expensive pair: run together they exceed a 16 GB CI runner, and an
-// out-of-memory runner is killed mid-check, so the job reports a lost runner instead of a
-// type error. Admission is therefore by memory, not by core count alone.
+// Peak resident memory per project on a full (no tsbuildinfo) run of the native tsc,
+// measured with `/usr/bin/time -l` and rounded up. node and web are the expensive pair:
+// run together they exceed a 16 GB machine, and an out-of-memory runner is killed
+// mid-check, so the job reports a lost runner instead of a type error. Admission is
+// therefore by memory, not by core count alone. Incremental runs cost roughly half.
 export const TYPECHECK_PROJECTS = [
-  { config: 'tsconfig.node.json', heapGib: 7 },
-  { config: 'tsconfig.tc.web.json', heapGib: 6 },
-  { config: 'tsconfig.tc.cli.json', heapGib: 2 }
+  { config: 'tsconfig.node.json', heapGib: 8 },
+  { config: 'tsconfig.tc.web.json', heapGib: 5 },
+  { config: 'tsconfig.tc.cli.json', heapGib: 1 }
 ]
 
-// The OS, node itself, and the runner agent need their share; the rest is what tsc may hold.
-export function admissibleHeapGib(totalBytes) {
-  return Math.max(1, (totalBytes / BYTES_PER_GIB) * 0.75)
+export function heapGibFor(config) {
+  return TYPECHECK_PROJECTS.find((project) => project.config === config)?.heapGib
 }
 
 /**
@@ -55,24 +56,34 @@ export function planTypecheckBatches(projects, { budgetGib, parallelism }) {
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 const tsc = fileURLToPath(new URL('../../node_modules/typescript/bin/tsc', import.meta.url))
 
-function checkProject(project) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [tsc, '--noEmit', '-p', `config/${project}`], {
-      cwd: repoRoot,
-      stdio: 'inherit'
-    })
-
-    child.on('error', reject)
-    child.on('exit', (code, signal) => {
-      if (signal) {
-        reject(new Error(`tsc ${project} exited with signal ${signal}`))
-      } else if (code !== 0) {
-        reject(new Error(`tsc ${project} exited with code ${code}`))
-      } else {
-        resolve()
-      }
-    })
+// The batch plan bounds THIS process; the lease bounds the machine, because another
+// agent's typecheck in the same checkout is invisible to the plan (see memory-budget.mjs).
+async function checkProject(project) {
+  const release = await acquireMemoryBudget({
+    gib: heapGibFor(project) ?? 1,
+    label: `tsc ${project}`
   })
+  try {
+    await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, [tsc, '--noEmit', '-p', `config/${project}`], {
+        cwd: repoRoot,
+        stdio: 'inherit'
+      })
+
+      child.on('error', reject)
+      child.on('exit', (code, signal) => {
+        if (signal) {
+          reject(new Error(`tsc ${project} exited with signal ${signal}`))
+        } else if (code !== 0) {
+          reject(new Error(`tsc ${project} exited with code ${code}`))
+        } else {
+          resolve()
+        }
+      })
+    })
+  } finally {
+    release()
+  }
 }
 
 async function runTypecheckProjects() {
