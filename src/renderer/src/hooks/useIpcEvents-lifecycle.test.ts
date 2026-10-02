@@ -1,6 +1,7 @@
 import type * as ReactModule from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
+import { emptyMegamindChatState } from '../../../shared/arca-megamind-chat'
 import { createHarnessStoreState } from './ipc-events-test-harness'
 const EXPECTED_DIRECT_CALLBACK_METHODS = [
   'agentStatus.onClear',
@@ -283,6 +284,12 @@ describe('useIpcEvents App-lifetime lifecycle', () => {
         {},
         {
           get: (_target, property: string) => {
+            if (name === 'arcaMegamind' && property === 'chatState') {
+              return () => Promise.resolve(emptyMegamindChatState())
+            }
+            if (name === 'arcaMegamind' && property === 'onChatState') {
+              return () => () => {}
+            }
             if (name === 'runtimeEnvironments' && property === 'subscribe') {
               return async () => {
                 registrationOrder.push('runtimeEnvironments.subscribe')
