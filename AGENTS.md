@@ -43,8 +43,9 @@ Avoid type assertions except `as const`. Unavoidable casts need a line-specific 
 
 # Verifying Changes
 
-- **Typecheck**: `pnpm tc` (or `tc:node` / `tc:cli` / `tc:web`)
-- **Test**: `pnpm test [path/to/file.test.ts]`
+- **Typecheck**: `pnpm tc` (or `tc:node` / `tc:cli` / `tc:web`). A full `tc:node` peaks at ~8 GB and `tc:web` at ~5 GB; every typecheck takes a machine-wide memory lease (`config/scripts/memory-budget.mjs`), so a second typecheck started by another agent waits instead of freezing the machine. If your typecheck sits idle, another one is running.
+- **Test**: `pnpm test [path/to/file.test.ts]`. The full suite spawns one worker per core; prefer the file you touched.
+- **Parallel agents in one checkout**: each worker verifies with focused tests and `check:code-quality:changed`; the full typecheck runs once, by the orchestrator, after the work is integrated. Six full typechecks for three workers is what put a 16 GB Mac into swap.
 - **Lint**: `oxlint`, or `pnpm run check:code-quality:changed` for changed files (full `pnpm lint` is slow); format with `pnpm format`
 - **Design system**: `pnpm run lint:design-system` for the full renderer report (not a gate); the changed-lines gate above is what CI enforces
 
