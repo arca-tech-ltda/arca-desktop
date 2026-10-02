@@ -8,9 +8,11 @@ import type { DaemonSession } from './resource-usage-merge-types'
 import type { ResourceSessionBindingInputs } from './resource-session-bindings'
 import { countUnboundDaemonSessions } from './resource-session-bindings'
 import {
+  formatHostMemoryLine,
   getResourceManagerAriaLabel,
   getResourceManagerTooltipLines
 } from './resource-manager-terminal-copy'
+import { usageTextColorClass } from './usage-roster-formatting'
 import {
   getCommitPressureToneClass,
   getResourceCommitMetricCopy,
@@ -149,22 +151,45 @@ export function useResourceUsageDerivedModel({
   const commitMetricCopy = resourceSnapshot?.processCommitMetric
     ? getResourceCommitMetricCopy()
     : null
-  const { totalMemory, totalCpu, memBadgeLabel, totalPrivateMemory, commitToneClass } =
-    useMemo(() => {
-      const memory = resourceSnapshot?.totalMemory ?? 0
-      const cpu = resourceSnapshot?.totalCpu ?? 0
-      const privateMemory = resourceSnapshot?.totalPrivateMemory
-      return {
-        totalMemory: memory,
-        totalCpu: cpu,
-        memBadgeLabel: resourceSnapshot ? formatMemory(memory) : '—',
-        totalPrivateMemory: privateMemory,
-        commitToneClass: getCommitPressureToneClass({
-          privateMemory,
-          hostTotalMemory: resourceSnapshot?.host.totalMemory ?? 0
-        })
-      }
-    }, [resourceSnapshot])
+  const {
+    totalMemory,
+    totalCpu,
+    memBadgeLabel,
+    totalPrivateMemory,
+    commitToneClass,
+    hostPressureToneClass,
+    hostMemoryLabel
+  } = useMemo(() => {
+    const memory = resourceSnapshot?.totalMemory ?? 0
+    const cpu = resourceSnapshot?.totalCpu ?? 0
+    const privateMemory = resourceSnapshot?.totalPrivateMemory
+    const host = resourceSnapshot?.host
+    // Why: host pressure is the only RAM signal Unix hosts carry; commit bytes are Windows-only.
+    const hostUsagePercent =
+      typeof host?.memoryUsagePercent === 'number' && Number.isFinite(host.memoryUsagePercent)
+        ? host.memoryUsagePercent
+        : null
+    const hostTone = hostUsagePercent === null ? null : usageTextColorClass(hostUsagePercent)
+    return {
+      totalMemory: memory,
+      totalCpu: cpu,
+      memBadgeLabel: resourceSnapshot ? formatMemory(memory) : '—',
+      totalPrivateMemory: privateMemory,
+      commitToneClass: getCommitPressureToneClass({
+        privateMemory,
+        hostTotalMemory: host?.totalMemory ?? 0
+      }),
+      hostPressureToneClass: hostTone === null || hostTone === 'text-foreground' ? null : hostTone,
+      hostMemoryLabel:
+        host && hostUsagePercent !== null
+          ? formatHostMemoryLine({
+              usedLabel: formatMemory(host.usedMemory),
+              totalLabel: formatMemory(host.totalMemory),
+              usagePercent: Math.round(hostUsagePercent)
+            })
+          : null
+    }
+  }, [resourceSnapshot])
   const commitBadgeLabel =
     commitMetricCopy && totalPrivateMemory !== undefined ? formatMemory(totalPrivateMemory) : null
 
@@ -183,6 +208,7 @@ export function useResourceUsageDerivedModel({
           .filter(Boolean)
           .join(' · ')
       : memBadgeLabel,
+    hostLine: hostMemoryLabel,
     sessionCount: triggerSessionCount,
     spaceScanReady
   })
@@ -201,6 +227,8 @@ export function useResourceUsageDerivedModel({
     totalCpu,
     memBadgeLabel,
     commitToneClass,
+    hostPressureToneClass,
+    hostMemoryLabel,
     commitBadgeLabel,
     daemonUnreachable,
     sessionsOnlyError,

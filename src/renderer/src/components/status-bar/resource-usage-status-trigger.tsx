@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS } from './status-bar-context-menu-policy'
+import { mostSevereToneClass } from './resource-memory-metric-copy'
 
 export function renderResourceUsageStatusTrigger({
   daemonUnreachable,
@@ -12,6 +13,7 @@ export function renderResourceUsageStatusTrigger({
   spaceScanReady,
   iconOnly,
   commitToneClass,
+  hostPressureToneClass,
   memBadgeLabel,
   triggerSessionCount,
   orphanCount,
@@ -22,6 +24,7 @@ export function renderResourceUsageStatusTrigger({
   spaceScanReady: boolean
   iconOnly: boolean
   commitToneClass: string | null
+  hostPressureToneClass: string | null
   memBadgeLabel: string
   triggerSessionCount: number
   orphanCount: number
@@ -55,11 +58,12 @@ export function renderResourceUsageStatusTrigger({
             {!iconOnly && (
               <>
                 {/* Tint only: the number stays the resident sum it has always been,
-                    and the tooltip names the commit figure that raised the tone. */}
+                    and the tooltip names the commit or host figure that raised the tone. */}
                 <span
                   className={cn(
                     'text-[11px] font-medium tabular-nums',
-                    commitToneClass ?? 'text-muted-foreground'
+                    mostSevereToneClass(commitToneClass, hostPressureToneClass) ??
+                      'text-muted-foreground'
                   )}
                 >
                   {memBadgeLabel}

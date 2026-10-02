@@ -7,7 +7,8 @@ vi.mock('@/i18n/i18n', () => ({
 import {
   getCommitPressureToneClass,
   getResourceCommitMetricCopy,
-  getResourceMemoryMetricCopy
+  getResourceMemoryMetricCopy,
+  mostSevereToneClass
 } from './resource-memory-metric-copy'
 
 describe('resource memory metric copy', () => {
@@ -69,5 +70,26 @@ describe('commit pressure tone', () => {
     expect(getCommitPressureToneClass({ privateMemory: 32 * 1024 ** 3, hostTotalMemory })).toBe(
       'text-red-500'
     )
+  })
+})
+
+describe('most severe tone', () => {
+  it('stays silent when no pressure source has anything to say', () => {
+    expect(mostSevereToneClass()).toBeNull()
+    expect(mostSevereToneClass(null, undefined)).toBeNull()
+  })
+
+  it('keeps the only tone present, whichever argument carries it', () => {
+    expect(mostSevereToneClass(null, 'text-yellow-500')).toBe('text-yellow-500')
+    expect(mostSevereToneClass('text-red-500', null)).toBe('text-red-500')
+  })
+
+  it('lets red win over yellow regardless of argument order', () => {
+    expect(mostSevereToneClass('text-yellow-500', 'text-red-500')).toBe('text-red-500')
+    expect(mostSevereToneClass('text-red-500', 'text-yellow-500')).toBe('text-red-500')
+  })
+
+  it('ignores tones it does not rank, rather than passing them through', () => {
+    expect(mostSevereToneClass('text-foreground')).toBeNull()
   })
 })

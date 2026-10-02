@@ -64,3 +64,16 @@ export function getCommitPressureToneClass(args: {
   const tone = usageTextColorClass((privateMemory / hostTotalMemory) * 100)
   return tone === 'text-foreground' ? null : tone
 }
+
+// Why: derived from the shared bands so severity order can't drift from the palette they emit.
+const TONE_CLASSES_BY_SEVERITY = [usageTextColorClass(100), usageTextColorClass(60)]
+
+/**
+ * Loudest tone wins: a chip tinted by several independent pressures must not let
+ * a quiet one (or a null) overwrite the alarming one.
+ */
+export function mostSevereToneClass(
+  ...toneClasses: readonly (string | null | undefined)[]
+): string | null {
+  return TONE_CLASSES_BY_SEVERITY.find((tone) => toneClasses.includes(tone)) ?? null
+}

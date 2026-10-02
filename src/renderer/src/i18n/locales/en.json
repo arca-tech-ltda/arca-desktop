@@ -4160,7 +4160,15 @@
                   "sessionsGroupedByWorkspace": "Terminal sessions are grouped by workspace.",
                   "noTerminalSessions": "No terminal sessions yet.",
                   "ariaLabel": "Resource Manager, {{sessions}}",
-                  "ariaLabelWithSpaceScan": "Resource Manager, {{sessions}}, {{spaceScan}}"
+                  "ariaLabelWithSpaceScan": "Resource Manager, {{sessions}}, {{spaceScan}}",
+                  "hostMemorySummary": "Host: {{used}} / {{total}} ({{percent}}%)"
+                }
+              }
+            },
+            "usage": {
+              "popover": {
+                "summary": {
+                  "hostMemoryDescription": "Memory in use across the whole machine, not just Orca. Everything else running competes for the same RAM, so this is what turns yellow or red first."
                 }
               }
             }
